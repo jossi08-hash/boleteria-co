@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { obtenerBoletas, publicarBoleta, crearOrden } from './lib/boletas'
+import { obtenerBoletas, publicarBoleta, crearOrden, obtenerVentasDeUsuario } from './lib/boletas'
 import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual } from './lib/auth'
 import { supabase } from './lib/supabase'
 
@@ -8,6 +8,7 @@ const ADMIN_EMAIL = 'jossi08@icloud.com'
 function App() {
   const [boletas, setBoletas] = useState([])
   const [boletasPendientes, setBoletasPendientes] = useState([])
+  const [ventasPorVendedor, setVentasPorVendedor] = useState({})
   const [cargando, setCargando] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [mostrarAdmin, setMostrarAdmin] = useState(false)
@@ -38,6 +39,18 @@ function App() {
     const data = await obtenerBoletas()
     setBoletas(data)
     setCargando(false)
+    const ventas = {}
+    for (const b of data) {
+      if (b.vendedor_id && !(b.vendedor_id in ventas)) {
+        const { count } = await supabase
+          .from('boletas')
+          .select('id', { count: 'exact' })
+          .eq('vendedor_id', b.vendedor_id)
+          .eq('estado', 'vendida')
+        ventas[b.vendedor_id] = count || 0
+      }
+    }
+    setVentasPorVendedor(ventas)
   }
 
   async function cargarBoletasPendientes() {
@@ -152,6 +165,10 @@ function App() {
     tarjetaPendiente: { background: '#1a1a0d', border: '1px solid #3a3a1a', borderRadius: '12px', padding: '16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
     nombreEvento: { color: c.texto, fontSize: '18px', fontWeight: '700', margin: '0 0 6px' },
     detalleEvento: { color: c.textoSec, fontSize: '14px', margin: '0 0 4px' },
+    vendedorRow: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' },
+    badgeBCO: { background: '#1d3557', color: '#60a5fa', fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '4px' },
+    vendedorNombre: { color: c.textoSec, fontSize: '13px' },
+    ventasCount: { color: '#6b7280', fontSize: '12px' },
     filaPrecio: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' },
     precio: { color: c.texto, fontSize: '22px', fontWeight: '700', margin: 0 },
     botonComprar: { background: c.acento, color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 22px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
@@ -189,7 +206,6 @@ function App() {
         {esAdmin && mostrarAdmin && (
           <div style={s.tarjetaAdmin}>
             <p style={s.tituloAdmin}>Panel de administrador</p>
-
             {boletasPendientes.length > 0 && (
               <div style={{ marginBottom: '20px' }}>
                 <p style={s.tituloPendiente}>Boletas pendientes de verificacion ({boletasPendientes.length})</p>
@@ -210,51 +226,30 @@ function App() {
                 <hr style={s.separador} />
               </div>
             )}
-
-            {boletasPendientes.length === 0 && <p style={{ color: c.textoSec, fontSize: '13px', marginBottom: '16px' }}>No hay boletas pendientes de verificacion.</p>}
-
+            {boletasPendientes.length === 0 && <p style={{ color: c.textoSec, fontSize: '13px', marginBottom: '16px' }}>No hay boletas pendientes.</p>}
             <p style={s.tituloAdmin}>Crear evento</p>
             <form onSubmit={manejarCrearEvento}>
               <label style={s.label}>Nombre del evento</label>
               <input name="nombre" value={formEvento.nombre} onChange={manejarCambioEvento} required style={s.input} placeholder="Ej: Millonarios FC vs America de Cali" />
               <div style={s.row2}>
-                <div>
-                  <label style={s.label}>Deporte</label>
+                <div><label style={s.label}>Deporte</label>
                   <select name="deporte" value={formEvento.deporte} onChange={manejarCambioEvento} style={s.input}>
-                    <option>Futbol</option>
-                    <option>Baloncesto</option>
-                    <option>Tenis</option>
-                    <option>Ciclismo</option>
-                    <option>Otro</option>
+                    <option>Futbol</option><option>Baloncesto</option><option>Tenis</option><option>Ciclismo</option><option>Otro</option>
                   </select>
                 </div>
-                <div>
-                  <label style={s.label}>Moneda</label>
+                <div><label style={s.label}>Moneda</label>
                   <select name="moneda" value={formEvento.moneda} onChange={manejarCambioEvento} style={s.input}>
-                    <option value="COP">COP - Pesos</option>
-                    <option value="USD">USD - Dolares</option>
+                    <option value="COP">COP - Pesos</option><option value="USD">USD - Dolares</option>
                   </select>
                 </div>
               </div>
               <div style={s.row2}>
-                <div>
-                  <label style={s.label}>Ciudad</label>
-                  <input name="ciudad" value={formEvento.ciudad} onChange={manejarCambioEvento} required style={s.input} placeholder="Bogota" />
-                </div>
-                <div>
-                  <label style={s.label}>Estadio o lugar</label>
-                  <input name="estadio" value={formEvento.estadio} onChange={manejarCambioEvento} required style={s.input} placeholder="El Campin" />
-                </div>
+                <div><label style={s.label}>Ciudad</label><input name="ciudad" value={formEvento.ciudad} onChange={manejarCambioEvento} required style={s.input} placeholder="Bogota" /></div>
+                <div><label style={s.label}>Estadio o lugar</label><input name="estadio" value={formEvento.estadio} onChange={manejarCambioEvento} required style={s.input} placeholder="El Campin" /></div>
               </div>
               <div style={s.row2}>
-                <div>
-                  <label style={s.label}>Fecha</label>
-                  <input name="fecha" type="date" value={formEvento.fecha} onChange={manejarCambioEvento} required style={s.input} />
-                </div>
-                <div>
-                  <label style={s.label}>Hora</label>
-                  <input name="hora" type="time" value={formEvento.hora} onChange={manejarCambioEvento} required style={s.input} />
-                </div>
+                <div><label style={s.label}>Fecha</label><input name="fecha" type="date" value={formEvento.fecha} onChange={manejarCambioEvento} required style={s.input} /></div>
+                <div><label style={s.label}>Hora</label><input name="hora" type="time" value={formEvento.hora} onChange={manejarCambioEvento} required style={s.input} /></div>
               </div>
               <button type="submit" style={s.botonSubmitVerde}>Crear evento</button>
               {mensajeEvento && <p style={s.mensaje}>{mensajeEvento}</p>}
@@ -318,11 +313,25 @@ function App() {
 
         {boletas.map(function(b) {
           const moneda = b.eventos ? b.eventos.moneda : 'COP'
+          const esBoleteriaCO = b.usuarios && b.usuarios.correo === ADMIN_EMAIL
+          const nombreVendedor = b.usuarios ? b.usuarios.nombre : 'Usuario'
+          const ventasVendedor = b.vendedor_id ? (ventasPorVendedor[b.vendedor_id] || 0) : 0
+
           return (
             <div key={b.id} style={s.tarjetaBoleta}>
               <h3 style={s.nombreEvento}>{b.eventos ? b.eventos.nombre : ''}</h3>
               <p style={s.detalleEvento}>{b.eventos ? b.eventos.ciudad : ''} - {b.eventos ? b.eventos.estadio : ''}</p>
               <p style={s.detalleEvento}>Tribuna {b.tribuna} - Fila {b.fila} - Silla {b.silla}</p>
+              <div style={s.vendedorRow}>
+                {esBoleteriaCO ? (
+                  <span style={s.badgeBCO}>verificado Boleteria CO</span>
+                ) : (
+                  <>
+                    <span style={s.vendedorNombre}>{nombreVendedor || 'Vendedor'}</span>
+                    <span style={s.ventasCount}>{ventasVendedor} ventas</span>
+                  </>
+                )}
+              </div>
               <div style={s.filaPrecio}>
                 <p style={s.precio}>{calcularTotal(b.precio, moneda)}</p>
                 <button onClick={() => manejarCompra(b)} disabled={comprando === b.id} style={s.botonComprar}>
