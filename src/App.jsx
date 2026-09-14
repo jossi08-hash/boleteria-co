@@ -56,6 +56,12 @@ function App() {
         await supabase.from('ordenes').update({ estado_pago: 'pagada' }).eq('id', orden.id)
         await supabase.from('boletas').update({ estado: 'vendida' }).eq('id', orden.boleta_id)
         cargarBoletas()
+        // Notificar al vendedor por email
+        fetch('/api/notificar-vendedor', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ referencia })
+        }).catch(err => console.error('Error notificando vendedor:', err))
       }
       setPagoInfo({ referencia, transaccionId })
       setPagoStatus('exitoso')
