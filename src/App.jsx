@@ -7,6 +7,7 @@ const ADMIN_EMAIL = 'jossi08@icloud.com'
 
 function App() {
   const [boletas, setBoletas] = useState([])
+  const [boletasPendientes, setBoletasPendientes] = useState([])
   const [cargando, setCargando] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [mostrarAdmin, setMostrarAdmin] = useState(false)
@@ -29,10 +30,33 @@ function App() {
     obtenerUsuarioActual().then(u => setUsuario(u))
   }, [])
 
+  useEffect(() => {
+    if (esAdmin) cargarBoletasPendientes()
+  }, [esAdmin])
+
   async function cargarBoletas() {
     const data = await obtenerBoletas()
     setBoletas(data)
     setCargando(false)
+  }
+
+  async function cargarBoletasPendientes() {
+    const { data } = await supabase
+      .from('boletas')
+      .select('id, tribuna, fila, silla, precio, estado, eventos(nombre, ciudad)')
+      .eq('estado', 'verificando')
+    setBoletasPendientes(data || [])
+  }
+
+  async function aprobarBoleta(id) {
+    await supabase.from('boletas').update({ estado: 'publicada' }).eq('id', id)
+    cargarBoletasPendientes()
+    cargarBoletas()
+  }
+
+  async function rechazarBoleta(id) {
+    await supabase.from('boletas').delete().eq('id', id)
+    cargarBoletasPendientes()
   }
 
   async function cargarEventos() {
@@ -48,21 +72,11 @@ function App() {
     e.preventDefault()
     setMensajeEvento('Creando evento...')
     const { error } = await supabase.from('eventos').insert({
-      nombre: formEvento.nombre,
-      deporte: formEvento.deporte,
-      ciudad: formEvento.ciudad,
-      estadio: formEvento.estadio,
-      fecha: formEvento.fecha,
-      hora: formEvento.hora,
-      moneda: formEvento.moneda
+      nombre: formEvento.nombre, deporte: formEvento.deporte, ciudad: formEvento.ciudad,
+      estadio: formEvento.estadio, fecha: formEvento.fecha, hora: formEvento.hora, moneda: formEvento.moneda
     })
-    if (error) {
-      setMensajeEvento('Error: ' + error.message)
-    } else {
-      setMensajeEvento('Evento creado correctamente.')
-      setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fecha: '', hora: '', moneda: 'COP' })
-      cargarEventos()
-    }
+    if (error) { setMensajeEvento('Error: ' + error.message) }
+    else { setMensajeEvento('Evento creado correctamente.'); setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fecha: '', hora: '', moneda: 'COP' }); cargarEventos() }
   }
 
   async function manejarPublicar(e) {
@@ -70,7 +84,7 @@ function App() {
     if (!usuario) { setMensaje('Debes iniciar sesion para publicar una boleta.'); return }
     setMensaje('Publicando...')
     const resultado = await publicarBoleta({ eventoId: form.eventoId, vendedorId: usuario.id, tribuna: form.tribuna, fila: form.fila, silla: form.silla, cantidad: Number(form.cantidad), precio: Number(form.precio) })
-    if (resultado) { setMensaje('Boleta publicada. Quedara visible cuando este verificada.'); setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' }); cargarBoletas() }
+    if (resultado) { setMensaje('Boleta enviada. El equipo de Boleteria CO la verificara pronto.'); setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' }); cargarBoletas() }
     else { setMensaje('Hubo un error al publicar. Intenta de nuevo.') }
   }
 
@@ -115,7 +129,7 @@ function App() {
     setComprando(null)
   }
 
-  const c = { fondo: '#0f1117', tarjeta: '#171a23', borde: '#2a2e3a', texto: '#e8e9ed', textoSec: '#9a9eac', acento: '#3d7eff', verde: '#1a3a2a', verdeTexto: '#4ade80' }
+  const c = { fondo: '#0f1117', tarjeta: '#171a23', borde: '#2a2e3a', texto: '#e8e9ed', textoSec: '#9a9eac', acento: '#3d7eff' }
   const s = {
     pagina: { minHeight: '100vh', background: c.fondo, fontFamily: 'sans-serif', padding: '40px 20px' },
     contenedor: { maxWidth: '640px', margin: '0 auto' },
@@ -135,15 +149,20 @@ function App() {
     botonSubmitVerde: { background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 20px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', width: '100%' },
     mensaje: { color: c.textoSec, fontSize: '13px', marginTop: '12px', textAlign: 'center' },
     tarjetaBoleta: { background: c.tarjeta, border: '1px solid #2a2e3a', borderRadius: '14px', padding: '20px 24px', marginBottom: '14px' },
+    tarjetaPendiente: { background: '#1a1a0d', border: '1px solid #3a3a1a', borderRadius: '12px', padding: '16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
     nombreEvento: { color: c.texto, fontSize: '18px', fontWeight: '700', margin: '0 0 6px' },
     detalleEvento: { color: c.textoSec, fontSize: '14px', margin: '0 0 4px' },
     filaPrecio: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' },
     precio: { color: c.texto, fontSize: '22px', fontWeight: '700', margin: 0 },
     botonComprar: { background: c.acento, color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 22px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
+    botonAprobar: { background: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginLeft: '6px' },
+    botonRechazar: { background: '#991b1b', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginLeft: '6px' },
     vacio: { color: c.textoSec, textAlign: 'center', fontSize: '14px' },
     tituloForm: { color: c.texto, fontSize: '18px', fontWeight: '600', margin: '0 0 20px' },
-    tituloAdmin: { color: '#4ade80', fontSize: '16px', fontWeight: '600', margin: '0 0 20px' },
-    row2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }
+    tituloAdmin: { color: '#4ade80', fontSize: '16px', fontWeight: '600', margin: '0 0 16px' },
+    tituloPendiente: { color: '#facc15', fontSize: '14px', fontWeight: '600', margin: '0 0 12px' },
+    row2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
+    separador: { border: 'none', borderTop: '1px solid #1a3a2a', margin: '20px 0' }
   }
 
   return (
@@ -154,7 +173,7 @@ function App() {
           <div style={s.authBar}>
             {usuario ? (
               <>
-                {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin</button>}
+                {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
                 <span style={s.usuarioNombre}>{usuario.email}</span>
                 <button style={s.botonSec} onClick={manejarCerrarSesion}>Cerrar sesion</button>
               </>
@@ -169,7 +188,32 @@ function App() {
 
         {esAdmin && mostrarAdmin && (
           <div style={s.tarjetaAdmin}>
-            <p style={s.tituloAdmin}>Panel de administrador — Crear evento</p>
+            <p style={s.tituloAdmin}>Panel de administrador</p>
+
+            {boletasPendientes.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <p style={s.tituloPendiente}>Boletas pendientes de verificacion ({boletasPendientes.length})</p>
+                {boletasPendientes.map(function(b) {
+                  return (
+                    <div key={b.id} style={s.tarjetaPendiente}>
+                      <div>
+                        <div style={{ color: c.texto, fontSize: '14px', fontWeight: '500' }}>{b.eventos ? b.eventos.nombre : ''}</div>
+                        <div style={{ color: c.textoSec, fontSize: '12px' }}>Tribuna {b.tribuna} - Fila {b.fila} - Silla {b.silla} - ${Number(b.precio).toLocaleString('es-CO')}</div>
+                      </div>
+                      <div>
+                        <button style={s.botonAprobar} onClick={() => aprobarBoleta(b.id)}>Aprobar</button>
+                        <button style={s.botonRechazar} onClick={() => rechazarBoleta(b.id)}>Rechazar</button>
+                      </div>
+                    </div>
+                  )
+                })}
+                <hr style={s.separador} />
+              </div>
+            )}
+
+            {boletasPendientes.length === 0 && <p style={{ color: c.textoSec, fontSize: '13px', marginBottom: '16px' }}>No hay boletas pendientes de verificacion.</p>}
+
+            <p style={s.tituloAdmin}>Crear evento</p>
             <form onSubmit={manejarCrearEvento}>
               <label style={s.label}>Nombre del evento</label>
               <input name="nombre" value={formEvento.nombre} onChange={manejarCambioEvento} required style={s.input} placeholder="Ej: Millonarios FC vs America de Cali" />
