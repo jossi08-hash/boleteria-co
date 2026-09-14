@@ -33,7 +33,7 @@ function App() {
     obtenerUsuarioActual().then(u => setUsuario(u))
 
     const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.get('status') || urlParams.get('pago') === 'exitoso') {
+    if (urlParams.get('id') || urlParams.get('status') || urlParams.get('pago') === 'exitoso') {
       procesarResultadoPago(urlParams)
     }
   }, [])
@@ -43,11 +43,28 @@ function App() {
   }, [esAdmin])
 
   async function procesarResultadoPago(params) {
-    const status = params.get('status')
-    const referencia = params.get('reference')
+    let status = params.get('status')
+    let referencia = params.get('reference')
     const transaccionId = params.get('id')
 
     window.history.replaceState({}, document.title, window.location.pathname)
+
+    // Si Wompi solo mandó el id, consultamos la API para obtener status y referencia
+    if (transaccionId && !status) {
+      try {
+        const wompiBase = import.meta.env.VITE_WOMPI_PUBLIC_KEY?.startsWith('pub_test')
+          ? 'https://sandbox.wompi.co/v1'
+          : 'https://production.wompi.co/v1'
+        const txRes = await fetch(`${wompiBase}/transactions/${transaccionId}`)
+        const txData = await txRes.json()
+        if (txData?.data) {
+          status = txData.data.status
+          referencia = txData.data.reference
+        }
+      } catch (e) {
+        console.error('Error consultando Wompi:', e)
+      }
+    }
 
     if (status === 'APPROVED' && referencia) {
       const { data: orden } = await supabase
