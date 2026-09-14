@@ -28,15 +28,41 @@ export default async function handler(req) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   const resendKey = process.env.RESEND_API_KEY
 
+  // Debug: verificar env vars
+  if (!key) {
+    return new Response(JSON.stringify({ error: 'SUPABASE_SERVICE_ROLE_KEY no está configurada' }), {
+      status: 500, headers: { 'Content-Type': 'application/json' }
+    })
+  }
+  if (!resendKey) {
+    return new Response(JSON.stringify({ error: 'RESEND_API_KEY no está configurada' }), {
+      status: 500, headers: { 'Content-Type': 'application/json' }
+    })
+  }
+
   // 1. Obtener la orden con boleta, evento y usuario del vendedor en una sola query
   const url = `${SUPABASE_URL}/rest/v1/ordenes?codigo_orden=eq.${encodeURIComponent(referencia)}&select=total,boleta_id,boletas(precio,tribuna,fila,silla,eventos(nombre),usuarios(correo,nombre))`
   const res = await fetch(url, {
     headers: { apikey: key, Authorization: `Bearer ${key}` }
   })
-  const data = await res.json()
+  const rawData = await res.text()
+  let data
+  try { data = JSON.parse(rawData) } catch { data = [] }
 
   if (!data?.length) {
-    return new Response(JSON.stringify({ error: 'Orden no encontrada', ref: referencia }), {
+    // Intentar query simple para aislar si es el select complejo o la auth
+    const simpleRes = await fetch(
+      `${SUPABASE_URL}/rest/v1/ordenes?codigo_orden=eq.${encodeURIComponent(referencia)}&select=id,codigo_orden`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    )
+    const simpleData = await simpleRes.json()
+    return new Response(JSON.stringify({ 
+      error: 'Orden no encontrada en query compleja', 
+      ref: referencia,
+      keyPrefix: key.substring(0, 20) + '...',
+      simpleQuery: simpleData,
+      rawComplexResponse: rawData.substring(0, 300)
+    }), {
       status: 404, headers: { 'Content-Type': 'application/json' }
     })
   }
