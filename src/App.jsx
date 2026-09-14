@@ -24,6 +24,7 @@ function App() {
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' })
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
+  const [debugEmail, setDebugEmail] = useState(null)
 
   const esAdmin = usuario && usuario.email === ADMIN_EMAIL
 
@@ -80,8 +81,8 @@ function App() {
           body: JSON.stringify({ referencia })
         }).then(async r => {
           const txt = await r.text()
-          console.log('[notificar-vendedor] status:', r.status, 'body:', txt)
-        }).catch(err => console.error('[notificar-vendedor] fetch error:', err))
+          setDebugEmail(`[${r.status}] ${txt}`)
+        }).catch(err => setDebugEmail(`Error: ${err.message}`))
       }
       setPagoInfo({ referencia, transaccionId })
       setPagoStatus('exitoso')
@@ -306,6 +307,9 @@ function App() {
           <p style={{ color: '#86efac', fontSize: '15px', margin: '0 0 8px' }}>Tu boleta ha sido reservada correctamente.</p>
           {pagoInfo?.referencia && (
             <p style={{ color: '#6ee7b7', fontSize: '13px', margin: '0 0 24px' }}>Referencia: <strong>{pagoInfo.referencia}</strong></p>
+          )}
+          {debugEmail && (
+            <p style={{ color: '#fbbf24', fontSize: '12px', margin: '0 0 16px', wordBreak: 'break-all', background: '#1a1a1a', padding: '8px', borderRadius: '6px' }}>Email API: {debugEmail}</p>
           )}
           <button
             onClick={() => { setPagoStatus(null); setPagoInfo(null) }}
