@@ -62,6 +62,9 @@ function App() {
     } else if (status === 'DECLINED' || status === 'ERROR' || status === 'VOIDED') {
       if (referencia) {
         await supabase.from('ordenes').update({ estado_pago: 'fallida' }).eq('codigo_orden', referencia)
+        // Liberar la boleta para que otros puedan comprarla
+        const { data: ord } = await supabase.from('ordenes').select('boleta_id').eq('codigo_orden', referencia).single()
+        if (ord) await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', ord.boleta_id)
       }
       setPagoStatus('fallido')
     } else if (status === 'PENDING') {
@@ -70,6 +73,12 @@ function App() {
   }
 
   async function cargarBoletas() {
+    // Liberar reservas expiradas
+    await supabase
+      .from('boletas')
+      .update({ estado: 'publicada', reservada_hasta: null })
+      .eq('estado', 'reservada')
+      .lt('reservada_hasta', new Date().toISOString())
     const data = await obtenerBoletas()
     setBoletas(data)
     setCargando(false)
@@ -167,13 +176,35 @@ function App() {
   async function manejarCompra(boleta) {
     if (!usuario) { alert('Debes iniciar sesion para comprar una boleta.'); return }
     setComprando(boleta.id)
+
+    // Intentar reservar atómicamente (solo si sigue publicada)
+    const reservadaHasta = new Date(Date.now() + 15 * 60 * 1000).toISOString()
+    const { data: reservada } = await supabase
+      .from('boletas')
+      .update({ estado: 'reservada', reservada_hasta: reservadaHasta })
+      .eq('id', boleta.id)
+      .eq('estado', 'publicada')
+      .select()
+
+    if (!reservada || reservada.length === 0) {
+      alert('Esta boleta ya fue reservada por otro comprador. Intenta con otra.')
+      setComprando(null)
+      cargarBoletas()
+      return
+    }
+
     const subtotal = Number(boleta.precio)
     const comision = Math.round(subtotal * 0.08)
     const total = subtotal + comision
     const moneda = boleta.eventos ? boleta.eventos.moneda : 'COP'
 
     const orden = await crearOrden({ boletaId: boleta.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'wompi' })
-    if (!orden) { alert('Hubo un error al crear la orden. Intenta de nuevo.'); setComprando(null); return }
+    if (!orden) {
+      await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', boleta.id)
+      alert('Hubo un error al crear la orden. Intenta de nuevo.')
+      setComprando(null)
+      return
+    }
 
     const totalCentavos = total * 100
     const referencia = orden.codigo_orden
@@ -448,10 +479,16 @@ function App() {
                 )}
               </div>
               <div style={s.filaPrecio}>
-                <p style={s.precio}>{calcularTotal(b.precio, moneda)}</p>
-                <button onClick={() => manejarCompra(b)} disabled={comprando === b.id} style={s.botonComprar}>
-                  {comprando === b.id ? 'Procesando...' : 'Comprar'}
-                </button>
+                <p style={s.precio}>{b.estado === 'vendida' ? <span style={{color:'#6b7280',fontSize:'13px'}}>Vendida</span> : calcularTotal(b.precio, moneda)}</p>
+                {b.estado === 'reservada' ? (
+                  <span style={{background:'#3d2a00',color:'#facc15',fontSize:'12px',fontWeight:'600',padding:'6px 14px',borderRadius:'8px'}}>⏳ Reservada</span>
+                ) : b.estado === 'vendida' ? (
+                  <span style={{background:'#1a1a1a',color:'#6b7280',fontSize:'12px',fontWeight:'600',padding:'6px 14px',borderRadius:'8px'}}>Vendida</span>
+                ) : (
+                  <button onClick={() => manejarCompra(b)} disabled={comprando === b.id} style={s.botonComprar}>
+                    {comprando === b.id ? 'Procesando...' : 'Comprar'}
+                  </button>
+                )}
               </div>
             </div>
           )

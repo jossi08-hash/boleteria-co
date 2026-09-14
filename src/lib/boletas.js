@@ -8,7 +8,7 @@ export async function obtenerBoletas() {
       eventos ( nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
       usuarios ( nombre, correo )
     `)
-    .in('estado', ['publicada', 'vendida'])
+    .in('estado', ['publicada', 'reservada', 'vendida'])
     .order('creado_en', { ascending: false })
 
   if (error) {
@@ -27,7 +27,7 @@ export async function obtenerBoletasPorDeporte(deporte) {
       usuarios ( nombre, correo )
     `)
     .eq('eventos.deporte', deporte)
-    .in('estado', ['publicada', 'vendida'])
+    .in('estado', ['publicada', 'reservada', 'vendida'])
 
   if (error) {
     console.error('Error al filtrar boletas:', error.message)
