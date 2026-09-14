@@ -24,7 +24,7 @@ function App() {
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' })
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
-  const [debugEmail, setDebugEmail] = useState(null)
+
 
   const esAdmin = usuario && usuario.email === ADMIN_EMAIL
 
@@ -79,10 +79,7 @@ function App() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ referencia })
-        }).then(async r => {
-          const txt = await r.text()
-          setDebugEmail(`[${r.status}] ${txt}`)
-        }).catch(err => setDebugEmail(`Error: ${err.message}`))
+)
       }
       setPagoInfo({ referencia, transaccionId })
       setPagoStatus('exitoso')
@@ -304,13 +301,11 @@ function App() {
         <div style={{ background: '#0f2d1e', border: '1px solid #166534', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
           <div style={{ fontSize: '60px', marginBottom: '16px' }}>✅</div>
           <h2 style={{ color: '#4ade80', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>¡Pago exitoso!</h2>
-          <p style={{ color: '#86efac', fontSize: '15px', margin: '0 0 8px' }}>Tu boleta ha sido reservada correctamente.</p>
+          <p style={{ color: '#86efac', fontSize: '15px', margin: '0 0 8px' }}>Tu boleta ha sido adquirida correctamente.</p>
           {pagoInfo?.referencia && (
             <p style={{ color: '#6ee7b7', fontSize: '13px', margin: '0 0 24px' }}>Referencia: <strong>{pagoInfo.referencia}</strong></p>
           )}
-          {debugEmail && (
-            <p style={{ color: '#fbbf24', fontSize: '12px', margin: '0 0 16px', wordBreak: 'break-all', background: '#1a1a1a', padding: '8px', borderRadius: '6px' }}>Email API: {debugEmail}</p>
-          )}
+
           <button
             onClick={() => { setPagoStatus(null); setPagoInfo(null) }}
             style={{ background: '#166534', color: '#fff', border: 'none', borderRadius: '8px', padding: '12px 28px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}
