@@ -22,6 +22,8 @@ function App() {
   const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fecha: '', hora: '', moneda: 'COP' })
   const [mensajeEvento, setMensajeEvento] = useState('')
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' })
+  const [pagoStatus, setPagoStatus] = useState(null)
+  const [pagoInfo, setPagoInfo] = useState(null)
 
   const esAdmin = usuario && usuario.email === ADMIN_EMAIL
 
@@ -29,11 +31,43 @@ function App() {
     cargarBoletas()
     cargarEventos()
     obtenerUsuarioActual().then(u => setUsuario(u))
+
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('pago') === 'exitoso') {
+      procesarResultadoPago(urlParams)
+    }
   }, [])
 
   useEffect(() => {
     if (esAdmin) cargarBoletasPendientes()
   }, [esAdmin])
+
+  async function procesarResultadoPago(params) {
+    const status = params.get('status')
+    const referencia = params.get('reference')
+    const transaccionId = params.get('id')
+
+    window.history.replaceState({}, document.title, window.location.pathname)
+
+    if (status === 'APPROVED' && referencia) {
+      const { data: orden } = await supabase
+        .from('ordenes').select('id, boleta_id').eq('codigo_orden', referencia).single()
+      if (orden) {
+        await supabase.from('ordenes').update({ estado_pago: 'pagada' }).eq('id', orden.id)
+        await supabase.from('boletas').update({ estado: 'vendida' }).eq('id', orden.boleta_id)
+        cargarBoletas()
+      }
+      setPagoInfo({ referencia, transaccionId })
+      setPagoStatus('exitoso')
+    } else if (status === 'DECLINED' || status === 'ERROR' || status === 'VOIDED') {
+      if (referencia) {
+        await supabase.from('ordenes').update({ estado_pago: 'fallida' }).eq('codigo_orden', referencia)
+      }
+      setPagoStatus('fallido')
+    } else if (status === 'PENDING') {
+      setPagoStatus('pendiente')
+    }
+  }
 
   async function cargarBoletas() {
     const data = await obtenerBoletas()
@@ -204,6 +238,63 @@ function App() {
     tituloPendiente: { color: '#facc15', fontSize: '14px', fontWeight: '600', margin: '0 0 12px' },
     row2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
     separador: { border: 'none', borderTop: '1px solid #1a3a2a', margin: '20px 0' }
+  }
+
+  if (pagoStatus === 'exitoso') {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ background: '#0f2d1e', border: '1px solid #166534', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
+          <div style={{ fontSize: '60px', marginBottom: '16px' }}>✅</div>
+          <h2 style={{ color: '#4ade80', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>¡Pago exitoso!</h2>
+          <p style={{ color: '#86efac', fontSize: '15px', margin: '0 0 8px' }}>Tu boleta ha sido reservada correctamente.</p>
+          {pagoInfo?.referencia && (
+            <p style={{ color: '#6ee7b7', fontSize: '13px', margin: '0 0 24px' }}>Referencia: <strong>{pagoInfo.referencia}</strong></p>
+          )}
+          <button
+            onClick={() => { setPagoStatus(null); setPagoInfo(null) }}
+            style={{ background: '#166534', color: '#fff', border: 'none', borderRadius: '8px', padding: '12px 28px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}
+          >
+            Ver boletas disponibles
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (pagoStatus === 'fallido') {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ background: '#1c0a0a', border: '1px solid #991b1b', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
+          <div style={{ fontSize: '60px', marginBottom: '16px' }}>❌</div>
+          <h2 style={{ color: '#f87171', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>Pago no completado</h2>
+          <p style={{ color: '#fca5a5', fontSize: '15px', margin: '0 0 24px' }}>El pago fue rechazado o cancelado. Puedes intentarlo de nuevo.</p>
+          <button
+            onClick={() => setPagoStatus(null)}
+            style={{ background: '#991b1b', color: '#fff', border: 'none', borderRadius: '8px', padding: '12px 28px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}
+          >
+            Intentar de nuevo
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (pagoStatus === 'pendiente') {
+    return (
+      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>
+        <div style={{ background: '#1a150a', border: '1px solid #854d0e', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
+          <div style={{ fontSize: '60px', marginBottom: '16px' }}>⏳</div>
+          <h2 style={{ color: '#facc15', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>Pago en proceso</h2>
+          <p style={{ color: '#fde68a', fontSize: '15px', margin: '0 0 24px' }}>Tu pago está siendo procesado. Te notificaremos cuando se confirme.</p>
+          <button
+            onClick={() => setPagoStatus(null)}
+            style={{ background: '#854d0e', color: '#fff', border: 'none', borderRadius: '8px', padding: '12px 28px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}
+          >
+            Volver al inicio
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
