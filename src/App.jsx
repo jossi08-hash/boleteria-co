@@ -14,10 +14,7 @@ function App() {
   const [vistaAuth, setVistaAuth] = useState(null)
   const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '' })
   const [mensajeAuth, setMensajeAuth] = useState('')
-
-  const [form, setForm] = useState({
-    eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: ''
-  })
+  const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' })
 
   useEffect(() => {
     cargarBoletas()
@@ -36,69 +33,35 @@ function App() {
     setEventos(data || [])
   }
 
-  function manejarCambio(e) {
-    setForm({ ...form, [e.target.name]: e.target.value })
-  }
-
-  function manejarCambioAuth(e) {
-    setFormAuth({ ...formAuth, [e.target.name]: e.target.value })
-  }
+  function manejarCambio(e) { setForm({ ...form, [e.target.name]: e.target.value }) }
+  function manejarCambioAuth(e) { setFormAuth({ ...formAuth, [e.target.name]: e.target.value }) }
 
   async function manejarPublicar(e) {
     e.preventDefault()
-    if (!usuario) {
-      setMensaje('Debes iniciar sesion para publicar una boleta.')
-      return
-    }
+    if (!usuario) { setMensaje('Debes iniciar sesion para publicar una boleta.'); return }
     setMensaje('Publicando...')
-    const resultado = await publicarBoleta({
-      eventoId: form.eventoId,
-      vendedorId: usuario.id,
-      tribuna: form.tribuna,
-      fila: form.fila,
-      silla: form.silla,
-      cantidad: Number(form.cantidad),
-      precio: Number(form.precio)
-    })
-    if (resultado) {
-      setMensaje('Boleta publicada. Quedara visible cuando este verificada.')
-      setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' })
-      cargarBoletas()
-    } else {
-      setMensaje('Hubo un error al publicar. Intenta de nuevo.')
-    }
+    const resultado = await publicarBoleta({ eventoId: form.eventoId, vendedorId: usuario.id, tribuna: form.tribuna, fila: form.fila, silla: form.silla, cantidad: Number(form.cantidad), precio: Number(form.precio) })
+    if (resultado) { setMensaje('Boleta publicada. Quedara visible cuando este verificada.'); setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' }); cargarBoletas() }
+    else { setMensaje('Hubo un error al publicar. Intenta de nuevo.') }
   }
 
   async function manejarRegistro(e) {
     e.preventDefault()
     setMensajeAuth('Registrando...')
     const resultado = await registrarUsuario(formAuth)
-    if (resultado.exito) {
-      setUsuario(resultado.usuario)
-      setVistaAuth(null)
-      setMensajeAuth('')
-    } else {
-      setMensajeAuth('Error: ' + resultado.mensaje)
-    }
+    if (resultado.exito) { setUsuario(resultado.usuario); setVistaAuth(null); setMensajeAuth('') }
+    else { setMensajeAuth('Error: ' + resultado.mensaje) }
   }
 
   async function manejarLogin(e) {
     e.preventDefault()
     setMensajeAuth('Iniciando sesion...')
     const resultado = await iniciarSesion(formAuth)
-    if (resultado.exito) {
-      setUsuario(resultado.usuario)
-      setVistaAuth(null)
-      setMensajeAuth('')
-    } else {
-      setMensajeAuth('Error: ' + resultado.mensaje)
-    }
+    if (resultado.exito) { setUsuario(resultado.usuario); setVistaAuth(null); setMensajeAuth('') }
+    else { setMensajeAuth('Error: ' + resultado.mensaje) }
   }
 
-  async function manejarCerrarSesion() {
-    await cerrarSesion()
-    setUsuario(null)
-  }
+  async function manejarCerrarSesion() { await cerrarSesion(); setUsuario(null) }
 
   function formatearPrecio(precio, moneda) {
     const valor = Number(precio)
@@ -112,49 +75,34 @@ function App() {
   }
 
   async function manejarCompra(boleta) {
-    if (!usuario) {
-      alert('Debes iniciar sesion para comprar una boleta.')
-      return
-    }
+    if (!usuario) { alert('Debes iniciar sesion para comprar una boleta.'); return }
     setComprando(boleta.id)
     const subtotal = Number(boleta.precio)
     const comision = Math.round(subtotal * 0.08)
     const total = subtotal + comision
-    const orden = await crearOrden({
-      boletaId: boleta.id,
-      compradorId: usuario.id,
-      subtotal, comision, total,
-      metodoPago: 'pendiente'
-    })
-    if (orden) {
-      alert('Orden creada con exito. Codigo: ' + orden.codigo_orden)
-    } else {
-      alert('Hubo un error al crear la orden. Intenta de nuevo.')
-    }
+    const orden = await crearOrden({ boletaId: boleta.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'pendiente' })
+    if (orden) { alert('Orden creada con exito. Codigo: ' + orden.codigo_orden) }
+    else { alert('Hubo un error al crear la orden. Intenta de nuevo.') }
     setComprando(null)
   }
 
-  const c = {
-    fondo: '#0f1117', tarjeta: '#171a23', borde: '#2a2e3a',
-    texto: '#e8e9ed', textoSec: '#9a9eac', acento: '#3d7eff'
-  }
-
+  const c = { fondo: '#0f1117', tarjeta: '#171a23', borde: '#2a2e3a', texto: '#e8e9ed', textoSec: '#9a9eac', acento: '#3d7eff' }
   const s = {
-    pagina: { minHeight: '100vh', background: c.fondo, fontFamily: '-apple-system, BlinkMacSystemFont, sans-serif', padding: '40px 20px' },
+    pagina: { minHeight: '100vh', background: c.fondo, fontFamily: 'sans-serif', padding: '40px 20px' },
     contenedor: { maxWidth: '640px', margin: '0 auto' },
     header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
     titulo: { color: c.texto, fontSize: '28px', fontWeight: '700', margin: 0 },
     authBar: { display: 'flex', gap: '8px', alignItems: 'center' },
     usuarioNombre: { color: c.textoSec, fontSize: '13px' },
-    botonSecundario: { background: 'transparent', border: `1px solid ${c.borde}`, borderRadius: '8px', padding: '8px 14px', fontSize: '13px', color: c.texto, cursor: 'pointer' },
-    botonPrincipal: { background: c.acento, color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' },
+    botonSec: { background: 'transparent', border: '1px solid #2a2e3a', borderRadius: '8px', padding: '8px 14px', fontSize: '13px', color: c.texto, cursor: 'pointer' },
+    botonPrin: { background: c.acento, color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' },
     botonVender: { display: 'block', margin: '0 auto 28px', background: c.acento, color: '#fff', border: 'none', borderRadius: '10px', padding: '12px 24px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' },
-    tarjetaForm: { background: c.tarjeta, border: `1px solid ${c.borde}`, borderRadius: '14px', padding: '24px', marginBottom: '24px' },
+    tarjetaForm: { background: c.tarjeta, border: '1px solid #2a2e3a', borderRadius: '14px', padding: '24px', marginBottom: '24px' },
     label: { color: c.textoSec, fontSize: '13px', fontWeight: '500', display: 'block', marginBottom: '6px' },
-    input: { width: '100%', background: '#0f1117', border: `1px solid ${c.borde}`, borderRadius: '8px', padding: '10px 12px', color: c.texto, fontSize: '14px', marginBottom: '16px', boxSizing: 'border-box' },
+    input: { width: '100%', background: '#0f1117', border: '1px solid #2a2e3a', borderRadius: '8px', padding: '10px 12px', color: c.texto, fontSize: '14px', marginBottom: '16px', boxSizing: 'border-box' },
     botonSubmit: { background: c.acento, color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 20px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', width: '100%' },
     mensaje: { color: c.textoSec, fontSize: '13px', marginTop: '12px', textAlign: 'center' },
-    tarjetaBoleta: { background: c.tarjeta, border: `1px solid ${c.borde}`, borderRadius: '14px', padding: '20px 24px', marginBottom: '14px' },
+    tarjetaBoleta: { background: c.tarjeta, border: '1px solid #2a2e3a', borderRadius: '14px', padding: '20px 24px', marginBottom: '14px' },
     nombreEvento: { color: c.texto, fontSize: '18px', fontWeight: '700', margin: '0 0 6px' },
     detalleEvento: { color: c.textoSec, fontSize: '14px', margin: '0 0 4px' },
     filaPrecio: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' },
@@ -167,19 +115,18 @@ function App() {
   return (
     <div style={s.pagina}>
       <div style={s.contenedor}>
-
         <div style={s.header}>
           <h1 style={s.titulo}>Boleteria CO</h1>
           <div style={s.authBar}>
             {usuario ? (
               <>
                 <span style={s.usuarioNombre}>{usuario.email}</span>
-                <button style={s.botonSecundario} onClick={manejarCerrarSesion}>Cerrar sesion</button>
+                <button style={s.botonSec} onClick={manejarCerrarSesion}>Cerrar sesion</button>
               </>
             ) : (
               <>
-                <button style={s.botonSecundario} onClick={() => setVistaAuth('login')}>Iniciar sesion</button>
-                <button style={s.botonPrincipal} onClick={() => setVistaAuth('registro')}>Registrarse</button>
+                <button style={s.botonSec} onClick={() => setVistaAuth('login')}>Iniciar sesion</button>
+                <button style={s.botonPrin} onClick={() => setVistaAuth('registro')}>Registrarse</button>
               </>
             )}
           </div>
@@ -192,3 +139,72 @@ function App() {
             <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
             <label style={s.label}>Contrasena</label>
             <input name="password" type="password" value={formAuth.password} onChange={manejarCambioAuth} required style={s.input} />
+            <button type="submit" style={s.botonSubmit}>Entrar</button>
+            {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
+          </form>
+        )}
+
+        {vistaAuth === 'registro' && (
+          <form onSubmit={manejarRegistro} style={s.tarjetaForm}>
+            <p style={s.tituloForm}>Crear cuenta</p>
+            <label style={s.label}>Nombre</label>
+            <input name="nombre" value={formAuth.nombre} onChange={manejarCambioAuth} required style={s.input} />
+            <label style={s.label}>Correo</label>
+            <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
+            <label style={s.label}>Contrasena</label>
+            <input name="password" type="password" value={formAuth.password} onChange={manejarCambioAuth} required style={s.input} />
+            <button type="submit" style={s.botonSubmit}>Crear cuenta</button>
+            {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
+          </form>
+        )}
+
+        <button style={s.botonVender} onClick={() => setMostrarFormulario(!mostrarFormulario)}>
+          {mostrarFormulario ? 'Cerrar formulario' : '+ Vender boleta'}
+        </button>
+
+        {mostrarFormulario && (
+          <form onSubmit={manejarPublicar} style={s.tarjetaForm}>
+            <p style={s.tituloForm}>Publicar boleta</p>
+            <label style={s.label}>Evento</label>
+            <select name="eventoId" value={form.eventoId} onChange={manejarCambio} required style={s.input}>
+              <option value="">Selecciona un evento</option>
+              {eventos.map(function(ev) { return <option key={ev.id} value={ev.id}>{ev.nombre} ({ev.moneda || 'COP'})</option> })}
+            </select>
+            <label style={s.label}>Tribuna</label>
+            <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} />
+            <label style={s.label}>Fila</label>
+            <input name="fila" value={form.fila} onChange={manejarCambio} required style={s.input} />
+            <label style={s.label}>Silla</label>
+            <input name="silla" value={form.silla} onChange={manejarCambio} required style={s.input} />
+            <label style={s.label}>Precio</label>
+            <input name="precio" type="number" value={form.precio} onChange={manejarCambio} required style={s.input} />
+            <button type="submit" style={s.botonSubmit}>Publicar boleta</button>
+            {mensaje && <p style={s.mensaje}>{mensaje}</p>}
+          </form>
+        )}
+
+        {cargando && <p style={s.vacio}>Cargando boletas...</p>}
+        {!cargando && boletas.length === 0 && <p style={s.vacio}>No hay boletas publicadas todavia.</p>}
+
+        {boletas.map(function(b) {
+          const moneda = b.eventos ? b.eventos.moneda : 'COP'
+          return (
+            <div key={b.id} style={s.tarjetaBoleta}>
+              <h3 style={s.nombreEvento}>{b.eventos ? b.eventos.nombre : ''}</h3>
+              <p style={s.detalleEvento}>{b.eventos ? b.eventos.ciudad : ''} - {b.eventos ? b.eventos.estadio : ''}</p>
+              <p style={s.detalleEvento}>Tribuna {b.tribuna} - Fila {b.fila} - Silla {b.silla}</p>
+              <div style={s.filaPrecio}>
+                <p style={s.precio}>{calcularTotal(b.precio, moneda)}</p>
+                <button onClick={() => manejarCompra(b)} disabled={comprando === b.id} style={s.botonComprar}>
+                  {comprando === b.id ? 'Procesando...' : 'Comprar'}
+                </button>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+export default App
