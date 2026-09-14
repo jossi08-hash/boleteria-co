@@ -78,7 +78,10 @@ function App() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ referencia })
-        }).catch(err => console.error('Error notificando vendedor:', err))
+        }).then(async r => {
+          const txt = await r.text()
+          console.log('[notificar-vendedor] status:', r.status, 'body:', txt)
+        }).catch(err => console.error('[notificar-vendedor] fetch error:', err))
       }
       setPagoInfo({ referencia, transaccionId })
       setPagoStatus('exitoso')
