@@ -136,10 +136,34 @@ function App() {
     const subtotal = Number(boleta.precio)
     const comision = Math.round(subtotal * 0.08)
     const total = subtotal + comision
-    const orden = await crearOrden({ boletaId: boleta.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'pendiente' })
-    if (orden) { alert('Orden creada con exito. Codigo: ' + orden.codigo_orden) }
-    else { alert('Hubo un error al crear la orden. Intenta de nuevo.') }
-    setComprando(null)
+    const moneda = boleta.eventos ? boleta.eventos.moneda : 'COP'
+
+    const orden = await crearOrden({ boletaId: boleta.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'wompi' })
+    if (!orden) { alert('Hubo un error al crear la orden. Intenta de nuevo.'); setComprando(null); return }
+
+    const totalCentavos = total * 100
+    const referencia = orden.codigo_orden
+
+    const res = await fetch('/api/integrity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reference: referencia, amount: totalCentavos, currency: moneda })
+    })
+
+    if (!res.ok) { alert('Error al generar la firma de pago. Intenta de nuevo.'); setComprando(null); return }
+
+    const { signature } = await res.json()
+
+    const params = new URLSearchParams({
+      'public-key': import.meta.env.VITE_WOMPI_PUBLIC_KEY,
+      'currency': moneda,
+      'amount-in-cents': totalCentavos,
+      'reference': referencia,
+      'signature:integrity': signature,
+      'redirect-url': window.location.origin + '?pago=exitoso'
+    })
+
+    window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
   }
 
   const c = { fondo: '#0f1117', tarjeta: '#171a23', borde: '#2a2e3a', texto: '#e8e9ed', textoSec: '#9a9eac', acento: '#3d7eff' }
