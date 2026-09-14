@@ -33,7 +33,7 @@ function App() {
     obtenerUsuarioActual().then(u => setUsuario(u))
 
     const urlParams = new URLSearchParams(window.location.search)
-    if (urlParams.get('pago') === 'exitoso') {
+    if (urlParams.get('status') || urlParams.get('pago') === 'exitoso') {
       procesarResultadoPago(urlParams)
     }
   }, [])
@@ -231,7 +231,7 @@ function App() {
       'amount-in-cents': totalCentavos,
       'reference': referencia,
       'signature:integrity': signature,
-      'redirect-url': window.location.origin + '?pago=exitoso'
+      'redirect-url': window.location.origin
     })
 
     window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
