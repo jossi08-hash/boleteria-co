@@ -217,7 +217,7 @@ function App() {
   }
 
   function calcularTotal(precio, moneda) {
-    const redondeado = Math.round(Number(precio) * 1.08 / 1000) * 1000
+    const redondeado = Math.round(Number(precio) * 1.10 / 1000) * 1000
     return formatearPrecio(redondeado, moneda)
   }
 
@@ -242,7 +242,7 @@ function App() {
     }
 
     const subtotal = Number(boleta.precio)
-    const comision = Math.round(subtotal * 0.08)
+    const comision = Math.round(subtotal * 0.10)
     const total = subtotal + comision
     const moneda = boleta.eventos ? boleta.eventos.moneda : 'COP'
 
@@ -652,6 +652,9 @@ function App() {
           )
         })
         })()}
+      <p style={{textAlign:'center',color:'#4b5563',fontSize:'13px',marginTop:'48px',paddingBottom:'24px'}}>
+        © 2026 Boletería CO · <a href='/terminos.html' target='_blank' style={{color:'#6366f1',textDecoration:'none'}}>Términos y condiciones</a>
+      </p>
       </div>
     </div>
   )
