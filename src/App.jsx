@@ -29,6 +29,7 @@ function App() {
   const [misCompras, setMisCompras] = useState([])
   const [misVentas, setMisVentas] = useState([])
   const [cargandoMis, setCargandoMis] = useState(false)
+  const [filtros, setFiltros] = useState({ ciudad: '', deporte: '', precioMax: '' })
 
 
   const esAdmin = usuario && usuario.email === ADMIN_EMAIL
@@ -567,9 +568,54 @@ function App() {
         )}
 
         {cargando && <p style={s.vacio}>Cargando boletas...</p>}
-        {!cargando && boletas.length === 0 && <p style={s.vacio}>No hay boletas publicadas todavia.</p>}
 
-        {boletas.map(function(b) {
+        {!cargando && boletas.length > 0 && (() => {
+          const ciudades = [...new Set(boletas.map(b => b.eventos?.ciudad).filter(Boolean))]
+          const deportes = [...new Set(boletas.map(b => b.eventos?.deporte).filter(Boolean))]
+          return (
+            <div style={{display:'flex',gap:'10px',marginBottom:'16px',flexWrap:'wrap'}}>
+              <select
+                value={filtros.ciudad}
+                onChange={e => setFiltros(f => ({...f, ciudad: e.target.value}))}
+                style={{...s.input, flex:'1', minWidth:'120px', margin:0, fontSize:'14px', padding:'8px 10px'}}
+              >
+                <option value=''>Todas las ciudades</option>
+                {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
+              </select>
+              <select
+                value={filtros.deporte}
+                onChange={e => setFiltros(f => ({...f, deporte: e.target.value}))}
+                style={{...s.input, flex:'1', minWidth:'120px', margin:0, fontSize:'14px', padding:'8px 10px'}}
+              >
+                <option value=''>Todos los deportes</option>
+                {deportes.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+              <input
+                type='number'
+                placeholder='Precio max.'
+                value={filtros.precioMax}
+                onChange={e => setFiltros(f => ({...f, precioMax: e.target.value}))}
+                style={{...s.input, flex:'1', minWidth:'120px', margin:0, fontSize:'14px', padding:'8px 10px'}}
+              />
+              {(filtros.ciudad || filtros.deporte || filtros.precioMax) && (
+                <button
+                  onClick={() => setFiltros({ ciudad: '', deporte: '', precioMax: '' })}
+                  style={{background:'transparent',border:'1px solid #374151',color:'#9ca3af',borderRadius:'8px',padding:'8px 12px',cursor:'pointer',fontSize:'13px'}}
+                >Limpiar</button>
+              )}
+            </div>
+          )
+        })()}
+
+        {(() => {
+          const boletasFiltradas = boletas.filter(b => {
+            if (filtros.ciudad && b.eventos?.ciudad !== filtros.ciudad) return false
+            if (filtros.deporte && b.eventos?.deporte !== filtros.deporte) return false
+            if (filtros.precioMax && Number(b.precio) > Number(filtros.precioMax)) return false
+            return true
+          })
+          if (!cargando && boletasFiltradas.length === 0) return <p style={s.vacio}>No hay boletas que coincidan con los filtros.</p>
+          return boletasFiltradas.map(function(b) {
           const moneda = b.eventos ? b.eventos.moneda : 'COP'
           const esBoleteriaCO = b.usuarios && b.usuarios.correo === ADMIN_EMAIL
           const nombreVendedor = b.usuarios ? b.usuarios.nombre : 'Usuario'
@@ -604,7 +650,8 @@ function App() {
               </div>
             </div>
           )
-        })}
+        })
+        })()}
       </div>
     </div>
   )
