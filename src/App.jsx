@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { obtenerBoletas, publicarBoleta, crearOrden, obtenerVentasDeUsuario } from './lib/boletas'
+import { obtenerBoletas, publicarBoleta, crearOrden, obtenerVentasDeUsuario, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
 import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual } from './lib/auth'
 import { supabase } from './lib/supabase'
 
@@ -24,6 +24,11 @@ function App() {
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' })
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
+  const [mostrarMisBoletas, setMostrarMisBoletas] = useState(false)
+  const [pestanaMis, setPestanaMis] = useState('compras')
+  const [misCompras, setMisCompras] = useState([])
+  const [misVentas, setMisVentas] = useState([])
+  const [cargandoMis, setCargandoMis] = useState(false)
 
 
   const esAdmin = usuario && usuario.email === ADMIN_EMAIL
@@ -94,6 +99,18 @@ function App() {
     } else if (status === 'PENDING') {
       setPagoStatus('pendiente')
     }
+  }
+
+  async function cargarMisBoletas() {
+    if (!usuario) return
+    setCargandoMis(true)
+    const [compras, ventas] = await Promise.all([
+      obtenerMisCompras(usuario.id),
+      obtenerMisVentas(usuario.id)
+    ])
+    setMisCompras(compras)
+    setMisVentas(ventas)
+    setCargandoMis(false)
   }
 
   async function cargarBoletas() {
@@ -184,7 +201,13 @@ function App() {
     else { setMensajeAuth('Error: ' + resultado.mensaje) }
   }
 
-  async function manejarCerrarSesion() { await cerrarSesion(); setUsuario(null) }
+  async function manejarCerrarSesion() { await cerrarSesion(); setUsuario(null); setMostrarMisBoletas(false) }
+
+  function toggleMisBoletas() {
+    const nuevo = !mostrarMisBoletas
+    setMostrarMisBoletas(nuevo)
+    if (nuevo) cargarMisBoletas()
+  }
 
   function formatearPrecio(precio, moneda) {
     const valor = Number(precio)
@@ -363,6 +386,7 @@ function App() {
               <>
                 {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
                 <span style={s.usuarioNombre}>{usuario.email}</span>
+                <button style={s.botonSec} onClick={toggleMisBoletas}>Mis boletas</button>
                 <button style={s.botonSec} onClick={manejarCerrarSesion}>Cerrar sesion</button>
               </>
             ) : (
@@ -373,6 +397,69 @@ function App() {
             )}
           </div>
         </div>
+
+
+        {mostrarMisBoletas && usuario && (
+          <div style={{background:'#111827',border:'1px solid #1f2937',borderRadius:'14px',padding:'24px',marginBottom:'24px'}}>
+            <p style={{color:'#f9fafb',fontSize:'16px',fontWeight:'600',margin:'0 0 16px'}}>Mis boletas</p>
+            <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>
+              <button onClick={() => setPestanaMis('compras')} style={{padding:'8px 18px',borderRadius:'8px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'13px',background:pestanaMis==='compras'?'#2563eb':'#1f2937',color:pestanaMis==='compras'?'#fff':'#9ca3af'}}>Mis compras</button>
+              <button onClick={() => setPestanaMis('ventas')} style={{padding:'8px 18px',borderRadius:'8px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'13px',background:pestanaMis==='ventas'?'#2563eb':'#1f2937',color:pestanaMis==='ventas'?'#fff':'#9ca3af'}}>Mis ventas</button>
+            </div>
+            {cargandoMis && <p style={{color:'#6b7280',fontSize:'13px'}}>Cargando...</p>}
+            {!cargandoMis && pestanaMis === 'compras' && (
+              misCompras.length === 0
+                ? <p style={{color:'#6b7280',fontSize:'13px'}}>No has comprado boletas aun.</p>
+                : misCompras.map(function(o) {
+                    const b = o.boletas
+                    const ev = b && b.eventos
+                    const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
+                    const fecha = ev && ev.fecha ? new Date(ev.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : ''
+                    return (
+                      <div key={o.id} style={{background:'#1f2937',borderRadius:'10px',padding:'16px',marginBottom:'12px'}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                          <div>
+                            <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
+                            <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}{fecha ? ' · ' + fecha : ''}</p>
+                            <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b && b.tribuna}{b && b.fila ? ' · Fila ' + b.fila : ''}{b && b.silla ? ' · Silla ' + b.silla : ''}</p>
+                            <p style={{color:'#6b7280',fontSize:'11px',margin:'4px 0 0'}}>Ref: {o.codigo_orden}</p>
+                          </div>
+                          <div style={{textAlign:'right'}}>
+                            <p style={{color:'#34d399',fontWeight:'700',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(o.total).toLocaleString('es-CO')}</p>
+                            <span style={{background:'#064e3b',color:'#34d399',fontSize:'11px',fontWeight:'600',padding:'3px 8px',borderRadius:'6px'}}>Pagada</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+            )}
+            {!cargandoMis && pestanaMis === 'ventas' && (
+              misVentas.length === 0
+                ? <p style={{color:'#6b7280',fontSize:'13px'}}>No has publicado boletas aun.</p>
+                : misVentas.map(function(b) {
+                    const ev = b.eventos
+                    const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
+                    const ordenPagada = Array.isArray(b.ordenes) ? b.ordenes.find(o => o.estado_pago === 'pagada') : null
+                    const badgeColor = b.estado === 'vendida' ? {bg:'#064e3b',txt:'#34d399',label:'Vendida'} : b.estado === 'publicada' ? {bg:'#1e3a5f',txt:'#60a5fa',label:'Publicada'} : {bg:'#292524',txt:'#a8a29e',label:'En verificacion'}
+                    return (
+                      <div key={b.id} style={{background:'#1f2937',borderRadius:'10px',padding:'16px',marginBottom:'12px'}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                          <div>
+                            <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
+                            <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
+                            {ordenPagada && <p style={{color:'#6b7280',fontSize:'11px',margin:'4px 0 0'}}>Ref: {ordenPagada.codigo_orden}</p>}
+                          </div>
+                          <div style={{textAlign:'right'}}>
+                            <p style={{color:'#f9fafb',fontWeight:'700',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
+                            <span style={{background:badgeColor.bg,color:badgeColor.txt,fontSize:'11px',fontWeight:'600',padding:'3px 8px',borderRadius:'6px'}}>{badgeColor.label}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })
+            )}
+          </div>
+        )}
 
         {esAdmin && mostrarAdmin && (
           <div style={s.tarjetaAdmin}>

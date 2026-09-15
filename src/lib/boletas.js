@@ -84,3 +84,30 @@ export async function crearOrden({ boletaId, compradorId, subtotal, comision, to
   }
   return data[0]
 }
+export async function obtenerMisCompras(usuarioId) {
+  const { data, error } = await supabase
+    .from('ordenes')
+    .select(`
+      id, codigo_orden, total, estado_pago, creado_en,
+      boletas(tribuna, fila, silla, precio, eventos(nombre, ciudad, estadio, fecha, moneda))
+    `)
+    .eq('comprador_id', usuarioId)
+    .eq('estado_pago', 'pagada')
+    .order('creado_en', { ascending: false })
+  if (error) { console.error('Error misCompras:', error.message); return [] }
+  return data || []
+}
+
+export async function obtenerMisVentas(usuarioId) {
+  const { data, error } = await supabase
+    .from('boletas')
+    .select(`
+      id, tribuna, fila, silla, precio, estado, creado_en,
+      eventos(nombre, ciudad, fecha, moneda),
+      ordenes(codigo_orden, total, estado_pago)
+    `)
+    .eq('vendedor_id', usuarioId)
+    .order('creado_en', { ascending: false })
+  if (error) { console.error('Error misVentas:', error.message); return [] }
+  return data || []
+}
