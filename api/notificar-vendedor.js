@@ -90,7 +90,7 @@ export default async function handler(req) {
     method: 'POST',
     headers: { Authorization: `Bearer ${resendKey}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: 'Boletería CO <onboarding@resend.dev>',
+      from: 'Boletería CO <noreply@boleteriaco.com>',
       to: correoVendedor,
       subject: `¡Vendiste tu boleta para ${eventoNombre}!`,
       html: `
