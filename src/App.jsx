@@ -163,7 +163,10 @@ function App() {
           body: JSON.stringify({ referencia })
         })
       }
-      setPagoInfo({ referencia, transaccionId })
+      let carritoCount = 1
+      try { carritoCount = parseInt(sessionStorage.getItem('carrito_count') || '1'); sessionStorage.removeItem('carrito_count') } catch(e) {}
+      setPagoInfo({ referencia, transaccionId, carritoCount })
+      setCarrito([])
       setPagoStatus('exitoso')
     } else if (status === 'DECLINED' || status === 'ERROR' || status === 'VOIDED') {
       if (referencia) {
@@ -478,6 +481,7 @@ function App() {
       'redirect-url': window.location.origin
     })
     startTimer(15 * 60)
+    try { sessionStorage.setItem('carrito_count', String(carrito.length)) } catch(e) {}
     window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
   }
 
@@ -537,6 +541,7 @@ function App() {
     })
 
     startTimer(15 * 60)
+    try { sessionStorage.setItem('carrito_count', '1') } catch(e) {}
     window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
   }
 
@@ -594,22 +599,68 @@ function App() {
   }
 
   if (pagoStatus === 'exitoso') {
+    const n = pagoInfo?.carritoCount || 1
+    const ref = pagoInfo?.referencia || ''
     return (
-      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>
-        <div style={{ background: '#0f2d1e', border: '1px solid #166534', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
-          <div style={{ fontSize: '60px', marginBottom: '16px' }}>✅</div>
-          <h2 style={{ color: '#4ade80', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>¡Pago exitoso!</h2>
-          <p style={{ color: '#86efac', fontSize: '15px', margin: '0 0 8px' }}>Tu boleta ha sido adquirida correctamente.</p>
-          {pagoInfo?.referencia && (
-            <p style={{ color: '#6ee7b7', fontSize: '13px', margin: '0 0 24px' }}>Referencia: <strong>{pagoInfo.referencia}</strong></p>
-          )}
+      <div style={{minHeight:'100vh',background:'#080b12',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui,sans-serif',padding:'20px'}}>
+        <div style={{maxWidth:'480px',width:'100%'}}>
+          {/* Header */}
+          <div style={{background:'#0f2d1e',border:'1px solid #166534',borderRadius:'20px',padding:'36px 32px',textAlign:'center',marginBottom:'16px'}}>
+            <div style={{fontSize:'64px',marginBottom:'16px',lineHeight:1}}>🎟️</div>
+            <h2 style={{color:'#4ade80',fontSize:'26px',fontWeight:'900',margin:'0 0 8px'}}>¡Compra exitosa!</h2>
+            <p style={{color:'#86efac',fontSize:'15px',margin:'0 0 20px'}}>
+              {n === 1 ? 'Adquiriste tu boleta correctamente.' : `Adquiriste ${n} boletas correctamente.`}
+            </p>
+            {ref && (
+              <div style={{background:'rgba(0,0,0,0.3)',borderRadius:'10px',padding:'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px'}}>
+                <div style={{textAlign:'left'}}>
+                  <p style={{color:'#4e5a6e',fontSize:'11px',margin:'0 0 2px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.5px'}}>Referencia</p>
+                  <p style={{color:'#6ee7b7',fontSize:'13px',margin:0,fontFamily:'monospace',fontWeight:'700'}}>{ref}</p>
+                </div>
+                <button
+                  onClick={() => { navigator.clipboard?.writeText(ref); toast('Referencia copiada', 'info') }}
+                  style={{background:'#166534',border:'none',color:'#4ade80',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer',flexShrink:0}}
+                >
+                  Copiar
+                </button>
+              </div>
+            )}
+          </div>
 
-          <button
-            onClick={() => { setPagoStatus(null); setPagoInfo(null) }}
-            style={{ background: '#166534', color: '#fff', border: 'none', borderRadius: '8px', padding: '12px 28px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}
-          >
-            Ver boletas disponibles
-          </button>
+          {/* Pasos */}
+          <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'24px',marginBottom:'16px'}}>
+            <h3 style={{color:'#eef0f6',fontSize:'14px',fontWeight:'800',margin:'0 0 16px',textTransform:'uppercase',letterSpacing:'0.5px'}}>¿Qué sigue?</h3>
+            {[
+              {num:'1', titulo:'Revisa tu correo', desc:'Te llegará el comprobante de pago de Wompi.'},
+              {num:'2', titulo:'El vendedor te contacta', desc:'En las próximas horas recibirás la boleta digital por la app o correo acordado.'},
+              {num:'3', titulo:'Confirma que llegó', desc:'En "Mis boletas" confirma el recibo para liberar el pago al vendedor.'},
+            ].map(p => (
+              <div key={p.num} style={{display:'flex',gap:'12px',marginBottom:'14px',alignItems:'flex-start'}}>
+                <div style={{width:'24px',height:'24px',borderRadius:'50%',background:'#1e3a6a',color:'#4f7eff',fontSize:'12px',fontWeight:'900',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'1px'}}>{p.num}</div>
+                <div>
+                  <p style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700',margin:'0 0 2px'}}>{p.titulo}</p>
+                  <p style={{color:'#8892a4',fontSize:'13px',margin:0,lineHeight:'1.5'}}>{p.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Botones */}
+          <div style={{display:'flex',gap:'10px',flexDirection:'column'}}>
+            <button
+              onClick={() => { setPagoStatus(null); setPagoInfo(null); setPaginaActual('mis-boletas') }}
+              style={{background:'#4f7eff',color:'#fff',border:'none',borderRadius:'12px',padding:'14px',fontSize:'15px',fontWeight:'700',cursor:'pointer'}}
+            >
+              Ver mis boletas
+            </button>
+            <a
+              href={`https://wa.me/573001234567?text=${encodeURIComponent(`Hola, hice una compra en Boletería CO. Referencia: ${ref}`)}`}
+              target='_blank' rel='noopener noreferrer'
+              style={{display:'block',textAlign:'center',background:'#0f2d1e',color:'#4ade80',border:'1px solid #166534',borderRadius:'12px',padding:'13px',fontSize:'14px',fontWeight:'700',textDecoration:'none'}}
+            >
+              💬 Soporte por WhatsApp
+            </a>
+          </div>
         </div>
       </div>
     )
