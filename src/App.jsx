@@ -577,7 +577,7 @@ function App() {
                               </div>
                               <div style={{textAlign:'right'}}>
                                 <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
-                                <span style={{background:badgeColor.bg,color:badgeColor.txt,fontSize:'11px',fontWeight:'600',padding:'3px 8px',borderRadius:'6px'}}>{badgeColor.label}</span>
+                                <span style={{background:b.estado==='vendida'?'rgba(34,197,94,0.1)':b.estado==='publicada'?'rgba(79,126,255,0.1)':'rgba(255,255,255,0.05)',color:b.estado==='vendida'?'#4ade80':b.estado==='publicada'?'#6b93ff':'#8892a4',fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>{b.estado==='vendida'?'Vendida':b.estado==='publicada'?'Publicada':'En verificación'}</span>
                               </div>
                             </div>
                             {ordenPagada && (
