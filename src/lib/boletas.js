@@ -88,7 +88,7 @@ export async function obtenerMisCompras(usuarioId) {
   const { data, error } = await supabase
     .from('ordenes')
     .select(`
-      id, codigo_orden, total, estado_pago, creado_en, liberado, liberado_en,
+      id, codigo_orden, total, estado_pago, creado_en, liberado, liberado_en, archivo_url,
       boletas(tribuna, fila, silla, precio, vendedor_id, eventos(nombre, ciudad, estadio, fecha, moneda),
         usuarios(correo))
     `)
@@ -105,7 +105,7 @@ export async function obtenerMisVentas(usuarioId) {
     .select(`
       id, tribuna, fila, silla, precio, estado, creado_en,
       eventos(nombre, ciudad, fecha, moneda),
-      ordenes(codigo_orden, total, estado_pago, liberado, liberado_en, creado_en)
+      ordenes(id, codigo_orden, total, estado_pago, liberado, liberado_en, creado_en, archivo_url)
     `)
     .eq('vendedor_id', usuarioId)
     .order('creado_en', { ascending: false })

@@ -122,6 +122,22 @@ function App() {
     cargarMisBoletas()
   }
 
+  async function entregarBoleta(ordenId, file) {
+    setSubiendoArchivo(ordenId)
+    try {
+      const ext = file.name.split('.').pop().toLowerCase()
+      const path = ordenId + '/boleta.' + ext
+      const { error: upErr } = await supabase.storage.from('boletas-entregadas').upload(path, file, { upsert: true })
+      if (upErr) { alert('Error al subir el archivo: ' + upErr.message); return }
+      const { data: { publicUrl } } = supabase.storage.from('boletas-entregadas').getPublicUrl(path)
+      const { error: dbErr } = await supabase.from('ordenes').update({ archivo_url: publicUrl }).eq('id', ordenId)
+      if (dbErr) { alert('Error al guardar la URL: ' + dbErr.message); return }
+      cargarMisBoletas()
+    } finally {
+      setSubiendoArchivo(null)
+    }
+  }
+
   async function cargarMisBoletas() {
     if (!usuario) return
     setCargandoMis(true)
@@ -549,16 +565,26 @@ function App() {
                             </div>
                             {!esAdmin && (
                               <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
+                                {o.archivo_url ? (
+                                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
+                                    <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Boleta entregada por el vendedor</p>
+                                    <a href={o.archivo_url} target="_blank" rel="noreferrer" style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',textDecoration:'none'}}>⬇ Descargar boleta</a>
+                                  </div>
+                                ) : (
+                                  <p style={{color:'#f59e0b',fontSize:'12px',margin:'0'}}>⏳ Esperando que el vendedor entregue la boleta digital</p>
+                                )}
+                                {!o.archivo_url && <div style={{marginTop:'8px'}}>
                                 {o.liberado ? (
                                   <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Recibo confirmado — pago liberado al vendedor</p>
                                 ) : yaLiberado ? (
                                   <p style={{color:'#4e5a6e',fontSize:'12px',margin:'0'}}>✅ Pago liberado automáticamente al vendedor</p>
                                 ) : (
-                                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
-                                    <p style={{color:'#f59e0b',fontSize:'12px',margin:'0'}}>⏳ ¿Recibiste la boleta? Se libera en {horas}h automáticamente.</p>
+                                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px',marginTop:'6px'}}>
+                                    <p style={{color:'#8892a4',fontSize:'11px',margin:'0'}}>¿Ya la recibiste? Se libera en {horas}h automáticamente.</p>
                                     <button onClick={() => confirmarRecibo(o.id)} style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>Confirmar recibo</button>
                                   </div>
                                 )}
+                                </div>}
                               </div>
                             )}
                           </div>
@@ -589,11 +615,24 @@ function App() {
                             </div>
                             {ordenPagada && (
                               <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
+                                {ordenPagada.archivo_url ? (
+                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Boleta entregada al comprador</p>
+                                ) : (
+                                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
+                                    <p style={{color:'#f59e0b',fontSize:'12px',margin:'0'}}>📎 Debes entregar la boleta digital al comprador</p>
+                                    <label style={{background:'#4f7eff',color:'#fff',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer',display:'inline-block'}}>
+                                      {subiendoArchivo === ordenPagada.id ? 'Subiendo...' : '⬆ Subir boleta'}
+                                      <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{display:'none'}} disabled={subiendoArchivo !== null} onChange={(e)=>{ if(e.target.files[0]) entregarBoleta(ordenPagada.id, e.target.files[0]) }} />
+                                    </label>
+                                  </div>
+                                )}
+                                <div style={{marginTop:'8px'}}>
                                 {liberadoOrden ? (
                                   <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Pago liberado — coordina el cobro con Boletería CO</p>
                                 ) : (
-                                  <p style={{color:'#f59e0b',fontSize:'12px',margin:'0'}}>⏳ Pago bloqueado — el comprador tiene {hVenta}h para confirmar recibo</p>
+                                  <p style={{color:'#8892a4',fontSize:'11px',margin:'0'}}>⏳ Pago bloqueado — el comprador tiene {hVenta}h para confirmar recibo</p>
                                 )}
+                                </div>
                               </div>
                             )}
                           </div>
