@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { obtenerBoletas, publicarBoleta, crearOrden, obtenerVentasDeUsuario, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
-import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual } from './lib/auth'
+import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword } from './lib/auth'
 import { supabase } from './lib/supabase'
 
 const ADMIN_EMAIL = 'jossi08@icloud.com'
@@ -18,7 +18,8 @@ function App() {
   const [comprando, setComprando] = useState(null)
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
-  const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '' })
+  const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '' })
+  const [esRecuperacion, setEsRecuperacion] = useState(false)
   const [mensajeAuth, setMensajeAuth] = useState('')
   const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fecha: '', hora: '', moneda: 'COP' })
   const [mensajeEvento, setMensajeEvento] = useState('')
@@ -226,6 +227,46 @@ function App() {
     const resultado = await registrarUsuario(formAuth)
     if (resultado.exito) { setUsuario(resultado.usuario); setVistaAuth(null); setMensajeAuth('') }
     else { setMensajeAuth('Error: ' + resultado.mensaje) }
+  }
+
+  // Detectar si viene del link de recuperación de contraseña
+  useEffect(() => {
+    const hash = window.location.hash
+    const params = new URLSearchParams(window.location.search)
+    if (hash.includes('type=recovery') || params.get('recuperar') === '1') {
+      // Supabase ya maneja el token via el listener de onAuthStateChange
+      supabase.auth.onAuthStateChange((event) => {
+        if (event === 'PASSWORD_RECOVERY') {
+          setEsRecuperacion(true)
+          setVistaAuth('nueva-password')
+        }
+      })
+    }
+  }, [])
+
+  async function manejarRecuperacion(e) {
+    e.preventDefault()
+    setMensajeAuth('Enviando...')
+    const resultado = await enviarRecuperacion(formAuth.correo)
+    if (resultado.exito) {
+      setMensajeAuth('✅ Revisa tu correo — te enviamos un link para restablecer tu contraseña.')
+    } else {
+      setMensajeAuth('Error: ' + resultado.mensaje)
+    }
+  }
+
+  async function manejarNuevaPassword(e) {
+    e.preventDefault()
+    setMensajeAuth('Actualizando...')
+    const resultado = await actualizarPassword(formAuth.nuevaPassword)
+    if (resultado.exito) {
+      setMensajeAuth('✅ Contraseña actualizada. Ya puedes iniciar sesión.')
+      setVistaAuth('login')
+      setEsRecuperacion(false)
+      window.history.replaceState({}, '', window.location.pathname)
+    } else {
+      setMensajeAuth('Error: ' + resultado.mensaje)
+    }
   }
 
   async function manejarLogin(e) {
@@ -626,6 +667,39 @@ function App() {
             <label style={s.label}>Contrasena</label>
             <input name="password" type="password" value={formAuth.password} onChange={manejarCambioAuth} required style={s.input} />
             <button type="submit" style={s.botonSubmit}>Entrar</button>
+            <p style={{textAlign:'center',marginTop:'12px'}}>
+              <button type="button" onClick={() => { setVistaAuth('recuperar'); setMensajeAuth('') }}
+                style={{background:'none',border:'none',color:'#6366f1',fontSize:'13px',cursor:'pointer',textDecoration:'underline'}}>
+                ¿Olvidaste tu contraseña?
+              </button>
+            </p>
+            {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
+          </form>
+        )}
+
+        {vistaAuth === 'recuperar' && (
+          <form onSubmit={manejarRecuperacion} style={s.tarjetaForm}>
+            <p style={s.tituloForm}>Recuperar contraseña</p>
+            <p style={{color:'#9ca3af',fontSize:'13px',marginBottom:'16px'}}>Ingresa tu correo y te enviamos un link para crear una nueva contraseña.</p>
+            <label style={s.label}>Correo</label>
+            <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
+            <button type="submit" style={s.botonSubmit}>Enviar link</button>
+            <p style={{textAlign:'center',marginTop:'12px'}}>
+              <button type="button" onClick={() => { setVistaAuth('login'); setMensajeAuth('') }}
+                style={{background:'none',border:'none',color:'#6b7280',fontSize:'13px',cursor:'pointer'}}>
+                ← Volver al inicio de sesión
+              </button>
+            </p>
+            {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
+          </form>
+        )}
+
+        {vistaAuth === 'nueva-password' && (
+          <form onSubmit={manejarNuevaPassword} style={s.tarjetaForm}>
+            <p style={s.tituloForm}>Nueva contraseña</p>
+            <label style={s.label}>Nueva contraseña</label>
+            <input name="nuevaPassword" type="password" value={formAuth.nuevaPassword} onChange={manejarCambioAuth} required minLength={6} style={s.input} />
+            <button type="submit" style={s.botonSubmit}>Guardar contraseña</button>
             {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
           </form>
         )}

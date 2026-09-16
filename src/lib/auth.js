@@ -41,3 +41,18 @@ export async function obtenerUsuarioActual() {
   const { data } = await supabase.auth.getUser()
   return data.user
 }
+// Enviar email de recuperación de contraseña
+export async function enviarRecuperacion(correo) {
+  const { error } = await supabase.auth.resetPasswordForEmail(correo, {
+    redirectTo: window.location.origin + '?recuperar=1'
+  })
+  if (error) return { exito: false, mensaje: error.message }
+  return { exito: true }
+}
+
+// Actualizar contraseña (cuando el usuario viene del link de recuperación)
+export async function actualizarPassword(nuevaPassword) {
+  const { error } = await supabase.auth.updateUser({ password: nuevaPassword })
+  if (error) return { exito: false, mensaje: error.message }
+  return { exito: true }
+}
