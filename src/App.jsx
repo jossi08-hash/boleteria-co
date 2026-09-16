@@ -1098,6 +1098,23 @@ function App() {
             if (filtros.precioMax && Number(b.precio) > Number(filtros.precioMax)) return false
             return true
           })
+          if (!cargando && boletas.length === 0) return (
+            <div style={{textAlign:'center',padding:'60px 20px 40px',display:'flex',flexDirection:'column',alignItems:'center',gap:'16px'}}>
+              <div style={{fontSize:'52px',lineHeight:1}}>🎟️</div>
+              <h2 style={{margin:0,fontSize:'22px',fontWeight:'800',color:'#eef0f6'}}>Aún no hay boletas publicadas</h2>
+              <p style={{margin:0,fontSize:'15px',color:'#8892a4',maxWidth:'320px',lineHeight:'1.6'}}>Sé el primero en vender. Publica tu boleta en minutos y llega a compradores en toda Colombia.</p>
+              <button
+                onClick={() => {
+                  if (!usuario) { setVistaAuth('registro'); return }
+                  setPaginaActual('mis-boletas')
+                  setTimeout(() => setMostrarFormulario(true), 100)
+                }}
+                style={{marginTop:'8px',background:'#4f7eff',color:'#fff',border:'none',borderRadius:'12px',padding:'14px 32px',fontSize:'15px',fontWeight:'700',cursor:'pointer',boxShadow:'0 0 28px rgba(79,126,255,0.3)'}}>
+                Publicar mi boleta
+              </button>
+              {!usuario && <p style={{margin:0,fontSize:'13px',color:'#4e5a6e'}}>Gratis · Sin comisión oculta</p>}
+            </div>
+          )
           if (!cargando && boletasFiltradas.length === 0) return <p style={s.vacio}>No hay boletas que coincidan con los filtros.</p>
           return boletasFiltradas.map(function(b) {
           const moneda = b.eventos ? b.eventos.moneda : 'COP'
