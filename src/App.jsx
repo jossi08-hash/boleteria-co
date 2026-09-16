@@ -8,6 +8,7 @@ const ADMIN_EMAIL = 'jossi08@icloud.com'
 function App() {
   const [boletas, setBoletas] = useState([])
   const [boletasPendientes, setBoletasPendientes] = useState([])
+  const [ordenesLiberadas, setOrdenesLiberadas] = useState([])
   const [ventasPorVendedor, setVentasPorVendedor] = useState({})
   const [cargando, setCargando] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
@@ -46,7 +47,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (esAdmin) cargarBoletasPendientes()
+    if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas() }
   }, [esAdmin])
 
   async function procesarResultadoPago(params) {
@@ -147,6 +148,28 @@ function App() {
       }
     }
     setVentasPorVendedor(ventas)
+  }
+
+  async function cargarOrdenesLiberadas() {
+    const { data, error } = await supabase
+      .from('ordenes')
+      .select(`id, codigo_orden, total, creado_en, liberado_en, pago_vendedor_enviado,
+        boletas(tribuna, fila, silla, precio, vendedor_id,
+          eventos(nombre, ciudad),
+          usuarios(nombre, correo))`)
+      .eq('estado_pago', 'pagada')
+      .eq('liberado', true)
+      .eq('pago_vendedor_enviado', false)
+      .order('liberado_en', { ascending: true })
+    if (!error) setOrdenesLiberadas(data || [])
+  }
+
+  async function marcarPagadoVendedor(ordenId) {
+    const { error } = await supabase
+      .from('ordenes')
+      .update({ pago_vendedor_enviado: true })
+      .eq('id', ordenId)
+    if (!error) cargarOrdenesLiberadas()
   }
 
   async function cargarBoletasPendientes() {
@@ -534,6 +557,37 @@ function App() {
               </div>
             )}
             {boletasPendientes.length === 0 && <p style={{ color: c.textoSec, fontSize: '13px', marginBottom: '16px' }}>No hay boletas pendientes.</p>}
+            {ordenesLiberadas.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <p style={{color:'#fbbf24',fontSize:'14px',fontWeight:'600',margin:'0 0 12px'}}>
+                  Pagos pendientes de envío al vendedor ({ordenesLiberadas.length})
+                </p>
+                {ordenesLiberadas.map(function(o) {
+                  const b = o.boletas
+                  const ev = b?.eventos
+                  const esBoletaAdmin = b?.usuarios?.correo === ADMIN_EMAIL
+                  if (esBoletaAdmin) return null
+                  const neto = Math.round(Number(b?.precio || 0) * 0.95)
+                  return (
+                    <div key={o.id} style={{background:'#1c2a1c',border:'1px solid #166534',borderRadius:'10px',padding:'14px',marginBottom:'10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'10px'}}>
+                      <div>
+                        <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 2px',fontSize:'13px'}}>{ev?.nombre || 'Evento'} · {ev?.ciudad || ''}</p>
+                        <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Vendedor: {b?.usuarios?.nombre || 'N/A'} — {b?.usuarios?.correo || ''}</p>
+                        <p style={{color:'#9ca3af',fontSize:'12px',margin:'0'}}>Ref: {o.codigo_orden} · Pagar: <strong style={{color:'#34d399'}}>${neto.toLocaleString('es-CO')}</strong> (95% del precio)</p>
+                      </div>
+                      <button onClick={() => marcarPagadoVendedor(o.id)}
+                        style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'8px 16px',fontSize:'13px',fontWeight:'600',cursor:'pointer',whiteSpace:'nowrap'}}>
+                        ✅ Marcar pagado
+                      </button>
+                    </div>
+                  )
+                })}
+                <hr style={s.separador} />
+              </div>
+            )}
+            {ordenesLiberadas.filter(o => o.boletas?.usuarios?.correo !== ADMIN_EMAIL).length === 0 && (
+              <p style={{color:'#6b7280',fontSize:'13px',marginBottom:'16px'}}>No hay pagos pendientes de envío.</p>
+            )}
             <p style={s.tituloAdmin}>Crear evento</p>
             <form onSubmit={manejarCrearEvento}>
               <label style={s.label}>Nombre del evento</label>
