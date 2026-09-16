@@ -102,6 +102,17 @@ function App() {
     }
   }
 
+
+  async function confirmarRecibo(ordenId) {
+    const { error } = await supabase
+      .from('ordenes')
+      .update({ liberado: true, liberado_en: new Date().toISOString() })
+      .eq('id', ordenId)
+      .eq('comprador_id', usuario.id)
+    if (error) { console.error('Error confirmando recibo:', error.message); alert('Hubo un error. Intenta de nuevo.'); return }
+    cargarMisBoletas()
+  }
+
   async function cargarMisBoletas() {
     if (!usuario) return
     setCargandoMis(true)
@@ -417,20 +428,42 @@ function App() {
                     const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
                     const fecha = ev && ev.fecha ? new Date(ev.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : ''
                     return (
-                      <div key={o.id} style={{background:'#1f2937',borderRadius:'10px',padding:'16px',marginBottom:'12px'}}>
-                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
-                          <div>
-                            <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
-                            <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}{fecha ? ' · ' + fecha : ''}</p>
-                            <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b && b.tribuna}{b && b.fila ? ' · Fila ' + b.fila : ''}{b && b.silla ? ' · Silla ' + b.silla : ''}</p>
-                            <p style={{color:'#6b7280',fontSize:'11px',margin:'4px 0 0'}}>Ref: {o.codigo_orden}</p>
+                      {(() => {
+                        const esAdmin = b?.usuarios?.correo === ADMIN_EMAIL
+                        const yaLiberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
+                        const msRestantes = (new Date(o.creado_en).getTime() + 72 * 60 * 60 * 1000) - Date.now()
+                        const horas = Math.max(0, Math.floor(msRestantes / 3600000))
+                        return (
+                          <div key={o.id} style={{background:'#1f2937',borderRadius:'10px',padding:'16px',marginBottom:'12px'}}>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                              <div>
+                                <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
+                                <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}{fecha ? ' · ' + fecha : ''}</p>
+                                <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b && b.tribuna}{b && b.fila ? ' · Fila ' + b.fila : ''}{b && b.silla ? ' · Silla ' + b.silla : ''}</p>
+                                <p style={{color:'#6b7280',fontSize:'11px',margin:'4px 0 0'}}>Ref: {o.codigo_orden}</p>
+                              </div>
+                              <div style={{textAlign:'right'}}>
+                                <p style={{color:'#34d399',fontWeight:'700',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(o.total).toLocaleString('es-CO')}</p>
+                                <span style={{background:'#064e3b',color:'#34d399',fontSize:'11px',fontWeight:'600',padding:'3px 8px',borderRadius:'6px'}}>Pagada</span>
+                              </div>
+                            </div>
+                            {!esAdmin && (
+                              <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #374151'}}>
+                                {o.liberado ? (
+                                  <p style={{color:'#34d399',fontSize:'12px',margin:'0'}}>✅ Recibo confirmado — pago liberado al vendedor</p>
+                                ) : yaLiberado ? (
+                                  <p style={{color:'#6b7280',fontSize:'12px',margin:'0'}}>✅ Pago liberado automáticamente al vendedor</p>
+                                ) : (
+                                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
+                                    <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>⏳ ¿Recibiste la boleta? El pago al vendedor se libera en {horas}h automáticamente.</p>
+                                    <button onClick={() => confirmarRecibo(o.id)} style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>Confirmar recibo</button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <div style={{textAlign:'right'}}>
-                            <p style={{color:'#34d399',fontWeight:'700',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(o.total).toLocaleString('es-CO')}</p>
-                            <span style={{background:'#064e3b',color:'#34d399',fontSize:'11px',fontWeight:'600',padding:'3px 8px',borderRadius:'6px'}}>Pagada</span>
-                          </div>
-                        </div>
-                      </div>
+                        )
+                      })()}
                     )
                   })
             )}
@@ -443,19 +476,34 @@ function App() {
                     const ordenPagada = Array.isArray(b.ordenes) ? b.ordenes.find(o => o.estado_pago === 'pagada') : null
                     const badgeColor = b.estado === 'vendida' ? {bg:'#064e3b',txt:'#34d399',label:'Vendida'} : b.estado === 'publicada' ? {bg:'#1e3a5f',txt:'#60a5fa',label:'Publicada'} : {bg:'#292524',txt:'#a8a29e',label:'En verificacion'}
                     return (
-                      <div key={b.id} style={{background:'#1f2937',borderRadius:'10px',padding:'16px',marginBottom:'12px'}}>
-                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
-                          <div>
-                            <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
-                            <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
-                            {ordenPagada && <p style={{color:'#6b7280',fontSize:'11px',margin:'4px 0 0'}}>Ref: {ordenPagada.codigo_orden}</p>}
+                      {(() => {
+                        const liberadoOrden = ordenPagada && (ordenPagada.liberado || (Date.now() - new Date(ordenPagada.creado_en).getTime() > 72 * 60 * 60 * 1000))
+                        const hVenta = ordenPagada ? Math.max(0, Math.floor(((new Date(ordenPagada.creado_en).getTime() + 72*3600000) - Date.now()) / 3600000)) : 0
+                        return (
+                          <div key={b.id} style={{background:'#1f2937',borderRadius:'10px',padding:'16px',marginBottom:'12px'}}>
+                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                              <div>
+                                <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
+                                <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
+                                {ordenPagada && <p style={{color:'#6b7280',fontSize:'11px',margin:'4px 0 0'}}>Ref: {ordenPagada.codigo_orden}</p>}
+                              </div>
+                              <div style={{textAlign:'right'}}>
+                                <p style={{color:'#f9fafb',fontWeight:'700',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
+                                <span style={{background:badgeColor.bg,color:badgeColor.txt,fontSize:'11px',fontWeight:'600',padding:'3px 8px',borderRadius:'6px'}}>{badgeColor.label}</span>
+                              </div>
+                            </div>
+                            {ordenPagada && (
+                              <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #374151'}}>
+                                {liberadoOrden ? (
+                                  <p style={{color:'#34d399',fontSize:'12px',margin:'0'}}>✅ Pago liberado — coordina el cobro con Boletería CO</p>
+                                ) : (
+                                  <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>⏳ Pago bloqueado — el comprador tiene {hVenta}h para confirmar recibo</p>
+                                )}
+                              </div>
+                            )}
                           </div>
-                          <div style={{textAlign:'right'}}>
-                            <p style={{color:'#f9fafb',fontWeight:'700',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
-                            <span style={{background:badgeColor.bg,color:badgeColor.txt,fontSize:'11px',fontWeight:'600',padding:'3px 8px',borderRadius:'6px'}}>{badgeColor.label}</span>
-                          </div>
-                        </div>
-                      </div>
+                        )
+                      })()}
                     )
                   })
             )}
@@ -624,7 +672,8 @@ function App() {
           return (
             <div key={b.id} style={s.tarjetaBoleta}>
               <h3 style={s.nombreEvento}>{b.eventos ? b.eventos.nombre : ''}</h3>
-              <p style={s.detalleEvento}>{b.eventos ? b.eventos.ciudad : ''} - {b.eventos ? b.eventos.estadio : ''}</p>
+              <p style={s.detalleEvento}>{b.eventos ? b.eventos.ciudad : ''}{b.eventos && b.eventos.estadio ? ' · ' + b.eventos.estadio : ''}</p>
+              {b.eventos && b.eventos.fecha && <p style={{...s.detalleEvento, color:'#a78bfa', fontSize:'12px'}}>{new Date(b.eventos.fecha).toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}</p>}
               <p style={s.detalleEvento}>Tribuna {b.tribuna} - Fila {b.fila} - Silla {b.silla}</p>
               <div style={s.vendedorRow}>
                 {esBoleteriaCO ? (
