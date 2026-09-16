@@ -89,6 +89,20 @@ function App() {
     if (urlParams.get('id') || urlParams.get('status') || urlParams.get('pago') === 'exitoso') {
       procesarResultadoPago(urlParams)
     }
+
+    // Escuchar cambios de autenticación: confirmación de email y recuperación de contraseña
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        setUsuario(session.user)
+        setVistaAuth(null)
+        setMensajeAuth('')
+      }
+      if (event === 'PASSWORD_RECOVERY') {
+        setEsRecuperacion(true)
+        setVistaAuth('nueva-password')
+      }
+    })
+    return () => authListener.subscription.unsubscribe()
   }, [])
 
   useEffect(() => {
@@ -293,24 +307,22 @@ function App() {
     e.preventDefault()
     setMensajeAuth('Registrando...')
     const resultado = await registrarUsuario(formAuth)
-    if (resultado.exito) { setUsuario(resultado.usuario); setVistaAuth(null); setMensajeAuth('') }
-    else { setMensajeAuth('Error: ' + resultado.mensaje) }
+    if (resultado.exito) {
+      if (resultado.session) {
+        // Confirmación de email desactivada en Supabase — entra directo
+        setUsuario(resultado.usuario)
+        setVistaAuth(null)
+        setMensajeAuth('')
+      } else {
+        // Confirmación de email requerida
+        setMensajeAuth('✅ Te enviamos un correo de confirmación a ' + formAuth.correo + '. Haz clic en el link para activar tu cuenta.')
+      }
+    } else {
+      setMensajeAuth('Error: ' + resultado.mensaje)
+    }
   }
 
-  // Detectar si viene del link de recuperación de contraseña
-  useEffect(() => {
-    const hash = window.location.hash
-    const params = new URLSearchParams(window.location.search)
-    if (hash.includes('type=recovery') || params.get('recuperar') === '1') {
-      // Supabase ya maneja el token via el listener de onAuthStateChange
-      supabase.auth.onAuthStateChange((event) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setEsRecuperacion(true)
-          setVistaAuth('nueva-password')
-        }
-      })
-    }
-  }, [])
+
 
   async function manejarRecuperacion(e) {
     e.preventDefault()

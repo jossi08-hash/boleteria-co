@@ -14,7 +14,7 @@ export async function registrarUsuario({ nombre, correo, password }) {
     console.error('Error al registrar usuario:', error.message)
     return { exito: false, mensaje: error.message }
   }
-  return { exito: true, usuario: data.user }
+  return { exito: true, usuario: data.user, session: data.session }
 }
 
 // Iniciar sesión
@@ -26,7 +26,10 @@ export async function iniciarSesion({ correo, password }) {
 
   if (error) {
     console.error('Error al iniciar sesión:', error.message)
-    return { exito: false, mensaje: error.message }
+    const msg = error.message.includes('not confirmed') || error.message.includes('Email not confirmed')
+      ? 'Debes confirmar tu correo antes de entrar. Revisa tu bandeja de entrada.'
+      : error.message
+    return { exito: false, mensaje: msg }
   }
   return { exito: true, usuario: data.user }
 }
