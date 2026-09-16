@@ -1259,9 +1259,61 @@ function App() {
           </div>
         )}
 
+      {paginaActual === 'privacidad' && (
+        <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 60px'}}>
+          <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:'0 0 28px'}}>← Volver</button>
+          <h1 style={{fontSize:'26px',fontWeight:'900',color:'#eef0f6',margin:'0 0 6px'}}>Política de Privacidad</h1>
+          <p style={{color:'#4e5a6e',fontSize:'13px',margin:'0 0 36px'}}>Última actualización: septiembre 2026</p>
+
+          {[
+            {titulo:'1. Responsable del tratamiento', texto:`Boletería CO (en adelante "la Plataforma"), con dominio boleteriaco.com y correo de contacto soporte@boleteriaco.com, es responsable del tratamiento de los datos personales recopilados a través de este sitio web, en cumplimiento de la Ley 1581 de 2012 y el Decreto 1377 de 2013.`},
+            {titulo:'2. Datos que recopilamos', texto:`Recopilamos los siguientes datos personales cuando te registras o usas la Plataforma:
+• Nombre completo
+• Correo electrónico
+• Información de pago procesada por Wompi (no almacenamos datos de tarjetas)
+• Historial de compras y ventas de boletas
+• Dirección IP y datos de sesión para fines de seguridad`},
+            {titulo:'3. Finalidad del tratamiento', texto:`Tus datos se utilizan exclusivamente para:
+• Crear y gestionar tu cuenta en la Plataforma
+• Procesar transacciones de compra y venta de boletas
+• Enviarte confirmaciones y comprobantes de pago
+• Prevenir fraude y garantizar la seguridad de las transacciones
+• Cumplir obligaciones legales y tributarias`},
+            {titulo:'4. Base legal', texto:`El tratamiento de tus datos se realiza con base en el consentimiento que otorgas al registrarte en la Plataforma, así como en la necesidad de ejecutar el contrato de compraventa de boletas que celebras a través de ella.`},
+            {titulo:'5. Transferencia de datos', texto:`Tus datos pueden compartirse con:
+• Wompi (pasarela de pagos), para procesar transacciones
+• Supabase (proveedor de infraestructura), que almacena los datos en servidores con altos estándares de seguridad
+
+No vendemos ni cedemos tus datos personales a terceros con fines comerciales.`},
+            {titulo:'6. Derechos del titular', texto:`De conformidad con la Ley 1581 de 2012, tienes derecho a:
+• Conocer, actualizar y rectificar tus datos
+• Solicitar prueba de la autorización otorgada
+• Ser informado sobre el uso dado a tus datos
+• Revocar la autorización y solicitar la supresión de tus datos
+• Acceder gratuitamente a tus datos personales
+
+Para ejercer estos derechos, escríbenos a soporte@boleteriaco.com.`},
+            {titulo:'7. Conservación de datos', texto:`Conservamos tus datos mientras mantengas una cuenta activa en la Plataforma o mientras sea necesario para cumplir obligaciones legales. Si solicitas la eliminación de tu cuenta, eliminaremos tus datos personales en un plazo de 30 días hábiles, salvo los que debamos conservar por obligación legal.`},
+            {titulo:'8. Seguridad', texto:`Implementamos medidas técnicas y organizativas para proteger tus datos contra accesos no autorizados, pérdida o destrucción, incluyendo cifrado en tránsito (HTTPS) y control de acceso a bases de datos.`},
+            {titulo:'9. Cambios a esta política', texto:`Podemos actualizar esta política en cualquier momento. Te notificaremos por correo electrónico si los cambios son significativos. El uso continuado de la Plataforma tras la notificación implica tu aceptación.`},
+            {titulo:'10. Contacto', texto:`Para cualquier consulta sobre esta política o el tratamiento de tus datos, contáctanos en:
+soporte@boleteriaco.com`},
+          ].map(({titulo, texto}) => (
+            <div key={titulo} style={{marginBottom:'28px'}}>
+              <h2 style={{fontSize:'16px',fontWeight:'800',color:'#eef0f6',margin:'0 0 10px'}}>{titulo}</h2>
+              <p style={{fontSize:'14px',color:'#8892a4',lineHeight:'1.75',margin:0,whiteSpace:'pre-line'}}>{texto}</p>
+            </div>
+          ))}
+
+          <div style={{borderTop:'1px solid #1e2a3a',marginTop:'40px',paddingTop:'24px',textAlign:'center'}}>
+            <p style={{color:'#4e5a6e',fontSize:'13px',margin:0}}>¿Preguntas? Escríbenos a <a href='mailto:soporte@boleteriaco.com' style={{color:'#4f7eff',textDecoration:'none'}}>soporte@boleteriaco.com</a></p>
+          </div>
+        </div>
+      )}
+
       <footer style={{borderTop:'1px solid #1e2a3a', marginTop:'48px', paddingTop:'28px', paddingBottom:'32px', textAlign:'center'}}>
         <p style={{color:'#4e5a6e', fontSize:'13px', margin:'0 0 8px', fontWeight:'700', letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#4f7eff'}}>CO</span></p>
-        <p style={{color:'#4e5a6e', fontSize:'12px', margin:0}}>© 2026 · <a href='/terminos.html' target='_blank' style={{color:'#8892a4', textDecoration:'none'}}>Términos y condiciones</a> · soporte@boleteriaco.com</p>
+        <p style={{color:'#4e5a6e', fontSize:'12px', margin:0}}>© 2026 · <a href='/terminos.html' target='_blank' style={{color:'#8892a4', textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0,textDecoration:'none'}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
       </footer>
       </div>
     </div>
