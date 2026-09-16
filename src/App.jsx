@@ -54,7 +54,7 @@ function App() {
   const [eventos, setEventos] = useState([])
   const [mensaje, setMensaje] = useState('')
   const [comprando, setComprando] = useState(null)
-  const [boletaCarrito, setBoletaCarrito] = useState(null)
+  const [carrito, setCarrito] = useState([])
   const [silasExtra, setSilasExtra] = useState([])
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
@@ -142,6 +142,18 @@ function App() {
         await supabase.from('ordenes').update({ estado_pago: 'pagada' }).eq('id', orden.id)
         await supabase.from('boletas').update({ estado: 'vendida' }).eq('id', orden.boleta_id)
         cargarBoletas()
+        // Procesar órdenes extra del carrito
+        try {
+          const extraStr = sessionStorage.getItem('carrito_ordenes_extra')
+          if (extraStr) {
+            const extras = JSON.parse(extraStr)
+            await Promise.all(extras.map(async o => {
+              await supabase.from('ordenes').update({ estado_pago: 'pagada' }).eq('id', o.id)
+              await supabase.from('boletas').update({ estado: 'vendida' }).eq('id', o.boleta_id)
+            }))
+            sessionStorage.removeItem('carrito_ordenes_extra')
+          }
+        } catch(e) { console.error('Error procesando extras carrito:', e) }
         // Notificar al vendedor por email
         fetch('/api/notificar-vendedor', {
           method: 'POST',
@@ -386,6 +398,70 @@ function App() {
     return formatearPrecio(redondeado, moneda)
   }
 
+  async function manejarCompraCarrito() {
+    if (carrito.length === 0) return
+    if (!usuario) { alert('Debes iniciar sesión para comprar.'); return }
+    setComprando('carrito')
+
+    const reservadaHasta = new Date(Date.now() + 15 * 60 * 1000).toISOString()
+    const reservaciones = await Promise.all(carrito.map(b =>
+      supabase.from('boletas')
+        .update({ estado: 'reservada', reservada_hasta: reservadaHasta })
+        .eq('id', b.id).eq('estado', 'publicada').select()
+    ))
+    const fallidas = reservaciones.filter(r => !r.data || r.data.length === 0)
+    if (fallidas.length > 0) {
+      // Liberar las que sí se reservaron
+      await Promise.all(reservaciones.filter(r => r.data?.length > 0).map((_, i) =>
+        supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', carrito[i].id)
+      ))
+      alert('Algunas boletas ya no están disponibles. Revisa tu carrito.')
+      setCarrito(prev => prev.filter((b, i) => reservaciones[i]?.data?.length > 0))
+      setComprando(null)
+      return
+    }
+
+    const ordenes = await Promise.all(carrito.map(b => {
+      const subtotal = Number(b.precio)
+      const comision = Math.round(subtotal * 0.10)
+      const total = Math.round((subtotal + comision) / 1000) * 1000
+      return crearOrden({ boletaId: b.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'wompi' })
+    }))
+
+    if (ordenes.some(o => o === null)) {
+      await Promise.all(carrito.map(b =>
+        supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', b.id)
+      ))
+      alert('Error al crear órdenes. Intenta de nuevo.')
+      setComprando(null)
+      return
+    }
+
+    const moneda = carrito[0].eventos?.moneda || 'COP'
+    const totalCombinado = ordenes.reduce((sum, o) => sum + o.total, 0)
+    const referencia = ordenes[0].codigo_orden
+
+    if (ordenes.length > 1) {
+      try { sessionStorage.setItem('carrito_ordenes_extra', JSON.stringify(ordenes.slice(1).map(o => ({ id: o.id, boleta_id: o.boleta_id })))) } catch(e) {}
+    }
+
+    const totalCentavos = totalCombinado * 100
+    const res = await fetch('/api/integrity', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reference: referencia, amount: totalCentavos, currency: moneda })
+    })
+    if (!res.ok) { alert('Error al generar firma de pago. Intenta de nuevo.'); setComprando(null); return }
+    const { signature } = await res.json()
+
+    const params = new URLSearchParams({
+      'public-key': import.meta.env.VITE_WOMPI_PUBLIC_KEY,
+      currency: moneda, 'amount-in-cents': totalCentavos,
+      reference: referencia, 'signature:integrity': signature,
+      'redirect-url': window.location.origin
+    })
+    window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
+  }
+
   async function manejarCompra(boleta) {
     if (!usuario) { alert('Debes iniciar sesion para comprar una boleta.'); return }
     setComprando(boleta.id)
@@ -567,6 +643,10 @@ function App() {
                 {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
                 {!esMobile && <span style={s.usuarioNombre}>{usuario.email}</span>}
                 <button style={s.botonSec} onClick={irAMisBoletas}>{esMobile ? '🎟' : 'Mis boletas'}</button>
+                <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+                  🛒
+                  {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                </button>
                 <button style={s.botonSec} onClick={manejarCerrarSesion}>{esMobile ? '←' : 'Salir'}</button>
               </>
             ) : (
@@ -1022,9 +1102,23 @@ function App() {
                 ) : b.estado === 'vendida' ? (
                   <span style={{background:'#1a1a1a',color:'#6b7280',fontSize:'12px',fontWeight:'600',padding:'6px 14px',borderRadius:'8px'}}>Vendida</span>
                 ) : (
-                  <button onClick={() => { setBoletaCarrito(b); setPaginaActual('carrito') }} style={s.botonComprar}>
-                    {comprando === b.id ? 'Procesando...' : 'Comprar'}
-                  </button>
+                  (() => {
+                    const enCarrito = carrito.some(c => c.id === b.id)
+                    return (
+                      <button
+                        onClick={() => {
+                          if (enCarrito) {
+                            setCarrito(carrito.filter(c => c.id !== b.id))
+                          } else {
+                            setCarrito([...carrito, b])
+                          }
+                        }}
+                        style={{...s.botonComprar, background: enCarrito ? '#0f2d1e' : '#4f7eff', color: enCarrito ? '#4ade80' : '#fff', border: enCarrito ? '1px solid #166534' : 'none'}}
+                      >
+                        {enCarrito ? '✓ En carrito' : '+ Añadir'}
+                      </button>
+                    )
+                  })()
                 )}
               </div>
             </div>
@@ -1033,104 +1127,91 @@ function App() {
         })()}
 
         {/* CARRITO */}
-        {paginaActual === 'carrito' && boletaCarrito && (
+        {paginaActual === 'carrito' && (
           <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
             <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
-                <button onClick={()=>{setPaginaActual('inicio');setBoletaCarrito(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🛒 Resumen de compra</p>
+                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🛒 Carrito {carrito.length > 0 && `(${carrito.length})`}</p>
                 <div style={{width:'60px'}}></div>
               </div>
             </nav>
             <div style={{maxWidth:'480px',margin:'0 auto',padding: esMobile ? '24px 16px 48px' : '32px 20px 48px'}}>
-              {/* Tarjeta del evento */}
-              {boletaCarrito.eventos && (
-                <div style={{background:'rgba(79,126,255,0.07)',border:'1px solid rgba(79,126,255,0.18)',borderRadius:'14px',padding:'16px 20px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'14px'}}>
-                  <span style={{fontSize:'28px'}}>⚽</span>
-                  <div>
-                    <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'15px',margin:'0 0 3px'}}>{boletaCarrito.eventos.nombre}</p>
-                    {boletaCarrito.eventos.fecha && (
-                      <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>
-                        {new Date(boletaCarrito.eventos.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'})}
-                        {boletaCarrito.eventos.hora ? ' · ' + boletaCarrito.eventos.hora : ''}
-                        {boletaCarrito.eventos.estadio ? ' · ' + boletaCarrito.eventos.estadio : ''}
-                      </p>
-                    )}
-                  </div>
+              {carrito.length === 0 ? (
+                <div style={{textAlign:'center',padding:'60px 0'}}>
+                  <div style={{fontSize:'48px',marginBottom:'16px'}}>🛒</div>
+                  <p style={{color:'#8892a4',fontSize:'16px',fontWeight:'600',margin:'0 0 8px'}}>Tu carrito está vacío</p>
+                  <p style={{color:'#4e5a6e',fontSize:'13px',margin:'0 0 24px'}}>Añade boletas desde el listado principal</p>
+                  <button onClick={()=>setPaginaActual('inicio')} style={s.botonSubmit}>Ver boletas disponibles</button>
                 </div>
+              ) : (
+                <>
+                  {/* Lista de ítems */}
+                  {carrito.map(b => {
+                    const monB = b.eventos?.moneda || 'COP'
+                    const subB = Number(b.precio)
+                    const comB = Math.round(subB * 0.10)
+                    const totB = Math.round((subB + comB) / 1000) * 1000
+                    return (
+                      <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'16px 18px',marginBottom:'12px'}}>
+                        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}}>
+                          <div style={{flex:1,minWidth:0}}>
+                            <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'14px',margin:'0 0 4px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.eventos?.nombre || 'Evento'}</p>
+                            <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 6px'}}>
+                              {b.tribuna}{b.fila ? ` · Fila ${b.fila}` : ''}{b.silla ? ` · Silla ${b.silla}` : ''}
+                              {b.plataforma ? <span style={{marginLeft:'6px',background:'rgba(79,126,255,0.1)',color:'#4f7eff',borderRadius:'4px',padding:'1px 6px',fontSize:'11px'}}>{b.plataforma}</span> : null}
+                            </p>
+                            <p style={{color:'#4f7eff',fontWeight:'700',fontSize:'14px',margin:0}}>{formatearPrecio(totB, monB)}</p>
+                          </div>
+                          <button onClick={()=>setCarrito(carrito.filter(c=>c.id!==b.id))} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#6b7280',cursor:'pointer',padding:'6px 10px',fontSize:'12px',whiteSpace:'nowrap',flexShrink:0}}>✕ Quitar</button>
+                        </div>
+                      </div>
+                    )
+                  })}
+
+                  {/* Resumen total */}
+                  {(() => {
+                    const monC = carrito[0]?.eventos?.moneda || 'COP'
+                    const subtotalC = carrito.reduce((s, b) => s + Number(b.precio), 0)
+                    const comisionC = Math.round(subtotalC * 0.10)
+                    const totalC = Math.round((subtotalC + comisionC) / 1000) * 1000
+                    return (
+                      <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginTop:'8px',marginBottom:'24px'}}>
+                        <p style={{color:'#8892a4',fontSize:'11px',fontWeight:'700',letterSpacing:'0.5px',textTransform:'uppercase',margin:'0 0 14px'}}>Resumen</p>
+                        <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
+                          <span style={{color:'#8892a4',fontSize:'14px'}}>{carrito.length} {carrito.length===1?'boleta':'boletas'}</span>
+                          <span style={{color:'#eef0f6',fontSize:'14px',fontWeight:'600'}}>{formatearPrecio(subtotalC, monC)}</span>
+                        </div>
+                        <div style={{display:'flex',justifyContent:'space-between',marginBottom:'14px'}}>
+                          <span style={{color:'#8892a4',fontSize:'14px'}}>Comisión (10%)</span>
+                          <span style={{color:'#8892a4',fontSize:'14px'}}>{formatearPrecio(comisionC, monC)}</span>
+                        </div>
+                        <div style={{borderTop:'1px solid #1e2a3a',paddingTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                          <span style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800'}}>Total</span>
+                          <span style={{color:'#4f7eff',fontSize:'22px',fontWeight:'800'}}>{formatearPrecio(totalC, monC)}</span>
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Avisos de plataformas */}
+                  {[...new Set(carrito.filter(b=>b.plataforma&&PLATAFORMAS[b.plataforma]).map(b=>b.plataforma))].map(plat => (
+                    <div key={plat} style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.18)',borderRadius:'12px',padding:'12px 16px',marginBottom:'12px'}}>
+                      <p style={{color:'#f59e0b',fontSize:'12px',fontWeight:'700',margin:'0 0 4px'}}>⚠️ Entrega por {plat}</p>
+                      <p style={{color:'#8892a4',fontSize:'12px',margin:0,lineHeight:1.5}}>{PLATAFORMAS[plat].instrComprador}</p>
+                    </div>
+                  ))}
+
+                  <button
+                    onClick={manejarCompraCarrito}
+                    disabled={comprando === 'carrito'}
+                    style={{...s.botonSubmit,fontSize:'16px',padding:'15px',background:comprando==='carrito'?'#2d3a55':'#4f7eff',cursor:comprando==='carrito'?'not-allowed':'pointer',marginTop:'4px'}}
+                  >
+                    {comprando === 'carrito' ? '⏳ Procesando...' : `💳 Pagar ${carrito.length > 1 ? carrito.length + ' boletas' : ''}`}
+                  </button>
+                  <p style={{color:'#4e5a6e',fontSize:'12px',textAlign:'center',marginTop:'12px'}}>Pago seguro vía Wompi · Un solo cargo para todo el carrito</p>
+                </>
               )}
-
-              {/* Detalle de la boleta */}
-              <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginBottom:'20px'}}>
-                <p style={{color:'#8892a4',fontSize:'11px',fontWeight:'700',letterSpacing:'0.5px',textTransform:'uppercase',margin:'0 0 14px'}}>Boleta</p>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
-                  <div>
-                    <p style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.4px',margin:'0 0 4px'}}>Tribuna</p>
-                    <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:0}}>{boletaCarrito.tribuna}</p>
-                  </div>
-                  {boletaCarrito.fila && (
-                    <div>
-                      <p style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.4px',margin:'0 0 4px'}}>Fila</p>
-                      <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:0}}>{boletaCarrito.fila}</p>
-                    </div>
-                  )}
-                  {boletaCarrito.silla && (
-                    <div>
-                      <p style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.4px',margin:'0 0 4px'}}>Silla</p>
-                      <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:0}}>{boletaCarrito.silla}</p>
-                    </div>
-                  )}
-                  {boletaCarrito.plataforma && (
-                    <div>
-                      <p style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.4px',margin:'0 0 4px'}}>Plataforma</p>
-                      <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:0}}>{boletaCarrito.plataforma}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Desglose de precio */}
-              {(() => {
-                const monedaCarrito = boletaCarrito.eventos ? boletaCarrito.eventos.moneda : 'COP'
-                const subtotal = Number(boletaCarrito.precio)
-                const comision = Math.round(subtotal * 0.10)
-                const total = Math.round((subtotal + comision) / 1000) * 1000
-                return (
-                  <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginBottom:'24px'}}>
-                    <p style={{color:'#8892a4',fontSize:'11px',fontWeight:'700',letterSpacing:'0.5px',textTransform:'uppercase',margin:'0 0 14px'}}>Resumen de pago</p>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
-                      <span style={{color:'#8892a4',fontSize:'14px'}}>Precio boleta</span>
-                      <span style={{color:'#eef0f6',fontSize:'14px',fontWeight:'600'}}>{formatearPrecio(subtotal, monedaCarrito)}</span>
-                    </div>
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
-                      <span style={{color:'#8892a4',fontSize:'14px'}}>Comisión servicio (10%)</span>
-                      <span style={{color:'#8892a4',fontSize:'14px'}}>{formatearPrecio(comision, monedaCarrito)}</span>
-                    </div>
-                    <div style={{borderTop:'1px solid #1e2a3a',paddingTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                      <span style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800'}}>Total a pagar</span>
-                      <span style={{color:'#4f7eff',fontSize:'20px',fontWeight:'800'}}>{formatearPrecio(total, monedaCarrito)}</span>
-                    </div>
-                    <p style={{color:'#4e5a6e',fontSize:'11px',margin:'10px 0 0',textAlign:'right'}}>Pago seguro vía Wompi</p>
-                  </div>
-                )
-              })()}
-
-              {/* Aviso plataforma */}
-              {boletaCarrito.plataforma && PLATAFORMAS[boletaCarrito.plataforma] && (
-                <div style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.18)',borderRadius:'12px',padding:'14px 16px',marginBottom:'24px'}}>
-                  <p style={{color:'#f59e0b',fontSize:'12px',fontWeight:'700',margin:'0 0 6px'}}>⚠️ Esta boleta se entrega por {boletaCarrito.plataforma}</p>
-                  <p style={{color:'#8892a4',fontSize:'12px',margin:0,lineHeight:1.5}}>{PLATAFORMAS[boletaCarrito.plataforma].instrComprador}</p>
-                </div>
-              )}
-
-              <button
-                onClick={() => manejarCompra(boletaCarrito)}
-                disabled={comprando === boletaCarrito.id}
-                style={{...s.botonSubmit, fontSize:'16px', padding:'15px', background: comprando === boletaCarrito.id ? '#2d3a55' : '#4f7eff', cursor: comprando === boletaCarrito.id ? 'not-allowed' : 'pointer'}}
-              >
-                {comprando === boletaCarrito.id ? '⏳ Procesando...' : '💳 Confirmar y pagar'}
-              </button>
-              <p style={{color:'#4e5a6e',fontSize:'12px',textAlign:'center',marginTop:'12px'}}>Serás redirigido a la pasarela de Wompi para completar el pago.</p>
             </div>
           </div>
         )}
