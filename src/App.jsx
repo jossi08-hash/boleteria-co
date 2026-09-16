@@ -57,6 +57,7 @@ function App() {
   const [carrito, setCarrito] = useState([])
   const [silasExtra, setSilasExtra] = useState([])
   const [toasts, setToasts] = useState([])
+  const [timerReserva, setTimerReserva] = useState(null) // segundos restantes
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
   const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '' })
@@ -399,6 +400,16 @@ function App() {
     return formatearPrecio(redondeado, moneda)
   }
 
+  function startTimer(segundos) {
+    setTimerReserva(segundos)
+    const iv = setInterval(() => {
+      setTimerReserva(s => {
+        if (s <= 1) { clearInterval(iv); return null }
+        return s - 1
+      })
+    }, 1000)
+  }
+
   function toast(msg, tipo = 'error') {
     const id = Date.now()
     setToasts(t => [...t, { id, msg, tipo }])
@@ -466,6 +477,7 @@ function App() {
       reference: referencia, 'signature:integrity': signature,
       'redirect-url': window.location.origin
     })
+    startTimer(15 * 60)
     window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
   }
 
@@ -524,6 +536,7 @@ function App() {
       'redirect-url': window.location.origin
     })
 
+    startTimer(15 * 60)
     window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
   }
 
@@ -641,6 +654,20 @@ function App() {
   return (
     <div style={s.pagina}>
       <style>{`@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      {/* TIMER RESERVA */}
+      {timerReserva !== null && (
+        <div style={{position:'fixed',top:0,left:0,right:0,zIndex:9998,background:'#1a2a00',borderBottom:'2px solid #4ade80',padding:'10px 20px',textAlign:'center',display:'flex',alignItems:'center',justifyContent:'center',gap:'10px'}}>
+          <span style={{fontSize:'18px'}}>⏳</span>
+          <span style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700'}}>
+            Boleta reservada por{' '}
+            <span style={{color:'#4ade80',fontVariantNumeric:'tabular-nums'}}>
+              {String(Math.floor(timerReserva/60)).padStart(2,'0')}:{String(timerReserva%60).padStart(2,'0')}
+            </span>
+            {' '}— completa tu pago en Wompi
+          </span>
+        </div>
+      )}
+
       {/* TOASTS */}
       <div style={{position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',zIndex:9999,display:'flex',flexDirection:'column',gap:'10px',alignItems:'center',pointerEvents:'none'}}>
         {toasts.map(t => (
