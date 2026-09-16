@@ -470,7 +470,7 @@ function App() {
       {/* NAV */}
       <nav style={s.nav}>
         <div style={s.navInner}>
-          <h1 style={s.logo}>Boletería <span style={s.logoPunto}>CO</span></h1>
+          <h1 style={s.logo}><span style={{fontSize:'20px'}}>🎟</span> Boletería <span style={s.logoPunto}>CO</span></h1>
           <div style={s.authBar}>
             {usuario ? (
               <>
@@ -501,8 +501,12 @@ function App() {
 
 
         {mostrarMisBoletas && usuario && (
-          <div style={{background:'#111827',border:'1px solid #1f2937',borderRadius:'14px',padding:'24px',marginBottom:'24px'}}>
-            <p style={{color:'#f9fafb',fontSize:'16px',fontWeight:'600',margin:'0 0 16px'}}>Mis boletas</p>
+          <div style={{position:'fixed',inset:0,zIndex:200,background:'rgba(0,0,0,0.75)',display:'flex',alignItems:'flex-start',justifyContent:'center',overflowY:'auto',padding:'24px 16px 48px'}} onClick={(e)=>{if(e.target===e.currentTarget)setMostrarMisBoletas(false)}}>
+          <div style={{background:'#0d1117',border:'1px solid #1e2a3a',borderRadius:'18px',padding:'28px',width:'100%',maxWidth:'680px',marginTop:'40px',position:'relative'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
+              <p style={{color:'#eef0f6',fontSize:'18px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Mis boletas</p>
+              <button onClick={()=>setMostrarMisBoletas(false)} style={{background:'rgba(255,255,255,0.06)',border:'1px solid #1e2a3a',borderRadius:'8px',width:'32px',height:'32px',color:'#8892a4',cursor:'pointer',fontSize:'16px',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+            </div>
             <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>
               <button onClick={() => setPestanaMis('compras')} style={{padding:'8px 18px',borderRadius:'8px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'13px',background:pestanaMis==='compras'?'#2563eb':'#1f2937',color:pestanaMis==='compras'?'#fff':'#9ca3af'}}>Mis compras</button>
               <button onClick={() => setPestanaMis('ventas')} style={{padding:'8px 18px',borderRadius:'8px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'13px',background:pestanaMis==='ventas'?'#2563eb':'#1f2937',color:pestanaMis==='ventas'?'#fff':'#9ca3af'}}>Mis ventas</button>
@@ -596,6 +600,7 @@ function App() {
                     )
                   })
             )}
+          </div>
           </div>
         )}
 
@@ -743,15 +748,20 @@ function App() {
           </form>
         )}
 
-        {usuario && (
-          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'24px 0 8px'}}>
-            <p style={s.seccionTitulo}>Boletas disponibles</p>
-            <button style={{...s.botonPrin, fontSize:'13px'}} onClick={() => setMostrarFormulario(!mostrarFormulario)}>
-              {mostrarFormulario ? 'Cancelar' : '+ Vender boleta'}
-            </button>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'32px 0 16px'}}>
+          <div>
+            <p style={{color:'#eef0f6', fontSize:'18px', fontWeight:'800', margin:'0 0 2px', letterSpacing:'-0.5px'}}>
+              Boletas disponibles
+            </p>
+            <p style={{color:'#4e5a6e', fontSize:'12px', margin:0}}>{boletas.filter(b=>b.estado==='publicada').length} boleta{boletas.filter(b=>b.estado==='publicada').length!==1?'s':''} en el mercado</p>
           </div>
-        )}
-        {!usuario && <p style={{...s.seccionTitulo, marginTop:'8px'}}>Boletas disponibles</p>}
+          {usuario && (
+            <button style={{background:'rgba(79,126,255,0.12)', color:'#6b93ff', border:'1px solid rgba(79,126,255,0.25)', borderRadius:'10px', padding:'9px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer'}}
+              onClick={() => setMostrarFormulario(!mostrarFormulario)}>
+              {mostrarFormulario ? '✕ Cancelar' : '+ Vender'}
+            </button>
+          )}
+        </div>
 
         {mostrarFormulario && (
           <form onSubmit={manejarPublicar} style={s.tarjetaForm}>
@@ -780,11 +790,11 @@ function App() {
           const ciudades = [...new Set(boletas.map(b => b.eventos?.ciudad).filter(Boolean))]
           const deportes = [...new Set(boletas.map(b => b.eventos?.deporte).filter(Boolean))]
           return (
-            <div style={{display:'flex',gap:'10px',marginBottom:'16px',flexWrap:'wrap'}}>
+            <div style={{display:'flex',gap:'8px',marginBottom:'20px',flexWrap:'wrap'}}>
               <select
                 value={filtros.ciudad}
                 onChange={e => setFiltros(f => ({...f, ciudad: e.target.value}))}
-                style={{...s.input, flex:'1', minWidth:'120px', margin:0, fontSize:'14px', padding:'8px 10px'}}
+                style={{flex:'1', minWidth:'120px', background:'rgba(255,255,255,0.04)', border:'1px solid #1e2a3a', borderRadius:'20px', padding:'8px 16px', color:'#eef0f6', fontSize:'13px', cursor:'pointer', outline:'none'}}
               >
                 <option value=''>Todas las ciudades</option>
                 {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
@@ -792,7 +802,7 @@ function App() {
               <select
                 value={filtros.deporte}
                 onChange={e => setFiltros(f => ({...f, deporte: e.target.value}))}
-                style={{...s.input, flex:'1', minWidth:'120px', margin:0, fontSize:'14px', padding:'8px 10px'}}
+                style={{flex:'1', minWidth:'120px', background:'rgba(255,255,255,0.04)', border:'1px solid #1e2a3a', borderRadius:'20px', padding:'8px 16px', color:'#eef0f6', fontSize:'13px', cursor:'pointer', outline:'none'}}
               >
                 <option value=''>Todos los deportes</option>
                 {deportes.map(d => <option key={d} value={d}>{d}</option>)}
@@ -802,12 +812,12 @@ function App() {
                 placeholder='Precio max.'
                 value={filtros.precioMax}
                 onChange={e => setFiltros(f => ({...f, precioMax: e.target.value}))}
-                style={{...s.input, flex:'1', minWidth:'120px', margin:0, fontSize:'14px', padding:'8px 10px'}}
+                style={{flex:'1', minWidth:'120px', background:'rgba(255,255,255,0.04)', border:'1px solid #1e2a3a', borderRadius:'20px', padding:'8px 16px', color:'#eef0f6', fontSize:'13px', cursor:'pointer', outline:'none'}}
               />
               {(filtros.ciudad || filtros.deporte || filtros.precioMax) && (
                 <button
                   onClick={() => setFiltros({ ciudad: '', deporte: '', precioMax: '' })}
-                  style={{background:'transparent',border:'1px solid #374151',color:'#9ca3af',borderRadius:'8px',padding:'8px 12px',cursor:'pointer',fontSize:'13px'}}
+                  style={{background:'transparent',border:'1px solid #1e2a3a',color:'#4e5a6e',borderRadius:'20px',padding:'8px 16px',cursor:'pointer',fontSize:'13px'}}
                 >Limpiar</button>
               )}
             </div>
@@ -829,7 +839,7 @@ function App() {
           const ventasVendedor = b.vendedor_id ? (ventasPorVendedor[b.vendedor_id] || 0) : 0
 
           return (
-            <div key={b.id} style={s.tarjetaBoleta}>
+            <div key={b.id} style={{...s.tarjetaBoleta, borderTop: '2px solid #4f7eff', background: 'linear-gradient(135deg, #0f1a2e 0%, #0f1623 100%)'}}>
               <h3 style={s.nombreEvento}>{b.eventos ? b.eventos.nombre : ''}</h3>
               <p style={s.detalleEvento}>{b.eventos ? b.eventos.ciudad : ''}{b.eventos && b.eventos.estadio ? ' · ' + b.eventos.estadio : ''}</p>
               {b.eventos && b.eventos.fecha && <p style={{...s.detalleEvento, color:'#a78bfa', fontSize:'12px'}}>{new Date(b.eventos.fecha).toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}</p>}
