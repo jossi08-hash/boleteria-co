@@ -46,6 +46,7 @@ function App() {
   const [esMobile, setEsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 640)
   const [boletas, setBoletas] = useState([])
   const [boletasPendientes, setBoletasPendientes] = useState([])
+  const [boletasAdmin, setBoletasAdmin] = useState([])
   const [ordenesLiberadas, setOrdenesLiberadas] = useState([])
   const [ventasPorVendedor, setVentasPorVendedor] = useState({})
   const [cargando, setCargando] = useState(true)
@@ -110,7 +111,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas() }
+    if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas(); cargarBoletasAdmin() }
   }, [esAdmin])
 
   async function procesarResultadoPago(params) {
@@ -264,6 +265,31 @@ function App() {
       .update({ pago_vendedor_enviado: true })
       .eq('id', ordenId)
     if (!error) cargarOrdenesLiberadas()
+  }
+
+  async function cargarBoletasAdmin() {
+    const { data } = await supabase
+      .from('boletas')
+      .select('id, tribuna, fila, silla, precio, estado, eventos(nombre, ciudad), usuarios(nombre)')
+      .in('estado', ['publicada', 'reservada', 'oculta'])
+      .order('creado_en', { ascending: false })
+    setBoletasAdmin(data || [])
+  }
+
+  async function ocultarBoleta(id) {
+    await supabase.from('boletas').update({ estado: 'oculta' }).eq('id', id)
+    cargarBoletas(); cargarBoletasAdmin()
+  }
+
+  async function mostrarBoleta(id) {
+    await supabase.from('boletas').update({ estado: 'publicada' }).eq('id', id)
+    cargarBoletas(); cargarBoletasAdmin()
+  }
+
+  async function eliminarBoleta(id) {
+    const { error } = await supabase.from('boletas').delete().eq('id', id)
+    if (error) { toast('No se puede eliminar — tiene órdenes asociadas.'); return }
+    cargarBoletas(); cargarBoletasAdmin()
   }
 
   async function cargarBoletasPendientes() {
@@ -969,6 +995,30 @@ function App() {
             )}
             {ordenesLiberadas.filter(o => !o.boletas?.usuarios?.es_admin).length === 0 && (
               <p style={{color:'#6b7280',fontSize:'13px',marginBottom:'16px'}}>No hay pagos pendientes de envío.</p>
+            )}
+            {boletasAdmin.length > 0 && (
+              <div style={{marginBottom:'20px'}}>
+                <p style={{...s.tituloAdmin, marginBottom:'12px'}}>Gestionar boletas ({boletasAdmin.length})</p>
+                {boletasAdmin.map(b => (
+                  <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'12px 14px',marginBottom:'8px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
+                    <div>
+                      <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{b.eventos?.nombre || 'Evento'}</p>
+                      <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>
+                        {b.usuarios?.nombre} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}
+                        {' '}<span style={{color: b.estado==='oculta' ? '#facc15' : b.estado==='reservada' ? '#fb923c' : '#4ade80', fontWeight:'700'}}>({b.estado})</span>
+                      </p>
+                    </div>
+                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                      {b.estado === 'oculta'
+                        ? <button onClick={()=>mostrarBoleta(b.id)} style={{background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Publicar</button>
+                        : <button onClick={()=>ocultarBoleta(b.id)} style={{background:'#3d2a00',color:'#facc15',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Ocultar</button>
+                      }
+                      <button onClick={()=>{if(window.confirm('¿Eliminar esta boleta?')) eliminarBoleta(b.id)}} style={{background:'#3b0a0a',color:'#f87171',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Eliminar</button>
+                    </div>
+                  </div>
+                ))}
+                <hr style={s.separador}/>
+              </div>
             )}
             <p style={s.tituloAdmin}>Crear evento</p>
             <form onSubmit={manejarCrearEvento}>

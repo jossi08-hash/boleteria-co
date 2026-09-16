@@ -8,7 +8,7 @@ export async function obtenerBoletas() {
       eventos ( nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
       usuarios ( nombre, correo )
     `)
-    .eq('estado', 'publicada')
+    .in('estado', ['publicada', 'reservada'])
     .order('creado_en', { ascending: false })
 
   if (error) {
