@@ -1233,8 +1233,7 @@ function App() {
               <button
                 onClick={() => {
                   if (!usuario) { setVistaAuth('registro'); return }
-                  setPaginaActual('mis-boletas')
-                  setTimeout(() => setMostrarFormulario(true), 100)
+                  setPaginaActual('mis-boletas'); setMostrarFormulario(true)
                 }}
                 style={{marginTop:'8px',background:'#4f7eff',color:'#fff',border:'none',borderRadius:'12px',padding:'14px 32px',fontSize:'15px',fontWeight:'700',cursor:'pointer',boxShadow:'0 0 28px rgba(79,126,255,0.3)'}}>
                 Publicar mi boleta
