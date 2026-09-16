@@ -54,6 +54,8 @@ function App() {
   const [eventos, setEventos] = useState([])
   const [mensaje, setMensaje] = useState('')
   const [comprando, setComprando] = useState(null)
+  const [boletaCarrito, setBoletaCarrito] = useState(null)
+  const [silasExtra, setSilasExtra] = useState([])
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
   const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '' })
@@ -298,9 +300,18 @@ function App() {
     e.preventDefault()
     if (!usuario) { setMensaje('Debes iniciar sesion para publicar una boleta.'); return }
     setMensaje('Publicando...')
-    const resultado = await publicarBoleta({ eventoId: form.eventoId, vendedorId: usuario.id, tribuna: form.tribuna, fila: form.fila, silla: form.silla, cantidad: Number(form.cantidad), precio: Number(form.precio), plataforma: form.plataforma })
-    if (resultado) { setMensaje('Boleta enviada. El equipo de Boleteria CO la verificara pronto.'); setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' }); cargarBoletas() }
-    else { setMensaje('Hubo un error al publicar. Intenta de nuevo.') }
+    const todas = [{ tribuna: form.tribuna, fila: form.fila, silla: form.silla }, ...silasExtra]
+    const resultados = await Promise.all(todas.map(s =>
+      publicarBoleta({ eventoId: form.eventoId, vendedorId: usuario.id, tribuna: s.tribuna, fila: s.fila, silla: s.silla, cantidad: 1, precio: Number(form.precio), plataforma: form.plataforma })
+    ))
+    const exito = resultados.every(r => r !== null)
+    if (exito) {
+      const n = resultados.length
+      setMensaje(n === 1 ? 'Boleta enviada. El equipo de Boletería CO la verificará pronto.' : n + ' boletas enviadas. El equipo de Boletería CO las verificará pronto.')
+      setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
+      setSilasExtra([])
+      cargarBoletas()
+    } else { setMensaje('Hubo un error al publicar. Intenta de nuevo.') }
   }
 
   async function manejarRegistro(e) {
@@ -906,7 +917,30 @@ function App() {
             <input name="silla" value={form.silla} onChange={manejarCambio} required style={s.input} />
             <label style={s.label}>Precio</label>
             <input name="precio" type="number" value={form.precio} onChange={manejarCambio} required style={s.input} />
-            <button type="submit" style={s.botonSubmit}>Publicar boleta</button>
+            {silasExtra.map((s2, i) => (
+              <div key={i} style={{background:'rgba(79,126,255,0.04)',border:'1px solid rgba(79,126,255,0.15)',borderRadius:'10px',padding:'12px',marginBottom:'12px'}}>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+                  <span style={{color:'#6b93ff',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.4px'}}>Silla {i+2}</span>
+                  <button type="button" onClick={()=>setSilasExtra(silasExtra.filter((_,j)=>j!==i))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'16px',lineHeight:1,padding:'0 4px'}}>×</button>
+                </div>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
+                  <div>
+                    <label style={{...s.label,marginBottom:'4px'}}>Tribuna</label>
+                    <input value={s2.tribuna} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:e.target.value}:x))} required style={{...s.input,marginBottom:0}} />
+                  </div>
+                  <div>
+                    <label style={{...s.label,marginBottom:'4px'}}>Fila</label>
+                    <input value={s2.fila} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,fila:e.target.value}:x))} style={{...s.input,marginBottom:0}} />
+                  </div>
+                  <div>
+                    <label style={{...s.label,marginBottom:'4px'}}>Silla</label>
+                    <input value={s2.silla} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,silla:e.target.value}:x))} style={{...s.input,marginBottom:0}} />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button type="button" onClick={()=>setSilasExtra([...silasExtra,{tribuna:'',fila:'',silla:''}])} style={{background:'transparent',border:'1px dashed #1e2a3a',borderRadius:'8px',padding:'8px',fontSize:'12px',color:'#4e5a6e',cursor:'pointer',width:'100%',marginBottom:'16px'}}>+ Añadir otra silla</button>
+            <button type="submit" style={s.botonSubmit}>Publicar {silasExtra.length > 0 ? silasExtra.length+1+' boletas' : 'boleta'}</button>
             {mensaje && <p style={s.mensaje}>{mensaje}</p>}
           </form>
         )}
@@ -988,7 +1022,7 @@ function App() {
                 ) : b.estado === 'vendida' ? (
                   <span style={{background:'#1a1a1a',color:'#6b7280',fontSize:'12px',fontWeight:'600',padding:'6px 14px',borderRadius:'8px'}}>Vendida</span>
                 ) : (
-                  <button onClick={() => manejarCompra(b)} disabled={comprando === b.id} style={s.botonComprar}>
+                  <button onClick={() => { setBoletaCarrito(b); setPaginaActual('carrito') }} style={s.botonComprar}>
                     {comprando === b.id ? 'Procesando...' : 'Comprar'}
                   </button>
                 )}
@@ -997,6 +1031,110 @@ function App() {
           )
         })
         })()}
+
+        {/* CARRITO */}
+        {paginaActual === 'carrito' && boletaCarrito && (
+          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+              <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
+                <button onClick={()=>{setPaginaActual('inicio');setBoletaCarrito(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🛒 Resumen de compra</p>
+                <div style={{width:'60px'}}></div>
+              </div>
+            </nav>
+            <div style={{maxWidth:'480px',margin:'0 auto',padding: esMobile ? '24px 16px 48px' : '32px 20px 48px'}}>
+              {/* Tarjeta del evento */}
+              {boletaCarrito.eventos && (
+                <div style={{background:'rgba(79,126,255,0.07)',border:'1px solid rgba(79,126,255,0.18)',borderRadius:'14px',padding:'16px 20px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'14px'}}>
+                  <span style={{fontSize:'28px'}}>⚽</span>
+                  <div>
+                    <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'15px',margin:'0 0 3px'}}>{boletaCarrito.eventos.nombre}</p>
+                    {boletaCarrito.eventos.fecha && (
+                      <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>
+                        {new Date(boletaCarrito.eventos.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'numeric',month:'long'})}
+                        {boletaCarrito.eventos.hora ? ' · ' + boletaCarrito.eventos.hora : ''}
+                        {boletaCarrito.eventos.estadio ? ' · ' + boletaCarrito.eventos.estadio : ''}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Detalle de la boleta */}
+              <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginBottom:'20px'}}>
+                <p style={{color:'#8892a4',fontSize:'11px',fontWeight:'700',letterSpacing:'0.5px',textTransform:'uppercase',margin:'0 0 14px'}}>Boleta</p>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',marginBottom:'16px'}}>
+                  <div>
+                    <p style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.4px',margin:'0 0 4px'}}>Tribuna</p>
+                    <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:0}}>{boletaCarrito.tribuna}</p>
+                  </div>
+                  {boletaCarrito.fila && (
+                    <div>
+                      <p style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.4px',margin:'0 0 4px'}}>Fila</p>
+                      <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:0}}>{boletaCarrito.fila}</p>
+                    </div>
+                  )}
+                  {boletaCarrito.silla && (
+                    <div>
+                      <p style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.4px',margin:'0 0 4px'}}>Silla</p>
+                      <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:0}}>{boletaCarrito.silla}</p>
+                    </div>
+                  )}
+                  {boletaCarrito.plataforma && (
+                    <div>
+                      <p style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600',textTransform:'uppercase',letterSpacing:'0.4px',margin:'0 0 4px'}}>Plataforma</p>
+                      <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:0}}>{boletaCarrito.plataforma}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Desglose de precio */}
+              {(() => {
+                const monedaCarrito = boletaCarrito.eventos ? boletaCarrito.eventos.moneda : 'COP'
+                const subtotal = Number(boletaCarrito.precio)
+                const comision = Math.round(subtotal * 0.10)
+                const total = Math.round((subtotal + comision) / 1000) * 1000
+                return (
+                  <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginBottom:'24px'}}>
+                    <p style={{color:'#8892a4',fontSize:'11px',fontWeight:'700',letterSpacing:'0.5px',textTransform:'uppercase',margin:'0 0 14px'}}>Resumen de pago</p>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'10px'}}>
+                      <span style={{color:'#8892a4',fontSize:'14px'}}>Precio boleta</span>
+                      <span style={{color:'#eef0f6',fontSize:'14px',fontWeight:'600'}}>{formatearPrecio(subtotal, monedaCarrito)}</span>
+                    </div>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'14px'}}>
+                      <span style={{color:'#8892a4',fontSize:'14px'}}>Comisión servicio (10%)</span>
+                      <span style={{color:'#8892a4',fontSize:'14px'}}>{formatearPrecio(comision, monedaCarrito)}</span>
+                    </div>
+                    <div style={{borderTop:'1px solid #1e2a3a',paddingTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                      <span style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800'}}>Total a pagar</span>
+                      <span style={{color:'#4f7eff',fontSize:'20px',fontWeight:'800'}}>{formatearPrecio(total, monedaCarrito)}</span>
+                    </div>
+                    <p style={{color:'#4e5a6e',fontSize:'11px',margin:'10px 0 0',textAlign:'right'}}>Pago seguro vía Wompi</p>
+                  </div>
+                )
+              })()}
+
+              {/* Aviso plataforma */}
+              {boletaCarrito.plataforma && PLATAFORMAS[boletaCarrito.plataforma] && (
+                <div style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.18)',borderRadius:'12px',padding:'14px 16px',marginBottom:'24px'}}>
+                  <p style={{color:'#f59e0b',fontSize:'12px',fontWeight:'700',margin:'0 0 6px'}}>⚠️ Esta boleta se entrega por {boletaCarrito.plataforma}</p>
+                  <p style={{color:'#8892a4',fontSize:'12px',margin:0,lineHeight:1.5}}>{PLATAFORMAS[boletaCarrito.plataforma].instrComprador}</p>
+                </div>
+              )}
+
+              <button
+                onClick={() => manejarCompra(boletaCarrito)}
+                disabled={comprando === boletaCarrito.id}
+                style={{...s.botonSubmit, fontSize:'16px', padding:'15px', background: comprando === boletaCarrito.id ? '#2d3a55' : '#4f7eff', cursor: comprando === boletaCarrito.id ? 'not-allowed' : 'pointer'}}
+              >
+                {comprando === boletaCarrito.id ? '⏳ Procesando...' : '💳 Confirmar y pagar'}
+              </button>
+              <p style={{color:'#4e5a6e',fontSize:'12px',textAlign:'center',marginTop:'12px'}}>Serás redirigido a la pasarela de Wompi para completar el pago.</p>
+            </div>
+          </div>
+        )}
+
       <footer style={{borderTop:'1px solid #1e2a3a', marginTop:'48px', paddingTop:'28px', paddingBottom:'32px', textAlign:'center'}}>
         <p style={{color:'#4e5a6e', fontSize:'13px', margin:'0 0 8px', fontWeight:'700', letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#4f7eff'}}>CO</span></p>
         <p style={{color:'#4e5a6e', fontSize:'12px', margin:0}}>© 2026 · <a href='/terminos.html' target='_blank' style={{color:'#8892a4', textDecoration:'none'}}>Términos y condiciones</a> · soporte@boleteriaco.com</p>
