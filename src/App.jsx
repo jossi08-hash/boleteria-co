@@ -26,7 +26,7 @@ function App() {
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' })
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
-  const [mostrarMisBoletas, setMostrarMisBoletas] = useState(false)
+  const [paginaActual, setPaginaActual] = useState('inicio')
   const [pestanaMis, setPestanaMis] = useState('compras')
   const [misCompras, setMisCompras] = useState([])
   const [misVentas, setMisVentas] = useState([])
@@ -277,12 +277,11 @@ function App() {
     else { setMensajeAuth('Error: ' + resultado.mensaje) }
   }
 
-  async function manejarCerrarSesion() { await cerrarSesion(); setUsuario(null); setMostrarMisBoletas(false) }
+  async function manejarCerrarSesion() { await cerrarSesion(); setUsuario(null); setPaginaActual('inicio') }
 
-  function toggleMisBoletas() {
-    const nuevo = !mostrarMisBoletas
-    setMostrarMisBoletas(nuevo)
-    if (nuevo) cargarMisBoletas()
+  function irAMisBoletas() {
+    setPaginaActual('mis-boletas')
+    cargarMisBoletas()
   }
 
   function formatearPrecio(precio, moneda) {
@@ -476,7 +475,7 @@ function App() {
               <>
                 {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
                 <span style={s.usuarioNombre}>{usuario.email}</span>
-                <button style={s.botonSec} onClick={toggleMisBoletas}>Mis boletas</button>
+                <button style={s.botonSec} onClick={irAMisBoletas}>Mis boletas</button>
                 <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
               </>
             ) : (
@@ -500,17 +499,16 @@ function App() {
         )}
 
 
-        {mostrarMisBoletas && usuario && (
-          <div style={{position:'fixed',inset:0,zIndex:200,background:'rgba(4,6,10,0.88)',backdropFilter:'blur(8px)',display:'flex',alignItems:'flex-start',justifyContent:'center',overflowY:'auto',padding:'24px 16px 48px'}} onClick={(e)=>{if(e.target===e.currentTarget)setMostrarMisBoletas(false)}}>
-          <div style={{background:'#0d1117',border:'1px solid #1e2a3a',borderRadius:'20px',width:'100%',maxWidth:'680px',marginTop:'40px',position:'relative',boxShadow:'0 24px 80px rgba(0,0,0,0.7)'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'20px 24px',borderBottom:'1px solid #1e2a3a'}}>
-              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                <span>🎟</span>
-                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Mis boletas</p>
-              </div>
-              <button onClick={()=>setMostrarMisBoletas(false)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid #1e2a3a',borderRadius:'8px',width:'32px',height:'32px',color:'#8892a4',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+        {paginaActual === 'mis-boletas' && usuario && (
+          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+            <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
+              <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+              <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🎟 Mis boletas</p>
+              <div style={{width:'60px'}}></div>
             </div>
-            <div style={{padding:'24px'}}>
+          </nav>
+          <div style={{maxWidth:'680px',margin:'0 auto',padding:'28px 20px 48px'}}>
             <div style={{display:'flex',gap:'4px',marginBottom:'20px',background:'rgba(255,255,255,0.03)',borderRadius:'10px',padding:'4px'}}>
               <button onClick={() => setPestanaMis('compras')} style={{flex:1,padding:'8px 0',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'13px',background:pestanaMis==='compras'?'#4f7eff':'transparent',color:pestanaMis==='compras'?'#fff':'#8892a4'}}>Mis compras</button>
               <button onClick={() => setPestanaMis('ventas')} style={{flex:1,padding:'8px 0',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'13px',background:pestanaMis==='ventas'?'#4f7eff':'transparent',color:pestanaMis==='ventas'?'#fff':'#8892a4'}}>Mis ventas</button>
@@ -604,7 +602,6 @@ function App() {
                     )
                   })
             )}
-            </div>
           </div>
           </div>
         )}
