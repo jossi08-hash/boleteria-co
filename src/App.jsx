@@ -56,6 +56,7 @@ function App() {
   const [comprando, setComprando] = useState(null)
   const [carrito, setCarrito] = useState([])
   const [silasExtra, setSilasExtra] = useState([])
+  const [toasts, setToasts] = useState([])
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
   const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '' })
@@ -183,7 +184,7 @@ function App() {
       .update({ liberado: true, liberado_en: new Date().toISOString() })
       .eq('id', ordenId)
       .eq('comprador_id', usuario.id)
-    if (error) { console.error('Error confirmando recibo:', error.message); alert('Hubo un error. Intenta de nuevo.'); return }
+    if (error) { console.error('Error confirmando recibo:', error.message); toast('Hubo un error. Intenta de nuevo.'); return }
     cargarMisBoletas()
   }
 
@@ -193,10 +194,10 @@ function App() {
       const ext = file.name.split('.').pop().toLowerCase()
       const path = ordenId + '/boleta.' + ext
       const { error: upErr } = await supabase.storage.from('boletas-entregadas').upload(path, file, { upsert: true })
-      if (upErr) { alert('Error al subir el archivo: ' + upErr.message); return }
+      if (upErr) { toast('Error al subir el archivo: ' + upErr.message); return }
       const { data: { publicUrl } } = supabase.storage.from('boletas-entregadas').getPublicUrl(path)
       const { error: dbErr } = await supabase.from('ordenes').update({ archivo_url: publicUrl }).eq('id', ordenId)
-      if (dbErr) { alert('Error al guardar la URL: ' + dbErr.message); return }
+      if (dbErr) { toast('Error al guardar la URL: ' + dbErr.message); return }
       cargarMisBoletas()
     } finally {
       setSubiendoArchivo(null)
@@ -398,9 +399,15 @@ function App() {
     return formatearPrecio(redondeado, moneda)
   }
 
+  function toast(msg, tipo = 'error') {
+    const id = Date.now()
+    setToasts(t => [...t, { id, msg, tipo }])
+    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4000)
+  }
+
   async function manejarCompraCarrito() {
     if (carrito.length === 0) return
-    if (!usuario) { alert('Debes iniciar sesión para comprar.'); return }
+    if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return }
     setComprando('carrito')
 
     const reservadaHasta = new Date(Date.now() + 15 * 60 * 1000).toISOString()
@@ -415,7 +422,7 @@ function App() {
       await Promise.all(reservaciones.filter(r => r.data?.length > 0).map((_, i) =>
         supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', carrito[i].id)
       ))
-      alert('Algunas boletas ya no están disponibles. Revisa tu carrito.')
+      toast('Algunas boletas ya no están disponibles. Revisa tu carrito.')
       setCarrito(prev => prev.filter((b, i) => reservaciones[i]?.data?.length > 0))
       setComprando(null)
       return
@@ -432,7 +439,7 @@ function App() {
       await Promise.all(carrito.map(b =>
         supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', b.id)
       ))
-      alert('Error al crear órdenes. Intenta de nuevo.')
+      toast('Error al crear órdenes. Intenta de nuevo.')
       setComprando(null)
       return
     }
@@ -450,7 +457,7 @@ function App() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reference: referencia, amount: totalCentavos, currency: moneda })
     })
-    if (!res.ok) { alert('Error al generar firma de pago. Intenta de nuevo.'); setComprando(null); return }
+    if (!res.ok) { toast('Error al generar firma de pago. Intenta de nuevo.'); setComprando(null); return }
     const { signature } = await res.json()
 
     const params = new URLSearchParams({
@@ -463,7 +470,7 @@ function App() {
   }
 
   async function manejarCompra(boleta) {
-    if (!usuario) { alert('Debes iniciar sesion para comprar una boleta.'); return }
+    if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return }
     setComprando(boleta.id)
 
     // Intentar reservar atómicamente (solo si sigue publicada)
@@ -476,7 +483,7 @@ function App() {
       .select()
 
     if (!reservada || reservada.length === 0) {
-      alert('Esta boleta ya fue reservada por otro comprador. Intenta con otra.')
+      toast('Esta boleta ya fue reservada. Intenta con otra.')
       setComprando(null)
       cargarBoletas()
       return
@@ -490,7 +497,7 @@ function App() {
     const orden = await crearOrden({ boletaId: boleta.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'wompi' })
     if (!orden) {
       await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', boleta.id)
-      alert('Hubo un error al crear la orden. Intenta de nuevo.')
+      toast('Hubo un error al crear la orden. Intenta de nuevo.')
       setComprando(null)
       return
     }
@@ -504,7 +511,7 @@ function App() {
       body: JSON.stringify({ reference: referencia, amount: totalCentavos, currency: moneda })
     })
 
-    if (!res.ok) { alert('Error al generar la firma de pago. Intenta de nuevo.'); setComprando(null); return }
+    if (!res.ok) { toast('Error al generar la firma de pago. Intenta de nuevo.'); setComprando(null); return }
 
     const { signature } = await res.json()
 
@@ -633,6 +640,25 @@ function App() {
 
   return (
     <div style={s.pagina}>
+      <style>{`@keyframes fadeInUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
+      {/* TOASTS */}
+      <div style={{position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',zIndex:9999,display:'flex',flexDirection:'column',gap:'10px',alignItems:'center',pointerEvents:'none'}}>
+        {toasts.map(t => (
+          <div key={t.id} style={{
+            background: t.tipo === 'info' ? '#0f1e3a' : '#1a0808',
+            border: `1px solid ${t.tipo === 'info' ? '#1e3a6a' : '#5a1e1e'}`,
+            color: t.tipo === 'info' ? '#93c5fd' : '#fca5a5',
+            borderRadius:'12px', padding:'12px 20px',
+            fontSize:'14px', fontWeight:'600',
+            boxShadow:'0 8px 32px rgba(0,0,0,0.5)',
+            maxWidth:'360px', textAlign:'center',
+            animation:'fadeInUp 0.25s ease',
+            pointerEvents:'auto'
+          }}>
+            {t.tipo === 'info' ? 'ℹ️' : '⚠️'} {t.msg}
+          </div>
+        ))}
+      </div>
       {/* NAV */}
       <nav style={s.nav}>
         <div style={s.navInner}>
