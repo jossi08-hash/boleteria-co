@@ -501,15 +501,19 @@ function App() {
 
 
         {mostrarMisBoletas && usuario && (
-          <div style={{position:'fixed',inset:0,zIndex:200,background:'rgba(0,0,0,0.75)',display:'flex',alignItems:'flex-start',justifyContent:'center',overflowY:'auto',padding:'24px 16px 48px'}} onClick={(e)=>{if(e.target===e.currentTarget)setMostrarMisBoletas(false)}}>
-          <div style={{background:'#0d1117',border:'1px solid #1e2a3a',borderRadius:'18px',padding:'28px',width:'100%',maxWidth:'680px',marginTop:'40px',position:'relative'}}>
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'20px'}}>
-              <p style={{color:'#eef0f6',fontSize:'18px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Mis boletas</p>
-              <button onClick={()=>setMostrarMisBoletas(false)} style={{background:'rgba(255,255,255,0.06)',border:'1px solid #1e2a3a',borderRadius:'8px',width:'32px',height:'32px',color:'#8892a4',cursor:'pointer',fontSize:'16px',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+          <div style={{position:'fixed',inset:0,zIndex:200,background:'rgba(4,6,10,0.88)',backdropFilter:'blur(8px)',display:'flex',alignItems:'flex-start',justifyContent:'center',overflowY:'auto',padding:'24px 16px 48px'}} onClick={(e)=>{if(e.target===e.currentTarget)setMostrarMisBoletas(false)}}>
+          <div style={{background:'#0d1117',border:'1px solid #1e2a3a',borderRadius:'20px',width:'100%',maxWidth:'680px',marginTop:'40px',position:'relative',boxShadow:'0 24px 80px rgba(0,0,0,0.7)'}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'20px 24px',borderBottom:'1px solid #1e2a3a'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                <span>🎟</span>
+                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Mis boletas</p>
+              </div>
+              <button onClick={()=>setMostrarMisBoletas(false)} style={{background:'rgba(255,255,255,0.05)',border:'1px solid #1e2a3a',borderRadius:'8px',width:'32px',height:'32px',color:'#8892a4',cursor:'pointer',fontSize:'14px',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
             </div>
-            <div style={{display:'flex',gap:'8px',marginBottom:'20px'}}>
-              <button onClick={() => setPestanaMis('compras')} style={{padding:'8px 18px',borderRadius:'8px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'13px',background:pestanaMis==='compras'?'#2563eb':'#1f2937',color:pestanaMis==='compras'?'#fff':'#9ca3af'}}>Mis compras</button>
-              <button onClick={() => setPestanaMis('ventas')} style={{padding:'8px 18px',borderRadius:'8px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'13px',background:pestanaMis==='ventas'?'#2563eb':'#1f2937',color:pestanaMis==='ventas'?'#fff':'#9ca3af'}}>Mis ventas</button>
+            <div style={{padding:'24px'}}>
+            <div style={{display:'flex',gap:'4px',marginBottom:'20px',background:'rgba(255,255,255,0.03)',borderRadius:'10px',padding:'4px'}}>
+              <button onClick={() => setPestanaMis('compras')} style={{flex:1,padding:'8px 0',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'13px',background:pestanaMis==='compras'?'#4f7eff':'transparent',color:pestanaMis==='compras'?'#fff':'#8892a4'}}>Mis compras</button>
+              <button onClick={() => setPestanaMis('ventas')} style={{flex:1,padding:'8px 0',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'13px',background:pestanaMis==='ventas'?'#4f7eff':'transparent',color:pestanaMis==='ventas'?'#fff':'#8892a4'}}>Mis ventas</button>
             </div>
             {cargandoMis && <p style={{color:'#6b7280',fontSize:'13px'}}>Cargando...</p>}
             {!cargandoMis && pestanaMis === 'compras' && (
@@ -527,28 +531,28 @@ function App() {
                         const msRestantes = (new Date(o.creado_en).getTime() + 72 * 60 * 60 * 1000) - Date.now()
                         const horas = Math.max(0, Math.floor(msRestantes / 3600000))
                         return (
-                          <div key={o.id} style={{background:'#1f2937',borderRadius:'10px',padding:'16px',marginBottom:'12px'}}>
+                          <div key={o.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                               <div>
-                                <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
-                                <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}{fecha ? ' · ' + fecha : ''}</p>
-                                <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b && b.tribuna}{b && b.fila ? ' · Fila ' + b.fila : ''}{b && b.silla ? ' · Silla ' + b.silla : ''}</p>
-                                <p style={{color:'#6b7280',fontSize:'11px',margin:'4px 0 0'}}>Ref: {o.codigo_orden}</p>
+                                <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
+                                <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}{fecha ? ' · ' + fecha : ''}</p>
+                                <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b && b.tribuna}{b && b.fila ? ' · Fila ' + b.fila : ''}{b && b.silla ? ' · Silla ' + b.silla : ''}</p>
+                                <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>Ref: {o.codigo_orden}</p>
                               </div>
                               <div style={{textAlign:'right'}}>
-                                <p style={{color:'#34d399',fontWeight:'700',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(o.total).toLocaleString('es-CO')}</p>
-                                <span style={{background:'#064e3b',color:'#34d399',fontSize:'11px',fontWeight:'600',padding:'3px 8px',borderRadius:'6px'}}>Pagada</span>
+                                <p style={{color:'#22c55e',fontWeight:'800',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(o.total).toLocaleString('es-CO')}</p>
+                                <span style={{background:'rgba(34,197,94,0.1)',color:'#4ade80',fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>Pagada</span>
                               </div>
                             </div>
                             {!esAdmin && (
-                              <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #374151'}}>
+                              <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
                                 {o.liberado ? (
-                                  <p style={{color:'#34d399',fontSize:'12px',margin:'0'}}>✅ Recibo confirmado — pago liberado al vendedor</p>
+                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Recibo confirmado — pago liberado al vendedor</p>
                                 ) : yaLiberado ? (
-                                  <p style={{color:'#6b7280',fontSize:'12px',margin:'0'}}>✅ Pago liberado automáticamente al vendedor</p>
+                                  <p style={{color:'#4e5a6e',fontSize:'12px',margin:'0'}}>✅ Pago liberado automáticamente al vendedor</p>
                                 ) : (
                                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
-                                    <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>⏳ ¿Recibiste la boleta? El pago al vendedor se libera en {horas}h automáticamente.</p>
+                                    <p style={{color:'#f59e0b',fontSize:'12px',margin:'0'}}>⏳ ¿Recibiste la boleta? Se libera en {horas}h automáticamente.</p>
                                     <button onClick={() => confirmarRecibo(o.id)} style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>Confirmar recibo</button>
                                   </div>
                                 )}
@@ -573,24 +577,24 @@ function App() {
                         const liberadoOrden = ordenPagada && (ordenPagada.liberado || (Date.now() - new Date(ordenPagada.creado_en).getTime() > 72 * 60 * 60 * 1000))
                         const hVenta = ordenPagada ? Math.max(0, Math.floor(((new Date(ordenPagada.creado_en).getTime() + 72*3600000) - Date.now()) / 3600000)) : 0
                         return (
-                          <div key={b.id} style={{background:'#1f2937',borderRadius:'10px',padding:'16px',marginBottom:'12px'}}>
+                          <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                               <div>
-                                <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
-                                <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
-                                {ordenPagada && <p style={{color:'#6b7280',fontSize:'11px',margin:'4px 0 0'}}>Ref: {ordenPagada.codigo_orden}</p>}
+                                <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
+                                <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
+                                {ordenPagada && <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>Ref: {ordenPagada.codigo_orden}</p>}
                               </div>
                               <div style={{textAlign:'right'}}>
-                                <p style={{color:'#f9fafb',fontWeight:'700',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
+                                <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
                                 <span style={{background:badgeColor.bg,color:badgeColor.txt,fontSize:'11px',fontWeight:'600',padding:'3px 8px',borderRadius:'6px'}}>{badgeColor.label}</span>
                               </div>
                             </div>
                             {ordenPagada && (
-                              <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #374151'}}>
+                              <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
                                 {liberadoOrden ? (
-                                  <p style={{color:'#34d399',fontSize:'12px',margin:'0'}}>✅ Pago liberado — coordina el cobro con Boletería CO</p>
+                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Pago liberado — coordina el cobro con Boletería CO</p>
                                 ) : (
-                                  <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>⏳ Pago bloqueado — el comprador tiene {hVenta}h para confirmar recibo</p>
+                                  <p style={{color:'#f59e0b',fontSize:'12px',margin:'0'}}>⏳ Pago bloqueado — el comprador tiene {hVenta}h para confirmar recibo</p>
                                 )}
                               </div>
                             )}
@@ -600,6 +604,7 @@ function App() {
                     )
                   })
             )}
+            </div>
           </div>
           </div>
         )}
