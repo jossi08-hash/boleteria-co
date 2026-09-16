@@ -354,44 +354,57 @@ function App() {
     window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
   }
 
-  const c = { fondo: '#0f1117', tarjeta: '#171a23', borde: '#2a2e3a', texto: '#e8e9ed', textoSec: '#9a9eac', acento: '#3d7eff' }
+  const c = {
+    fondo: '#080b12', nav: '#0d1117', tarjeta: '#0f1623', borde: '#1e2a3a',
+    texto: '#eef0f6', textoSec: '#8892a4', textoTercio: '#4e5a6e',
+    acento: '#4f7eff', verde: '#22c55e', ambar: '#f59e0b',
+  }
   const s = {
-    pagina: { minHeight: '100vh', background: c.fondo, fontFamily: 'sans-serif', padding: '40px 20px' },
-    contenedor: { maxWidth: '640px', margin: '0 auto' },
-    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' },
-    titulo: { color: c.texto, fontSize: '28px', fontWeight: '700', margin: 0 },
+    pagina: { minHeight: '100vh', background: '#080b12', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,126,255,0.07), transparent)' },
+    nav: { background: 'rgba(13,17,23,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1e2a3a', position: 'sticky', top: 0, zIndex: 100, padding: '0 20px' },
+    navInner: { maxWidth: '720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '60px' },
+    logo: { color: '#eef0f6', fontSize: '17px', fontWeight: '800', letterSpacing: '-0.5px', margin: 0 },
+    logoPunto: { color: '#4f7eff' },
+    contenedor: { maxWidth: '720px', margin: '0 auto', padding: '0 20px 48px' },
+    header: { display: 'none' },
+    titulo: { display: 'none' },
     authBar: { display: 'flex', gap: '8px', alignItems: 'center' },
-    usuarioNombre: { color: c.textoSec, fontSize: '13px' },
-    botonSec: { background: 'transparent', border: '1px solid #2a2e3a', borderRadius: '8px', padding: '8px 14px', fontSize: '13px', color: c.texto, cursor: 'pointer' },
-    botonPrin: { background: c.acento, color: '#fff', border: 'none', borderRadius: '8px', padding: '8px 14px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' },
-    botonAdmin: { background: '#2a1f3a', color: '#c084fc', border: '1px solid #4a2f6a', borderRadius: '8px', padding: '8px 14px', fontSize: '13px', cursor: 'pointer' },
-    botonVender: { display: 'block', margin: '0 auto 16px', background: c.acento, color: '#fff', border: 'none', borderRadius: '10px', padding: '12px 24px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' },
-    tarjetaForm: { background: c.tarjeta, border: '1px solid #2a2e3a', borderRadius: '14px', padding: '24px', marginBottom: '24px' },
-    tarjetaAdmin: { background: '#0d1f17', border: '1px solid #1a3a2a', borderRadius: '14px', padding: '24px', marginBottom: '24px' },
-    label: { color: c.textoSec, fontSize: '13px', fontWeight: '500', display: 'block', marginBottom: '6px' },
-    input: { width: '100%', background: '#0f1117', border: '1px solid #2a2e3a', borderRadius: '8px', padding: '10px 12px', color: c.texto, fontSize: '14px', marginBottom: '16px', boxSizing: 'border-box' },
-    botonSubmit: { background: c.acento, color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 20px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', width: '100%' },
-    botonSubmitVerde: { background: '#16a34a', color: '#fff', border: 'none', borderRadius: '8px', padding: '11px 20px', fontSize: '14px', fontWeight: '600', cursor: 'pointer', width: '100%' },
-    mensaje: { color: c.textoSec, fontSize: '13px', marginTop: '12px', textAlign: 'center' },
-    tarjetaBoleta: { background: c.tarjeta, border: '1px solid #2a2e3a', borderRadius: '14px', padding: '20px 24px', marginBottom: '14px' },
-    tarjetaPendiente: { background: '#1a1a0d', border: '1px solid #3a3a1a', borderRadius: '12px', padding: '16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    nombreEvento: { color: c.texto, fontSize: '18px', fontWeight: '700', margin: '0 0 6px' },
-    detalleEvento: { color: c.textoSec, fontSize: '14px', margin: '0 0 4px' },
-    vendedorRow: { display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' },
-    badgeBCO: { background: '#1d3557', color: '#60a5fa', fontSize: '11px', fontWeight: '600', padding: '2px 8px', borderRadius: '20px', display: 'flex', alignItems: 'center', gap: '4px' },
-    vendedorNombre: { color: c.textoSec, fontSize: '13px' },
-    ventasCount: { color: '#6b7280', fontSize: '12px' },
-    filaPrecio: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px' },
-    precio: { color: c.texto, fontSize: '22px', fontWeight: '700', margin: 0 },
-    botonComprar: { background: c.acento, color: '#fff', border: 'none', borderRadius: '8px', padding: '10px 22px', fontSize: '14px', fontWeight: '600', cursor: 'pointer' },
-    botonAprobar: { background: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginLeft: '6px' },
-    botonRechazar: { background: '#991b1b', color: '#fff', border: 'none', borderRadius: '6px', padding: '6px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginLeft: '6px' },
-    vacio: { color: c.textoSec, textAlign: 'center', fontSize: '14px' },
-    tituloForm: { color: c.texto, fontSize: '18px', fontWeight: '600', margin: '0 0 20px' },
-    tituloAdmin: { color: '#4ade80', fontSize: '16px', fontWeight: '600', margin: '0 0 16px' },
-    tituloPendiente: { color: '#facc15', fontSize: '14px', fontWeight: '600', margin: '0 0 12px' },
+    usuarioNombre: { color: '#8892a4', fontSize: '12px', maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+    botonSec: { background: 'transparent', border: '1px solid #1e2a3a', borderRadius: '8px', padding: '7px 14px', fontSize: '13px', color: '#8892a4', cursor: 'pointer' },
+    botonPrin: { background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '8px', padding: '7px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' },
+    botonAdmin: { background: 'rgba(160,82,255,0.1)', color: '#c084fc', border: '1px solid rgba(160,82,255,0.2)', borderRadius: '8px', padding: '7px 14px', fontSize: '13px', cursor: 'pointer' },
+    hero: { textAlign: 'center', padding: '56px 0 44px' },
+    heroTag: { display: 'inline-block', background: 'rgba(79,126,255,0.1)', color: '#4f7eff', border: '1px solid rgba(79,126,255,0.2)', borderRadius: '20px', padding: '4px 14px', fontSize: '11px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '20px' },
+    heroTitle: { color: '#eef0f6', fontSize: '40px', fontWeight: '800', margin: '0 0 14px', letterSpacing: '-1.5px', lineHeight: 1.1 },
+    heroSub: { color: '#8892a4', fontSize: '16px', margin: '0 auto 32px', lineHeight: 1.65, maxWidth: '440px' },
+    botonVender: { display: 'inline-block', background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '10px', padding: '13px 28px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 0 28px rgba(79,126,255,0.25)' },
+    seccionTitulo: { color: '#eef0f6', fontSize: '14px', fontWeight: '600', margin: '0 0 16px' },
+    tarjetaForm: { background: '#0f1623', border: '1px solid #1e2a3a', borderRadius: '16px', padding: '28px', marginBottom: '24px' },
+    tarjetaAdmin: { background: '#081a10', border: '1px solid #0f3320', borderRadius: '16px', padding: '24px', marginBottom: '24px' },
+    label: { color: '#8892a4', fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: '7px' },
+    input: { width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid #1e2a3a', borderRadius: '10px', padding: '11px 14px', color: '#eef0f6', fontSize: '14px', marginBottom: '16px', boxSizing: 'border-box' },
+    botonSubmit: { background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '10px', padding: '12px 20px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', width: '100%' },
+    botonSubmitVerde: { background: '#16a34a', color: '#fff', border: 'none', borderRadius: '10px', padding: '12px 20px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', width: '100%' },
+    mensaje: { color: '#8892a4', fontSize: '13px', marginTop: '12px', textAlign: 'center' },
+    tarjetaBoleta: { background: '#0f1623', border: '1px solid #1e2a3a', borderRadius: '16px', padding: '20px 22px', marginBottom: '12px' },
+    tarjetaPendiente: { background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: '12px', padding: '14px 16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    nombreEvento: { color: '#eef0f6', fontSize: '16px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.2px' },
+    detalleEvento: { color: '#8892a4', fontSize: '13px', margin: '0 0 3px' },
+    vendedorRow: { display: 'flex', alignItems: 'center', gap: '6px', margin: '8px 0 0' },
+    badgeBCO: { background: 'rgba(79,126,255,0.12)', color: '#4f7eff', fontSize: '10px', fontWeight: '700', padding: '3px 8px', borderRadius: '20px', letterSpacing: '0.4px', textTransform: 'uppercase' },
+    vendedorNombre: { color: '#4e5a6e', fontSize: '12px' },
+    ventasCount: { color: '#4e5a6e', fontSize: '11px', background: 'rgba(255,255,255,0.04)', padding: '2px 7px', borderRadius: '4px' },
+    filaPrecio: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #1e2a3a' },
+    precio: { color: '#eef0f6', fontSize: '20px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' },
+    botonComprar: { background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontSize: '13px', fontWeight: '700', cursor: 'pointer' },
+    botonAprobar: { background: 'rgba(34,197,94,0.12)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '6px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginLeft: '6px' },
+    botonRechazar: { background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '6px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginLeft: '6px' },
+    vacio: { color: '#4e5a6e', textAlign: 'center', fontSize: '14px', padding: '40px 0' },
+    tituloForm: { color: '#eef0f6', fontSize: '17px', fontWeight: '700', margin: '0 0 22px', letterSpacing: '-0.3px' },
+    tituloAdmin: { color: '#4ade80', fontSize: '15px', fontWeight: '700', margin: '0 0 16px' },
+    tituloPendiente: { color: '#f59e0b', fontSize: '14px', fontWeight: '600', margin: '0 0 12px' },
     row2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
-    separador: { border: 'none', borderTop: '1px solid #1a3a2a', margin: '20px 0' }
+    separador: { border: 'none', borderTop: '1px solid #1e2a3a', margin: '20px 0' },
   }
 
   if (pagoStatus === 'exitoso') {
@@ -454,25 +467,37 @@ function App() {
 
   return (
     <div style={s.pagina}>
-      <div style={s.contenedor}>
-        <div style={s.header}>
-          <h1 style={s.titulo}>Boleteria CO</h1>
+      {/* NAV */}
+      <nav style={s.nav}>
+        <div style={s.navInner}>
+          <h1 style={s.logo}>Boletería <span style={s.logoPunto}>CO</span></h1>
           <div style={s.authBar}>
             {usuario ? (
               <>
                 {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
                 <span style={s.usuarioNombre}>{usuario.email}</span>
                 <button style={s.botonSec} onClick={toggleMisBoletas}>Mis boletas</button>
-                <button style={s.botonSec} onClick={manejarCerrarSesion}>Cerrar sesion</button>
+                <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
               </>
             ) : (
               <>
-                <button style={s.botonSec} onClick={() => setVistaAuth('login')}>Iniciar sesion</button>
+                <button style={s.botonSec} onClick={() => setVistaAuth('login')}>Iniciar sesión</button>
                 <button style={s.botonPrin} onClick={() => setVistaAuth('registro')}>Registrarse</button>
               </>
             )}
           </div>
         </div>
+      </nav>
+      <div style={s.contenedor}>
+        {/* HERO */}
+        {!usuario && (
+          <div style={s.hero}>
+            <div style={s.heroTag}>🎟 Marketplace de boletas · Colombia</div>
+            <h2 style={s.heroTitle}>Tu boleta al precio<br/>que realmente vale</h2>
+            <p style={s.heroSub}>Compra y vende boletas para eventos deportivos en Colombia. Pagos seguros con Wompi.</p>
+            <button style={s.botonVender} onClick={() => setVistaAuth('registro')}>Empieza gratis</button>
+          </div>
+        )}
 
 
         {mostrarMisBoletas && usuario && (
@@ -718,9 +743,15 @@ function App() {
           </form>
         )}
 
-        <button style={s.botonVender} onClick={() => setMostrarFormulario(!mostrarFormulario)}>
-          {mostrarFormulario ? 'Cerrar formulario' : '+ Vender boleta'}
-        </button>
+        {usuario && (
+          <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'24px 0 8px'}}>
+            <p style={s.seccionTitulo}>Boletas disponibles</p>
+            <button style={{...s.botonPrin, fontSize:'13px'}} onClick={() => setMostrarFormulario(!mostrarFormulario)}>
+              {mostrarFormulario ? 'Cancelar' : '+ Vender boleta'}
+            </button>
+          </div>
+        )}
+        {!usuario && <p style={{...s.seccionTitulo, marginTop:'8px'}}>Boletas disponibles</p>}
 
         {mostrarFormulario && (
           <form onSubmit={manejarPublicar} style={s.tarjetaForm}>
@@ -829,9 +860,10 @@ function App() {
           )
         })
         })()}
-      <p style={{textAlign:'center',color:'#4b5563',fontSize:'13px',marginTop:'48px',paddingBottom:'24px'}}>
-        © 2026 Boletería CO · <a href='/terminos.html' target='_blank' style={{color:'#6366f1',textDecoration:'none'}}>Términos y condiciones</a>
-      </p>
+      <footer style={{borderTop:'1px solid #1e2a3a', marginTop:'48px', paddingTop:'28px', paddingBottom:'32px', textAlign:'center'}}>
+        <p style={{color:'#4e5a6e', fontSize:'13px', margin:'0 0 8px', fontWeight:'700', letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#4f7eff'}}>CO</span></p>
+        <p style={{color:'#4e5a6e', fontSize:'12px', margin:0}}>© 2026 · <a href='/terminos.html' target='_blank' style={{color:'#8892a4', textDecoration:'none'}}>Términos y condiciones</a> · soporte@boleteriaco.com</p>
+      </footer>
       </div>
     </div>
   )
