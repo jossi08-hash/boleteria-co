@@ -6,7 +6,7 @@ export async function obtenerBoletas() {
     .select(`
       id, tribuna, fila, silla, cantidad, precio, estado, vendedor_id,
       eventos ( nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
-      usuarios ( nombre, correo )
+      usuarios ( nombre, correo, es_admin )
     `)
     .in('estado', ['publicada', 'reservada'])
     .order('creado_en', { ascending: false })
@@ -24,7 +24,7 @@ export async function obtenerBoletasPorDeporte(deporte) {
     .select(`
       id, tribuna, fila, silla, cantidad, precio, estado, vendedor_id,
       eventos!inner ( nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
-      usuarios ( nombre, correo )
+      usuarios ( nombre, correo, es_admin )
     `)
     .eq('eventos.deporte', deporte)
     .eq('estado', 'publicada')

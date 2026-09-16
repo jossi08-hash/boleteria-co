@@ -424,7 +424,8 @@ function App() {
     return '$' + valor.toLocaleString('es-CO')
   }
 
-  function calcularTotal(precio, moneda) {
+  function calcularTotal(precio, moneda, esAdmin = false) {
+    if (esAdmin) return formatearPrecio(Number(precio), moneda)
     const redondeado = Math.round(Number(precio) * 1.10 / 1000) * 1000
     return formatearPrecio(redondeado, moneda)
   }
@@ -470,7 +471,8 @@ function App() {
 
     const ordenes = await Promise.all(carrito.map(b => {
       const subtotal = Number(b.precio)
-      const comision = Math.round(subtotal * 0.10)
+      const esBoletaAdmin = b.usuarios?.es_admin === true
+      const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 0.10)
       const total = Math.round((subtotal + comision) / 1000) * 1000
       return crearOrden({ boletaId: b.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'wompi' })
     }))
@@ -532,7 +534,8 @@ function App() {
     }
 
     const subtotal = Number(boleta.precio)
-    const comision = Math.round(subtotal * 0.10)
+    const esBoletaAdmin = boleta.usuarios?.es_admin === true
+    const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 0.10)
     const total = subtotal + comision
     const moneda = boleta.eventos ? boleta.eventos.moneda : 'COP'
 
@@ -1265,7 +1268,7 @@ function App() {
                 )}
               </div>
               <div style={s.filaPrecio}>
-                <p style={s.precio}>{b.estado === 'vendida' ? <span style={{color:'#6b7280',fontSize:'13px'}}>Vendida</span> : calcularTotal(b.precio, moneda)}</p>
+                <p style={s.precio}>{b.estado === 'vendida' ? <span style={{color:'#6b7280',fontSize:'13px'}}>Vendida</span> : calcularTotal(b.precio, moneda, b.usuarios?.es_admin === true)}</p>
                 {b.estado === 'reservada' ? (
                   <span style={{background:'#3d2a00',color:'#facc15',fontSize:'12px',fontWeight:'600',padding:'6px 14px',borderRadius:'8px'}}>⏳ Reservada</span>
                 ) : b.estado === 'vendida' ? (
@@ -1353,7 +1356,7 @@ function App() {
                   {(() => {
                     const monC = carrito[0]?.eventos?.moneda || 'COP'
                     const subtotalC = carrito.reduce((s, b) => s + Number(b.precio), 0)
-                    const comisionC = Math.round(subtotalC * 0.10)
+                    const comisionC = carrito.reduce((s, b) => s + (b.usuarios?.es_admin === true ? 0 : Math.round(Number(b.precio) * 0.10)), 0)
                     const totalC = Math.round((subtotalC + comisionC) / 1000) * 1000
                     return (
                       <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginTop:'8px',marginBottom:'24px'}}>
