@@ -654,11 +654,10 @@ function App() {
               Ver mis boletas
             </button>
             <a
-              href={`https://wa.me/573001234567?text=${encodeURIComponent(`Hola, hice una compra en Boletería CO. Referencia: ${ref}`)}`}
-              target='_blank' rel='noopener noreferrer'
-              style={{display:'block',textAlign:'center',background:'#0f2d1e',color:'#4ade80',border:'1px solid #166534',borderRadius:'12px',padding:'13px',fontSize:'14px',fontWeight:'700',textDecoration:'none'}}
+              href={`mailto:soporte@boleteriaco.com?subject=Compra%20${ref}&body=Hola%2C%20tengo%20una%20pregunta%20sobre%20mi%20compra.%20Referencia%3A%20${ref}`}
+              style={{display:'block',textAlign:'center',background:'#0f1623',color:'#8892a4',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'13px',fontSize:'14px',fontWeight:'700',textDecoration:'none'}}
             >
-              💬 Soporte por WhatsApp
+              ✉️ Contactar soporte
             </a>
           </div>
         </div>
