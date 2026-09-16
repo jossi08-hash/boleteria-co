@@ -522,13 +522,11 @@ function App() {
                     const ev = b && b.eventos
                     const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
                     const fecha = ev && ev.fecha ? new Date(ev.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : ''
+                    const esAdmin = b?.usuarios?.correo === ADMIN_EMAIL
+                    const yaLiberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
+                    const msRestantes = (new Date(o.creado_en).getTime() + 72 * 60 * 60 * 1000) - Date.now()
+                    const horas = Math.max(0, Math.floor(msRestantes / 3600000))
                     return (
-                      {(() => {
-                        const esAdmin = b?.usuarios?.correo === ADMIN_EMAIL
-                        const yaLiberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
-                        const msRestantes = (new Date(o.creado_en).getTime() + 72 * 60 * 60 * 1000) - Date.now()
-                        const horas = Math.max(0, Math.floor(msRestantes / 3600000))
-                        return (
                           <div key={o.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                               <div>
@@ -557,8 +555,6 @@ function App() {
                               </div>
                             )}
                           </div>
-                        )
-                      })()}
                     )
                   })
             )}
@@ -569,12 +565,9 @@ function App() {
                     const ev = b.eventos
                     const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
                     const ordenPagada = Array.isArray(b.ordenes) ? b.ordenes.find(o => o.estado_pago === 'pagada') : null
-                    const badgeColor = b.estado === 'vendida' ? {bg:'#064e3b',txt:'#34d399',label:'Vendida'} : b.estado === 'publicada' ? {bg:'#1e3a5f',txt:'#60a5fa',label:'Publicada'} : {bg:'#292524',txt:'#a8a29e',label:'En verificacion'}
+                    const liberadoOrden = ordenPagada && (ordenPagada.liberado || (Date.now() - new Date(ordenPagada.creado_en).getTime() > 72 * 60 * 60 * 1000))
+                    const hVenta = ordenPagada ? Math.max(0, Math.floor(((new Date(ordenPagada.creado_en).getTime() + 72*3600000) - Date.now()) / 3600000)) : 0
                     return (
-                      {(() => {
-                        const liberadoOrden = ordenPagada && (ordenPagada.liberado || (Date.now() - new Date(ordenPagada.creado_en).getTime() > 72 * 60 * 60 * 1000))
-                        const hVenta = ordenPagada ? Math.max(0, Math.floor(((new Date(ordenPagada.creado_en).getTime() + 72*3600000) - Date.now()) / 3600000)) : 0
-                        return (
                           <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                               <div>
@@ -597,8 +590,6 @@ function App() {
                               </div>
                             )}
                           </div>
-                        )
-                      })()}
                     )
                   })
             )}
