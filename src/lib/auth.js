@@ -31,7 +31,8 @@ export async function iniciarSesion({ correo, password }) {
       : error.message
     return { exito: false, mensaje: msg }
   }
-  return { exito: true, usuario: data.user }
+  const { data: perfil } = await supabase.from('usuarios').select('es_admin').eq('id', data.user.id).single()
+  return { exito: true, usuario: { ...data.user, es_admin: perfil?.es_admin || false } }
 }
 
 // Cerrar sesión
@@ -42,7 +43,9 @@ export async function cerrarSesion() {
 // Obtener el usuario actual (si hay sesión activa)
 export async function obtenerUsuarioActual() {
   const { data } = await supabase.auth.getUser()
-  return data.user
+  if (!data.user) return null
+  const { data: perfil } = await supabase.from('usuarios').select('es_admin').eq('id', data.user.id).single()
+  return { ...data.user, es_admin: perfil?.es_admin || false }
 }
 // Enviar email de recuperación de contraseña
 export async function enviarRecuperacion(correo) {

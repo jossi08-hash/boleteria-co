@@ -76,7 +76,7 @@ function App() {
   const [filtros, setFiltros] = useState({ ciudad: '', deporte: '', precioMax: '' })
 
 
-  const esAdmin = usuario && usuario.email === ADMIN_EMAIL
+  const esAdmin = usuario && usuario.es_admin === true
 
   useEffect(() => {
     const onResize = () => setEsMobile(window.innerWidth < 640)
@@ -250,7 +250,7 @@ function App() {
       .select(`id, codigo_orden, total, creado_en, liberado_en, pago_vendedor_enviado,
         boletas(tribuna, fila, silla, precio, vendedor_id,
           eventos(nombre, ciudad),
-          usuarios(nombre, correo))`)
+          usuarios(nombre, correo, es_admin))`)
       .eq('estado_pago', 'pagada')
       .eq('liberado', true)
       .eq('pago_vendedor_enviado', false)
@@ -796,7 +796,7 @@ function App() {
                     const ev = b && b.eventos
                     const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
                     const fecha = ev && ev.fecha ? new Date(ev.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : ''
-                    const esAdmin = b?.usuarios?.correo === ADMIN_EMAIL
+                    const esBoletaAdmin = b?.usuarios?.es_admin === true
                     const yaLiberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
                     const msRestantes = (new Date(o.creado_en).getTime() + 72 * 60 * 60 * 1000) - Date.now()
                     const horas = Math.max(0, Math.floor(msRestantes / 3600000))
@@ -947,7 +947,7 @@ function App() {
                 {ordenesLiberadas.map(function(o) {
                   const b = o.boletas
                   const ev = b?.eventos
-                  const esBoletaAdmin = b?.usuarios?.correo === ADMIN_EMAIL
+                  const esBoletaAdmin = b?.usuarios?.es_admin === true
                   if (esBoletaAdmin) return null
                   const neto = Math.round(Number(b?.precio || 0) * 0.95)
                   return (
@@ -967,7 +967,7 @@ function App() {
                 <hr style={s.separador} />
               </div>
             )}
-            {ordenesLiberadas.filter(o => o.boletas?.usuarios?.correo !== ADMIN_EMAIL).length === 0 && (
+            {ordenesLiberadas.filter(o => !o.boletas?.usuarios?.es_admin).length === 0 && (
               <p style={{color:'#6b7280',fontSize:'13px',marginBottom:'16px'}}>No hay pagos pendientes de envío.</p>
             )}
             <p style={s.tituloAdmin}>Crear evento</p>
@@ -1195,7 +1195,7 @@ function App() {
           if (!cargando && boletasFiltradas.length === 0) return <p style={s.vacio}>No hay boletas que coincidan con los filtros.</p>
           return boletasFiltradas.map(function(b) {
           const moneda = b.eventos ? b.eventos.moneda : 'COP'
-          const esBoleteriaCO = b.usuarios && b.usuarios.correo === ADMIN_EMAIL
+          const esBoleteriaCO = b.usuarios && b.usuarios.es_admin === true
           const nombreVendedor = b.usuarios ? b.usuarios.nombre : 'Usuario'
           const ventasVendedor = b.vendedor_id ? (ventasPorVendedor[b.vendedor_id] || 0) : 0
 
