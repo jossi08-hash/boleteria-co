@@ -5,6 +5,43 @@ import { supabase } from './lib/supabase'
 
 const ADMIN_EMAIL = 'jossi08@icloud.com'
 
+const PLATAFORMAS = {
+  'TuBoletaPass': {
+    equipos: ['santa fe','america','llaneros','tolima'],
+    color: '#e85d04',
+    instrVendedor: 'Abre TuBoletaPass → Mis Boletas → selecciona la boleta → Transferir → ingresa el correo del comprador.',
+    instrComprador: 'Descarga TuBoletaPass en App Store o Google Play. Regístrate con tu cédula y correo. El vendedor te transferirá la boleta; aparecerá en "Mis Boletas".',
+  },
+  'Quentro': {
+    equipos: ['millonarios','nacional','atletico nacional'],
+    color: '#2563eb',
+    instrVendedor: 'Abre Quentro → Mi Perfil → Mis Boletas → selecciona la entrada → Transferir → ingresa el correo del comprador registrado en Quentro.',
+    instrComprador: 'Descarga Quentro en App Store o Google Play. Regístrate con tu correo y número de documento. El vendedor te transferirá la entrada; recibirás una notificación en la app.',
+  },
+  'Warena': {
+    equipos: ['cucuta','junior','atletico junior'],
+    color: '#7c3aed',
+    instrVendedor: 'Abre Warena → Mis Entradas → selecciona la entrada → Ceder entrada → ingresa el correo del comprador.',
+    instrComprador: 'Descarga Warena en App Store o Google Play. Crea tu cuenta con tu correo. El vendedor te cederá la entrada y aparecerá en "Mis Entradas".',
+  },
+  'Dim Plus': {
+    equipos: ['independiente medellin','medellin','dim'],
+    color: '#dc2626',
+    instrVendedor: 'Abre Dim Plus → Mis Boletas → selecciona la boleta → Compartir → ingresa el correo del comprador.',
+    instrComprador: 'Descarga Dim Plus en App Store o Google Play. Regístrate con tu correo. El vendedor compartirá la boleta a tu correo registrado en la app.',
+  },
+}
+
+function sugerirPlataforma(nombreEvento) {
+  if (!nombreEvento) return ''
+  const lower = nombreEvento.toLowerCase()
+  for (const [nombre, data] of Object.entries(PLATAFORMAS)) {
+    if (data.equipos.some(eq => lower.includes(eq))) return nombre
+  }
+  return ''
+}
+
+
 function App() {
   const [esMobile, setEsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 640)
   const [boletas, setBoletas] = useState([])
@@ -24,7 +61,7 @@ function App() {
   const [mensajeAuth, setMensajeAuth] = useState('')
   const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fecha: '', hora: '', moneda: 'COP' })
   const [mensajeEvento, setMensajeEvento] = useState('')
-  const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' })
+  const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
   const [paginaActual, setPaginaActual] = useState('inicio')
@@ -220,7 +257,15 @@ function App() {
     setEventos(data || [])
   }
 
-  function manejarCambio(e) { setForm({ ...form, [e.target.name]: e.target.value }) }
+  function manejarCambio(e) {
+    const updated = { ...form, [e.target.name]: e.target.value }
+    if (e.target.name === 'eventoId') {
+      const ev = eventos.find(ev => ev.id === e.target.value)
+      const sugerida = ev ? sugerirPlataforma(ev.nombre) : ''
+      if (sugerida) updated.plataforma = sugerida
+    }
+    setForm(updated)
+  }
   function manejarCambioAuth(e) { setFormAuth({ ...formAuth, [e.target.name]: e.target.value }) }
   function manejarCambioEvento(e) { setFormEvento({ ...formEvento, [e.target.name]: e.target.value }) }
 
@@ -239,8 +284,8 @@ function App() {
     e.preventDefault()
     if (!usuario) { setMensaje('Debes iniciar sesion para publicar una boleta.'); return }
     setMensaje('Publicando...')
-    const resultado = await publicarBoleta({ eventoId: form.eventoId, vendedorId: usuario.id, tribuna: form.tribuna, fila: form.fila, silla: form.silla, cantidad: Number(form.cantidad), precio: Number(form.precio) })
-    if (resultado) { setMensaje('Boleta enviada. El equipo de Boleteria CO la verificara pronto.'); setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '' }); cargarBoletas() }
+    const resultado = await publicarBoleta({ eventoId: form.eventoId, vendedorId: usuario.id, tribuna: form.tribuna, fila: form.fila, silla: form.silla, cantidad: Number(form.cantidad), precio: Number(form.precio), plataforma: form.plataforma })
+    if (resultado) { setMensaje('Boleta enviada. El equipo de Boleteria CO la verificara pronto.'); setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' }); cargarBoletas() }
     else { setMensaje('Hubo un error al publicar. Intenta de nuevo.') }
   }
 
@@ -565,26 +610,35 @@ function App() {
                             </div>
                             {!esAdmin && (
                               <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
-                                {o.archivo_url ? (
-                                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
-                                    <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Boleta entregada por el vendedor</p>
-                                    <a href={o.archivo_url} target="_blank" rel="noreferrer" style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',textDecoration:'none'}}>⬇ Descargar boleta</a>
-                                  </div>
-                                ) : (
-                                  <p style={{color:'#f59e0b',fontSize:'12px',margin:'0'}}>⏳ Esperando que el vendedor entregue la boleta digital</p>
-                                )}
-                                {!o.archivo_url && <div style={{marginTop:'8px'}}>
+                                {(() => {
+                                  const plat = b?.plataforma && PLATAFORMAS[b.plataforma]
+                                  return plat ? (
+                                    <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1e2a3a',borderRadius:'8px',padding:'10px 12px',marginBottom:'10px'}}>
+                                      <p style={{color:'#eef0f6',fontSize:'11px',fontWeight:'700',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'0.4px'}}>📲 Tu boleta está en {b.plataforma}</p>
+                                      <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 8px',lineHeight:1.6}}>{plat.instrComprador}</p>
+                                      {o.archivo_url && (
+                                        <a href={o.archivo_url} target="_blank" rel="noreferrer" style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'6px',padding:'5px 12px',fontSize:'11px',fontWeight:'600',textDecoration:'none',display:'inline-block'}}>⬇ Ver comprobante de transferencia</a>
+                                      )}
+                                    </div>
+                                  ) : o.archivo_url ? (
+                                    <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px',marginBottom:'8px'}}>
+                                      <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Boleta entregada por el vendedor</p>
+                                      <a href={o.archivo_url} target="_blank" rel="noreferrer" style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',textDecoration:'none'}}>⬇ Descargar</a>
+                                    </div>
+                                  ) : (
+                                    <p style={{color:'#f59e0b',fontSize:'12px',margin:'0 0 8px'}}>⏳ Esperando que el vendedor transfiera la boleta</p>
+                                  )
+                                })()}
                                 {o.liberado ? (
                                   <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Recibo confirmado — pago liberado al vendedor</p>
                                 ) : yaLiberado ? (
                                   <p style={{color:'#4e5a6e',fontSize:'12px',margin:'0'}}>✅ Pago liberado automáticamente al vendedor</p>
                                 ) : (
                                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px',marginTop:'6px'}}>
-                                    <p style={{color:'#8892a4',fontSize:'11px',margin:'0'}}>¿Ya la recibiste? Se libera en {horas}h automáticamente.</p>
+                                    <p style={{color:'#8892a4',fontSize:'11px',margin:'0'}}>¿Ya la recibiste en la app? Se libera en {horas}h automáticamente.</p>
                                     <button onClick={() => confirmarRecibo(o.id)} style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>Confirmar recibo</button>
                                   </div>
                                 )}
-                                </div>}
                               </div>
                             )}
                           </div>
@@ -616,16 +670,28 @@ function App() {
                             {ordenPagada && (
                               <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
                                 {ordenPagada.archivo_url ? (
-                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Boleta entregada al comprador</p>
-                                ) : (
-                                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
-                                    <p style={{color:'#f59e0b',fontSize:'12px',margin:'0'}}>📎 Debes entregar la boleta digital al comprador</p>
-                                    <label style={{background:'#4f7eff',color:'#fff',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer',display:'inline-block'}}>
-                                      {subiendoArchivo === ordenPagada.id ? 'Subiendo...' : '⬆ Subir boleta'}
-                                      <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{display:'none'}} disabled={subiendoArchivo !== null} onChange={(e)=>{ if(e.target.files[0]) entregarBoleta(ordenPagada.id, e.target.files[0]) }} />
-                                    </label>
-                                  </div>
-                                )}
+                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Comprobante de transferencia subido</p>
+                                ) : (() => {
+                                  const plat = b.plataforma && PLATAFORMAS[b.plataforma]
+                                  return (
+                                    <div>
+                                      <p style={{color:'#f59e0b',fontSize:'12px',margin:'0 0 8px',fontWeight:'600'}}>📲 Transfiere la boleta al comprador</p>
+                                      {plat && (
+                                        <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid #1e2a3a',borderRadius:'8px',padding:'10px 12px',marginBottom:'10px'}}>
+                                          <p style={{color:'#eef0f6',fontSize:'11px',fontWeight:'700',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'0.4px'}}>{b.plataforma}</p>
+                                          <p style={{color:'#8892a4',fontSize:'12px',margin:'0',lineHeight:1.6}}>{plat.instrVendedor}</p>
+                                        </div>
+                                      )}
+                                      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
+                                        <p style={{color:'#4e5a6e',fontSize:'11px',margin:'0'}}>Sube el comprobante de transferencia (screenshot)</p>
+                                        <label style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer',display:'inline-block'}}>
+                                          {subiendoArchivo === ordenPagada.id ? 'Subiendo...' : '⬆ Subir comprobante'}
+                                          <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{display:'none'}} disabled={subiendoArchivo !== null} onChange={(e)=>{ if(e.target.files[0]) entregarBoleta(ordenPagada.id, e.target.files[0]) }} />
+                                        </label>
+                                      </div>
+                                    </div>
+                                  )
+                                })()}
                                 <div style={{marginTop:'8px'}}>
                                 {liberadoOrden ? (
                                   <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Pago liberado — coordina el cobro con Boletería CO</p>
@@ -810,6 +876,16 @@ function App() {
               <option value="">Selecciona un evento</option>
               {eventos.map(function(ev) { return <option key={ev.id} value={ev.id}>{ev.nombre} ({ev.moneda || 'COP'})</option> })}
             </select>
+            <label style={s.label}>Plataforma de la boleta</label>
+            <select name="plataforma" value={form.plataforma} onChange={manejarCambio} required style={s.input}>
+              <option value="">Selecciona la app donde tienes la boleta</option>
+              {Object.keys(PLATAFORMAS).map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+            {form.plataforma && PLATAFORMAS[form.plataforma] && (
+              <p style={{color:'#8892a4',fontSize:'11px',margin:'-10px 0 12px',lineHeight:1.5}}>
+                ℹ️ {form.plataforma === 'TuBoletaPass' ? 'Santa Fe, América, Llaneros, Tolima' : form.plataforma === 'Quentro' ? 'Millonarios, Atlético Nacional' : form.plataforma === 'Warena' ? 'Cúcuta, Junior' : 'Ind. Medellín'}
+              </p>
+            )}
             <label style={s.label}>Tribuna</label>
             <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} />
             <label style={s.label}>Fila</label>
