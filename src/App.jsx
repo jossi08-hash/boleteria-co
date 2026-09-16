@@ -6,6 +6,7 @@ import { supabase } from './lib/supabase'
 const ADMIN_EMAIL = 'jossi08@icloud.com'
 
 function App() {
+  const [esMobile, setEsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 640)
   const [boletas, setBoletas] = useState([])
   const [boletasPendientes, setBoletasPendientes] = useState([])
   const [ordenesLiberadas, setOrdenesLiberadas] = useState([])
@@ -35,6 +36,12 @@ function App() {
 
 
   const esAdmin = usuario && usuario.email === ADMIN_EMAIL
+
+  useEffect(() => {
+    const onResize = () => setEsMobile(window.innerWidth < 640)
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   useEffect(() => {
     cargarBoletas()
@@ -364,7 +371,7 @@ function App() {
     navInner: { maxWidth: '720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '60px' },
     logo: { color: '#eef0f6', fontSize: '17px', fontWeight: '800', letterSpacing: '-0.5px', margin: 0 },
     logoPunto: { color: '#4f7eff' },
-    contenedor: { maxWidth: '720px', margin: '0 auto', padding: '0 20px 48px' },
+    contenedor: { maxWidth: '720px', margin: '0 auto', padding: esMobile ? '0 12px 48px' : '0 20px 48px' },
     header: { display: 'none' },
     titulo: { display: 'none' },
     authBar: { display: 'flex', gap: '8px', alignItems: 'center' },
@@ -372,13 +379,13 @@ function App() {
     botonSec: { background: 'transparent', border: '1px solid #1e2a3a', borderRadius: '8px', padding: '7px 14px', fontSize: '13px', color: '#8892a4', cursor: 'pointer' },
     botonPrin: { background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '8px', padding: '7px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' },
     botonAdmin: { background: 'rgba(160,82,255,0.1)', color: '#c084fc', border: '1px solid rgba(160,82,255,0.2)', borderRadius: '8px', padding: '7px 14px', fontSize: '13px', cursor: 'pointer' },
-    hero: { textAlign: 'center', padding: '56px 0 44px' },
+    hero: { textAlign: 'center', padding: esMobile ? '36px 0 28px' : '56px 0 44px' },
     heroTag: { display: 'inline-block', background: 'rgba(79,126,255,0.1)', color: '#4f7eff', border: '1px solid rgba(79,126,255,0.2)', borderRadius: '20px', padding: '4px 14px', fontSize: '11px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '20px' },
-    heroTitle: { color: '#eef0f6', fontSize: '40px', fontWeight: '800', margin: '0 0 14px', letterSpacing: '-1.5px', lineHeight: 1.1 },
-    heroSub: { color: '#8892a4', fontSize: '16px', margin: '0 auto 32px', lineHeight: 1.65, maxWidth: '440px' },
+    heroTitle: { color: '#eef0f6', fontSize: esMobile ? '28px' : '40px', fontWeight: '800', margin: '0 0 14px', letterSpacing: esMobile ? '-0.8px' : '-1.5px', lineHeight: 1.1 },
+    heroSub: { color: '#8892a4', fontSize: esMobile ? '14px' : '16px', margin: '0 auto 32px', lineHeight: 1.65, maxWidth: '440px' },
     botonVender: { display: 'inline-block', background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '10px', padding: '13px 28px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 0 28px rgba(79,126,255,0.25)' },
     seccionTitulo: { color: '#eef0f6', fontSize: '14px', fontWeight: '600', margin: '0 0 16px' },
-    tarjetaForm: { background: '#0f1623', border: '1px solid #1e2a3a', borderRadius: '16px', padding: '28px', marginBottom: '24px' },
+    tarjetaForm: { background: '#0f1623', border: '1px solid #1e2a3a', borderRadius: '16px', padding: esMobile ? '20px 16px' : '28px', marginBottom: '24px' },
     tarjetaAdmin: { background: '#081a10', border: '1px solid #0f3320', borderRadius: '16px', padding: '24px', marginBottom: '24px' },
     label: { color: '#8892a4', fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: '7px' },
     input: { width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid #1e2a3a', borderRadius: '10px', padding: '11px 14px', color: '#eef0f6', fontSize: '14px', marginBottom: '16px', boxSizing: 'border-box' },
@@ -393,16 +400,16 @@ function App() {
     badgeBCO: { background: 'rgba(79,126,255,0.12)', color: '#4f7eff', fontSize: '10px', fontWeight: '700', padding: '3px 8px', borderRadius: '20px', letterSpacing: '0.4px', textTransform: 'uppercase' },
     vendedorNombre: { color: '#4e5a6e', fontSize: '12px' },
     ventasCount: { color: '#4e5a6e', fontSize: '11px', background: 'rgba(255,255,255,0.04)', padding: '2px 7px', borderRadius: '4px' },
-    filaPrecio: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #1e2a3a' },
+    filaPrecio: { display: 'flex', flexDirection: esMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: esMobile ? 'flex-start' : 'center', gap: esMobile ? '10px' : '0', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #1e2a3a' },
     precio: { color: '#eef0f6', fontSize: '20px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' },
-    botonComprar: { background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontSize: '13px', fontWeight: '700', cursor: 'pointer' },
+    botonComprar: { background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', width: esMobile ? '100%' : 'auto' },
     botonAprobar: { background: 'rgba(34,197,94,0.12)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '6px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginLeft: '6px' },
     botonRechazar: { background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '6px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginLeft: '6px' },
     vacio: { color: '#4e5a6e', textAlign: 'center', fontSize: '14px', padding: '40px 0' },
     tituloForm: { color: '#eef0f6', fontSize: '17px', fontWeight: '700', margin: '0 0 22px', letterSpacing: '-0.3px' },
     tituloAdmin: { color: '#4ade80', fontSize: '15px', fontWeight: '700', margin: '0 0 16px' },
     tituloPendiente: { color: '#f59e0b', fontSize: '14px', fontWeight: '600', margin: '0 0 12px' },
-    row2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' },
+    row2: { display: 'grid', gridTemplateColumns: esMobile ? '1fr' : '1fr 1fr', gap: '12px' },
     separador: { border: 'none', borderTop: '1px solid #1e2a3a', margin: '20px 0' },
   }
 
@@ -474,9 +481,9 @@ function App() {
             {usuario ? (
               <>
                 {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
-                <span style={s.usuarioNombre}>{usuario.email}</span>
-                <button style={s.botonSec} onClick={irAMisBoletas}>Mis boletas</button>
-                <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
+                {!esMobile && <span style={s.usuarioNombre}>{usuario.email}</span>}
+                <button style={s.botonSec} onClick={irAMisBoletas}>{esMobile ? '🎟' : 'Mis boletas'}</button>
+                <button style={s.botonSec} onClick={manejarCerrarSesion}>{esMobile ? '←' : 'Salir'}</button>
               </>
             ) : (
               <>
