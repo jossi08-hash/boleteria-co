@@ -4,7 +4,7 @@ export async function obtenerBoletas() {
   const { data, error } = await supabase
     .from('boletas')
     .select(`
-      id, tribuna, fila, silla, cantidad, precio, estado, vendedor_id,
+      id, tribuna, fila, silla, cantidad, precio, estado, vendedor_id, publicada_por_admin,
       eventos ( nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
       usuarios ( nombre, correo, es_admin )
     `)
@@ -22,7 +22,7 @@ export async function obtenerBoletasPorDeporte(deporte) {
   const { data, error } = await supabase
     .from('boletas')
     .select(`
-      id, tribuna, fila, silla, cantidad, precio, estado, vendedor_id,
+      id, tribuna, fila, silla, cantidad, precio, estado, vendedor_id, publicada_por_admin,
       eventos!inner ( nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
       usuarios ( nombre, correo, es_admin )
     `)
@@ -45,13 +45,14 @@ export async function obtenerVentasDeUsuario(usuarioId) {
   return count || 0
 }
 
-export async function publicarBoleta({ eventoId, vendedorId, tribuna, fila, silla, cantidad, precio, plataforma }) {
+export async function publicarBoleta({ eventoId, vendedorId, tribuna, fila, silla, cantidad, precio, plataforma, publicadaPorAdmin = false }) {
   const { data, error } = await supabase
     .from('boletas')
     .insert({
       evento_id: eventoId,
       vendedor_id: vendedorId,
       tribuna, fila, silla, cantidad, precio, plataforma,
+      publicada_por_admin: publicadaPorAdmin,
       estado: 'verificando'
     })
     .select()
