@@ -40,7 +40,7 @@ export default async function handler(req) {
   }
 
   // Obtener orden con info del vendedor (via boleta) y del comprador
-  const url = `${SUPABASE_URL}/rest/v1/ordenes?codigo_orden=eq.${encodeURIComponent(referencia)}&select=id,total,comprador_id,boletas(precio,tribuna,fila,silla,eventos(nombre,ciudad,fecha),usuarios(correo,nombre))`
+  const url = `${SUPABASE_URL}/rest/v1/ordenes?codigo_orden=eq.${encodeURIComponent(referencia)}&select=id,total,comprador_id,boleta_id,boletas(id,precio,tribuna,fila,silla,eventos(nombre,ciudad,fecha),usuarios(correo,nombre))`
   const res = await fetch(url, {
     headers: { apikey: key, Authorization: `Bearer ${key}` }
   })
@@ -55,6 +55,21 @@ export default async function handler(req) {
   }
 
   const orden = data[0]
+
+  // Actualizar estados server-side con service role (bypassa RLS)
+  const boletaId = orden.boleta_id || orden.boletas?.id
+  await Promise.all([
+    fetch(`${SUPABASE_URL}/rest/v1/ordenes?id=eq.${orden.id}`, {
+      method: 'PATCH',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ estado_pago: 'pagada' })
+    }),
+    boletaId ? fetch(`${SUPABASE_URL}/rest/v1/boletas?id=eq.${boletaId}`, {
+      method: 'PATCH',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ estado: 'vendida' })
+    }) : Promise.resolve()
+  ])
   const boleta = orden.boletas
   const correoVendedor = boleta?.usuarios?.correo
   const nombreVendedor = boleta?.usuarios?.nombre
