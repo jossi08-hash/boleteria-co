@@ -1258,7 +1258,7 @@ function App() {
                 style={{marginTop:'8px',background:'#4f7eff',color:'#fff',border:'none',borderRadius:'12px',padding:'14px 32px',fontSize:'15px',fontWeight:'700',cursor:'pointer',boxShadow:'0 0 28px rgba(79,126,255,0.3)'}}>
                 Publicar mi boleta
               </button>
-              {!usuario && <p style={{margin:0,fontSize:'13px',color:'#4e5a6e'}}>Gratis · Sin comisión oculta</p>}
+              
             </div>
           )
           if (!cargando && boletasFiltradas.length === 0) return <p style={s.vacio}>No hay boletas que coincidan con los filtros.</p>
@@ -1385,10 +1385,7 @@ function App() {
                           <span style={{color:'#8892a4',fontSize:'14px'}}>{carrito.length} {carrito.length===1?'boleta':'boletas'}</span>
                           <span style={{color:'#eef0f6',fontSize:'14px',fontWeight:'600'}}>{formatearPrecio(subtotalC, monC)}</span>
                         </div>
-                        <div style={{display:'flex',justifyContent:'space-between',marginBottom:'14px'}}>
-                          <span style={{color:'#8892a4',fontSize:'14px'}}>Comisión (10%)</span>
-                          <span style={{color:'#8892a4',fontSize:'14px'}}>{formatearPrecio(comisionC, monC)}</span>
-                        </div>
+
                         <div style={{borderTop:'1px solid #1e2a3a',paddingTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
                           <span style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800'}}>Total</span>
                           <span style={{color:'#4f7eff',fontSize:'22px',fontWeight:'800'}}>{formatearPrecio(totalC, monC)}</span>
