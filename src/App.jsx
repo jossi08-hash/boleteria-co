@@ -247,6 +247,8 @@ function App() {
       .lt('reservada_hasta', new Date().toISOString())
     const data = await obtenerBoletas()
     setBoletas(data)
+    // Sync cart: refresh publicada_por_admin and remove unavailable boletas
+    setCarrito(prev => prev.length === 0 ? prev : prev.map(item => data.find(b => b.id === item.id) || item).filter(item => data.some(b => b.id === item.id)))
     setCargando(false)
     const ventas = {}
     for (const b of data) {
@@ -443,7 +445,7 @@ function App() {
 
   function calcularTotal(precio, moneda, esAdmin = false) {
     if (esAdmin) return formatearPrecio(Number(precio), moneda)
-    const redondeado = Math.round(Number(precio) * 1.10 / 1000) * 1000
+    const redondeado = Math.round(Number(precio) * 1.15 / 1000) * 1000
     return formatearPrecio(redondeado, moneda)
   }
 
@@ -489,8 +491,8 @@ function App() {
     const ordenes = await Promise.all(carrito.map(b => {
       const subtotal = Number(b.precio)
       const esBoletaAdmin = b.publicada_por_admin === true
-      const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 0.10)
-      const total = Math.round((subtotal + comision) / 1000) * 1000
+      const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 1.15 / 1000) * 1000 - subtotal
+      const total = subtotal + comision
       return crearOrden({ boletaId: b.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'wompi' })
     }))
 
@@ -552,7 +554,7 @@ function App() {
 
     const subtotal = Number(boleta.precio)
     const esBoletaAdmin = boleta.publicada_por_admin === true
-    const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 0.10)
+    const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 1.15 / 1000) * 1000 - subtotal
     const total = subtotal + comision
     const moneda = boleta.eventos ? boleta.eventos.moneda : 'COP'
 
@@ -1353,8 +1355,8 @@ function App() {
                   {carrito.map(b => {
                     const monB = b.eventos?.moneda || 'COP'
                     const subB = Number(b.precio)
-                    const comB = Math.round(subB * 0.10)
-                    const totB = Math.round((subB + comB) / 1000) * 1000
+                    const esAdminB = b.publicada_por_admin === true
+                    const totB = esAdminB ? subB : Math.round(subB * 1.15 / 1000) * 1000
                     return (
                       <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'16px 18px',marginBottom:'12px'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}}>
@@ -1376,14 +1378,13 @@ function App() {
                   {(() => {
                     const monC = carrito[0]?.eventos?.moneda || 'COP'
                     const subtotalC = carrito.reduce((s, b) => s + Number(b.precio), 0)
-                    const comisionC = carrito.reduce((s, b) => s + (b.publicada_por_admin === true ? 0 : Math.round(Number(b.precio) * 0.10)), 0)
-                    const totalC = Math.round((subtotalC + comisionC) / 1000) * 1000
+                    const totalC = carrito.reduce((s, b) => s + (b.publicada_por_admin === true ? Number(b.precio) : Math.round(Number(b.precio) * 1.15 / 1000) * 1000), 0)
                     return (
                       <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginTop:'8px',marginBottom:'24px'}}>
                         <p style={{color:'#8892a4',fontSize:'11px',fontWeight:'700',letterSpacing:'0.5px',textTransform:'uppercase',margin:'0 0 14px'}}>Resumen</p>
                         <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
                           <span style={{color:'#8892a4',fontSize:'14px'}}>{carrito.length} {carrito.length===1?'boleta':'boletas'}</span>
-                          <span style={{color:'#eef0f6',fontSize:'14px',fontWeight:'600'}}>{formatearPrecio(subtotalC, monC)}</span>
+                          <span style={{color:'#eef0f6',fontSize:'14px',fontWeight:'600'}}>{formatearPrecio(totalC, monC)}</span>
                         </div>
 
                         <div style={{borderTop:'1px solid #1e2a3a',paddingTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
