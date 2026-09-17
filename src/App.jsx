@@ -55,7 +55,12 @@ function App() {
   const [eventos, setEventos] = useState([])
   const [mensaje, setMensaje] = useState('')
   const [comprando, setComprando] = useState(null)
-  const [carrito, setCarrito] = useState([])
+  const [carrito, setCarrito] = useState(() => {
+    try {
+      const saved = localStorage.getItem('bco_carrito')
+      return saved ? JSON.parse(saved) : []
+    } catch { return [] }
+  })
   const [silasExtra, setSilasExtra] = useState([])
   const [toasts, setToasts] = useState([])
   const [timerReserva, setTimerReserva] = useState(null) // segundos restantes
@@ -84,6 +89,10 @@ function App() {
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
+
+  useEffect(() => {
+    try { localStorage.setItem('bco_carrito', JSON.stringify(carrito)) } catch {}
+  }, [carrito])
 
   useEffect(() => {
     cargarBoletas()
@@ -175,6 +184,7 @@ function App() {
       try { carritoCount = parseInt(sessionStorage.getItem('carrito_count') || '1'); sessionStorage.removeItem('carrito_count') } catch(e) {}
       setPagoInfo({ referencia, transaccionId, carritoCount })
       setCarrito([])
+      try { localStorage.removeItem('bco_carrito') } catch {}
       setPagoStatus('exitoso')
     } else if (status === 'DECLINED' || status === 'ERROR' || status === 'VOIDED') {
       if (referencia) {
