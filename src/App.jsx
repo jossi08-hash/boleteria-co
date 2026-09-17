@@ -155,9 +155,16 @@ function App() {
               await supabase.from('boletas').update({ estado: 'vendida' }).eq('id', o.boleta_id)
             }))
             sessionStorage.removeItem('carrito_ordenes_extra')
+            // Notificar al vendedor por cada extra
+            extras.forEach(o => {
+              if (o.codigo_orden) fetch('/api/notificar-vendedor', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ referencia: o.codigo_orden })
+              })
+            })
           }
         } catch(e) { console.error('Error procesando extras carrito:', e) }
-        // Notificar al vendedor por email
+        // Notificar al vendedor por email (boleta principal)
         fetch('/api/notificar-vendedor', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -491,7 +498,7 @@ function App() {
     const referencia = ordenes[0].codigo_orden
 
     if (ordenes.length > 1) {
-      try { sessionStorage.setItem('carrito_ordenes_extra', JSON.stringify(ordenes.slice(1).map(o => ({ id: o.id, boleta_id: o.boleta_id })))) } catch(e) {}
+      try { sessionStorage.setItem('carrito_ordenes_extra', JSON.stringify(ordenes.slice(1).map(o => ({ id: o.id, boleta_id: o.boleta_id, codigo_orden: o.codigo_orden })))) } catch(e) {}
     }
 
     const totalCentavos = totalCombinado * 100
