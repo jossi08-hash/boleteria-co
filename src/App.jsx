@@ -1266,7 +1266,10 @@ function App() {
               <p style={s.detalleEvento}>Tribuna {b.tribuna} - Fila {b.fila} - Silla {b.silla}</p>
               <div style={s.vendedorRow}>
                 {esBoleteriaCO ? (
-                  <span style={s.badgeBCO}>verificado Boleteria CO</span>
+                  <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+                    <span style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700'}}>Boletería CO</span>
+                    <span style={{background:'#4f7eff',color:'#fff',fontSize:'10px',fontWeight:'700',padding:'2px 7px',borderRadius:'20px',letterSpacing:'0.3px'}}>✓ Verificado</span>
+                  </div>
                 ) : (
                   <>
                     <span style={s.vendedorNombre}>{nombreVendedor || 'Vendedor'}</span>
