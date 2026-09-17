@@ -1317,7 +1317,7 @@ function App() {
               </div>
               <div style={{marginTop:'10px',borderTop:'1px solid #1e2a3a',paddingTop:'10px'}}>
                 <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`🎟 ${b.eventos ? b.eventos.nombre : 'Boleta'} — ${calcularTotal(b.precio, moneda)} | Boletería CO: https://boleteriaco.com`)}`}
+                  href={`https://wa.me/?text=${encodeURIComponent(`🎟 ${b.eventos ? b.eventos.nombre : 'Boleta'} — ${calcularTotal(b.precio, moneda, b.publicada_por_admin === true)} | Boletería CO: https://boleteriaco.com`)}`}
                   target='_blank'
                   rel='noopener noreferrer'
                   style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'12px',color:'#4ade80',textDecoration:'none',fontWeight:'600'}}
