@@ -382,6 +382,10 @@ function App() {
 
   async function manejarRegistro(e) {
     e.preventDefault()
+    if (formAuth.password !== formAuth.nuevaPassword) {
+  setMensajeAuth('❌ Las contraseñas no coinciden')
+  return
+}
     setMensajeAuth('Registrando...')
     const resultado = await registrarUsuario(formAuth)
     if (resultado.exito) {
@@ -1311,6 +1315,8 @@ function App() {
             <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
             <label style={s.label}>Contrasena</label>
             <input name="password" type="password" value={formAuth.password} onChange={manejarCambioAuth} required style={s.input} />
+            <label style={s.label}>Confirmar contraseña</label>
+<input name="nuevaPassword" type="password" value={formAuth.nuevaPassword} onChange={manejarCambioAuth} required style={s.input} />
             <button type="submit" style={s.botonSubmit}>Crear cuenta</button>
             {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
           </form>
