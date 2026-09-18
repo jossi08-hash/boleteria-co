@@ -1614,7 +1614,6 @@ function App() {
                   >
                     {boldCargando ? '⏳ Generando QR...' : '📱 Pagar con Bre-B'}
                   </button>
-                  <p style={{color:'#4e5a6e',fontSize:'11px',textAlign:'center',marginTop:'8px'}}>Sin cuota fija · 2.89% · Transfiere desde tu app bancaria</p>
                 </>
               )}
             </div>
