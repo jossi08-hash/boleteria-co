@@ -866,17 +866,17 @@ function App() {
 
           {/* Pasos */}
           <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'24px',marginBottom:'16px'}}>
-            <h3 style={{color:'#eef0f6',fontSize:'14px',fontWeight:'800',margin:'0 0 16px',textTransform:'uppercase',letterSpacing:'0.5px'}}>¿Qué sigue?</h3>
+            <h3 style={{color:'#eef0f6',fontSize:'14px',fontWeight:'800',margin:'0 0 16px',textAlign:'center',textTransform:'uppercase',letterSpacing:'0.5px'}}>¿Qué sigue?</h3>
             {[
               {num:'1', titulo:'Revisa tu correo', desc:'Te llegará el comprobante de pago de Wompi.'},
               {num:'2', titulo:'El vendedor te contacta', desc:'En las próximas horas recibirás la boleta digital por la app o correo acordado.'},
               {num:'3', titulo:'Confirma que llegó', desc:'En "Mis boletas" confirma el recibo para liberar el pago al vendedor.'},
             ].map(p => (
-              <div key={p.num} style={{display:'flex',gap:'12px',marginBottom:'14px',alignItems:'flex-start'}}>
+              <div key={p.num} style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'20px',alignItems:'center',textAlign:'center'}}>
                 <div style={{width:'24px',height:'24px',borderRadius:'50%',background:'#1e3a6a',color:'#4f7eff',fontSize:'12px',fontWeight:'900',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'1px'}}>{p.num}</div>
                 <div>
-                  <p style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700',margin:'0 0 2px'}}>{p.titulo}</p>
-                  <p style={{color:'#8892a4',fontSize:'13px',margin:0,lineHeight:'1.5'}}>{p.desc}</p>
+                  <p style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700',margin:'0 0 2px',textAlign:'center'}}>{p.titulo}</p>
+                  <p style={{color:'#8892a4',fontSize:'13px',margin:0,lineHeight:'1.5',textAlign:'center'}}>{p.desc}</p>
                 </div>
               </div>
             ))}
