@@ -2,6 +2,13 @@ export const config = { runtime: 'edge' }
 
 const SUPABASE_URL = 'https://ssyelddmusabkxwijghn.supabase.co'
 
+const INSTRUCCIONES_VENDEDOR = {
+  'TuBoletaPass': 'Abre TuBoletaPass → Mis Boletas → selecciona la boleta → Transferir → ingresa boletas@boleteriaco.com.',
+  'Quentro': 'Abre Quentro → Mi Perfil → Mis Boletas → selecciona la entrada → Transferir → ingresa boletas@boleteriaco.com.',
+  'Warena': 'Abre Warena → Mis Entradas → selecciona la entrada → Ceder entrada → ingresa boletas@boleteriaco.com.',
+  'Dim Plus': 'Abre Dim Plus → Mis Boletas → selecciona la boleta → Compartir → ingresa boletas@boleteriaco.com.',
+}
+
 export default async function handler(req) {
   if (req.method !== 'POST') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
@@ -40,7 +47,7 @@ export default async function handler(req) {
   }
 
   // Obtener orden con info del vendedor (via boleta) y del comprador
-  const url = `${SUPABASE_URL}/rest/v1/ordenes?codigo_orden=eq.${encodeURIComponent(referencia)}&select=id,total,comprador_id,boleta_id,boletas(id,precio,tribuna,fila,silla,publicada_por_admin,eventos(nombre,ciudad,fecha),usuarios(correo,nombre))`
+  const url = `${SUPABASE_URL}/rest/v1/ordenes?codigo_orden=eq.${encodeURIComponent(referencia)}&select=id,total,comprador_id,boleta_id,boletas(id,precio,tribuna,fila,silla,plataforma,publicada_por_admin,eventos(nombre,ciudad,fecha),usuarios(correo,nombre))`
   const res = await fetch(url, {
     headers: { apikey: key, Authorization: `Bearer ${key}` }
   })
@@ -87,6 +94,8 @@ export default async function handler(req) {
   ].filter(Boolean).join(' · ')
   const precioFmt = `$${Number(boleta?.precio || 0).toLocaleString('es-CO')}`
   const totalFmt = `$${Number(orden.total || 0).toLocaleString('es-CO')}`
+  const plataforma = boleta?.plataforma || ''
+  const instrPlat = INSTRUCCIONES_VENDEDOR[plataforma] || ''
 
   // Obtener email del admin
   const adminRes = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?es_admin=eq.true&select=correo,nombre&limit=1`, {
@@ -125,7 +134,7 @@ export default async function handler(req) {
       })
     }))
   } else {
-    // Boleta de tercero: notificar al vendedor que envíe al admin, y al admin que espere la boleta
+    // Boleta de tercero: notificar al vendedor que transfiera a boletas@boleteriaco.com
     if (correoVendedor) {
       promises.push(fetch('https://api.resend.com/emails', {
         method: 'POST',
@@ -146,8 +155,12 @@ export default async function handler(req) {
                 <p style="margin:0;"><strong>Referencia:</strong> ${referencia}</p>
               </div>
               <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:16px;margin:20px 0;">
-                <p style="margin:0 0 8px;color:#92400e;font-weight:bold;">⚠️ Paso importante: envía tu boleta a Boletería CO</p>
-                <p style="margin:0;color:#92400e;">Debes enviar la boleta a nuestro equipo para que se la entreguemos al comprador. Contáctanos lo antes posible a <strong>${correoAdmin}</strong> con tu referencia de venta.</p>
+                <p style="margin:0 0 8px;color:#92400e;font-weight:bold;">⚠️ Acción requerida: transfiere tu boleta a Boletería CO</p>
+                <p style="margin:0 0 12px;color:#92400e;">Debes enviar la boleta a <strong>boletas@boleteriaco.com</strong> desde tu app para que podamos entregársela al comprador.</p>
+                ${instrPlat ? `<div style="background:#fff8e1;border:1px solid #f59e0b;border-radius:6px;padding:12px;">
+                  <p style="margin:0 0 4px;font-weight:700;color:#92400e;font-size:13px;">📱 Cómo transferirla en ${plataforma}:</p>
+                  <p style="margin:0;color:#78350f;font-size:13px;line-height:1.6;">${instrPlat}</p>
+                </div>` : ''}
               </div>
               <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
               <p style="color:#9ca3af;font-size:12px;">Boletería CO · boleteriaco.com</p>
@@ -168,16 +181,17 @@ export default async function handler(req) {
         html: `
           <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px;">
             <h1 style="color:#f59e0b;font-size:22px;">Nueva venta — boleta en camino</h1>
-            <p style="color:#374151;">Se vendió una boleta de un tercero. El vendedor fue notificado para enviarte la boleta.</p>
+            <p style="color:#374151;">Se vendió una boleta de un tercero. El vendedor fue notificado para enviarla a <strong>boletas@boleteriaco.com</strong>.</p>
             <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;">
               <p style="margin:0 0 8px;"><strong>Evento:</strong> ${eventoNombre}${eventoCity ? ` · ${eventoCity}` : ''}</p>
               ${eventoFecha ? `<p style="margin:0 0 8px;"><strong>Fecha:</strong> ${eventoFecha}</p>` : ''}
               <p style="margin:0 0 8px;"><strong>Ubicación:</strong> ${ubicacion || 'N/A'}</p>
+              ${plataforma ? `<p style="margin:0 0 8px;"><strong>Plataforma:</strong> ${plataforma}</p>` : ''}
               <p style="margin:0 0 8px;"><strong>Total pagado:</strong> ${totalFmt}</p>
               <p style="margin:0 0 8px;"><strong>Vendedor:</strong> ${nombreVendedor || 'N/A'} · ${correoVendedor || 'N/A'}</p>
               <p style="margin:0;"><strong>Referencia:</strong> ${referencia}</p>
             </div>
-            <p style="color:#374151;">Cuando recibas la boleta del vendedor, verifícala y envíala al comprador.</p>
+            <p style="color:#374151;">Cuando recibas la boleta en <strong>boletas@boleteriaco.com</strong>, verifícala y envíala al comprador.</p>
             <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
             <p style="color:#9ca3af;font-size:12px;">Boletería CO · boleteriaco.com</p>
           </div>
@@ -214,7 +228,7 @@ export default async function handler(req) {
                 <p style="margin:0 0 8px;"><strong>Total pagado:</strong> ${totalFmt}</p>
                 <p style="margin:0;"><strong>Referencia:</strong> ${referencia}</p>
               </div>
-              <p style="color:#374151;">El vendedor te enviará la boleta próximamente. Si tienes algún problema, escríbenos a <a href="mailto:soporte@boleteriaco.com" style="color:#6366f1;">soporte@boleteriaco.com</a>.</p>
+              <p style="color:#374151;">Recibirás tu boleta digital en las próximas horas. Si tienes algún problema, escríbenos a <a href="mailto:soporte@boleteriaco.com" style="color:#6366f1;">soporte@boleteriaco.com</a>.</p>
               <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
               <p style="color:#9ca3af;font-size:12px;">Boletería CO · boleteriaco.com</p>
             </div>
