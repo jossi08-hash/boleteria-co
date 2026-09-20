@@ -9,25 +9,25 @@ const PLATAFORMAS = {
   'TuBoletaPass': {
     equipos: ['santa fe','america','llaneros','tolima'],
     color: '#e85d04',
-    instrVendedor: 'Abre TuBoletaPass → Mis Boletas → selecciona la boleta → Transferir → ingresa el correo del comprador.',
+    instrVendedor: 'Abre TuBoletaPass → Mis Boletas → selecciona la boleta → Transferir → ingresa boletas@boleteriaco.com.',
     instrComprador: 'Descarga TuBoletaPass en App Store o Google Play. Regístrate con tu cédula y correo. El vendedor te transferirá la boleta; aparecerá en "Mis Boletas".',
   },
   'Quentro': {
     equipos: ['millonarios','nacional','atletico nacional'],
     color: '#2563eb',
-    instrVendedor: 'Abre Quentro → Mi Perfil → Mis Boletas → selecciona la entrada → Transferir → ingresa el correo del comprador registrado en Quentro.',
+    instrVendedor: 'Abre Quentro → Mi Perfil → Mis Boletas → selecciona la entrada → Transferir → ingresa boletas@boleteriaco.com.',
     instrComprador: 'Descarga Quentro en App Store o Google Play. Regístrate con tu correo y número de documento. El vendedor te transferirá la entrada; recibirás una notificación en la app.',
   },
   'Warena': {
     equipos: ['cucuta','junior','atletico junior'],
     color: '#7c3aed',
-    instrVendedor: 'Abre Warena → Mis Entradas → selecciona la entrada → Ceder entrada → ingresa el correo del comprador.',
+    instrVendedor: 'Abre Warena → Mis Entradas → selecciona la entrada → Ceder entrada → ingresa boletas@boleteriaco.com.',
     instrComprador: 'Descarga Warena en App Store o Google Play. Crea tu cuenta con tu correo. El vendedor te cederá la entrada y aparecerá en "Mis Entradas".',
   },
   'Dim Plus': {
     equipos: ['independiente medellin','medellin','dim'],
     color: '#dc2626',
-    instrVendedor: 'Abre Dim Plus → Mis Boletas → selecciona la boleta → Compartir → ingresa el correo del comprador.',
+    instrVendedor: 'Abre Dim Plus → Mis Boletas → selecciona la boleta → Compartir → ingresa boletas@boleteriaco.com.',
     instrComprador: 'Descarga Dim Plus en App Store o Google Play. Regístrate con tu correo. El vendedor compartirá la boleta a tu correo registrado en la app.',
   },
 }
@@ -1118,7 +1118,7 @@ function App() {
                                   const plat = b.plataforma && PLATAFORMAS[b.plataforma]
                                   return (
                                     <div>
-                                      <p style={{color:'#f59e0b',fontSize:'12px',margin:'0 0 8px',fontWeight:'600'}}>📲 Transfiere la boleta al comprador</p>
+                                      <p style={{color:'#f59e0b',fontSize:'12px',margin:'0 0 8px',fontWeight:'600'}}>📲 Transfiere la boleta a boletas@boleteriaco.com</p>
                                       {plat && (
                                         <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid #1e2a3a',borderRadius:'8px',padding:'10px 12px',marginBottom:'10px'}}>
                                           <p style={{color:'#eef0f6',fontSize:'11px',fontWeight:'700',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'0.4px'}}>{b.plataforma}</p>
