@@ -127,7 +127,9 @@ function App() {
   const [timerReserva, setTimerReserva] = useState(null) // segundos restantes
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
-  const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '' })
+  const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '', datosPago: '' })
+  const [datosPagoVendedor, setDatosPagoVendedor] = useState('')
+  const [editandoPago, setEditandoPago] = useState(false)
   const [esRecuperacion, setEsRecuperacion] = useState(false)
   const [mensajeAuth, setMensajeAuth] = useState('')
   const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fecha: '', hora: '', moneda: 'COP' })
@@ -188,6 +190,19 @@ function App() {
   useEffect(() => {
     if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas(); cargarBoletasAdmin() }
   }, [esAdmin])
+
+  useEffect(() => {
+    if (usuario && !esAdmin) {
+      supabase.from('usuarios').select('datos_pago').eq('id', usuario.id).single()
+        .then(({ data }) => { if (data) setDatosPagoVendedor(data.datos_pago || '') })
+    }
+  }, [usuario])
+
+  async function guardarDatosPago() {
+    if (!usuario) return
+    const { error } = await supabase.from('usuarios').update({ datos_pago: datosPagoVendedor.trim() }).eq('id', usuario.id)
+    if (!error) { setEditandoPago(false); toast('✅ Dato de pago guardado', 'success') }
+  }
 
   async function procesarResultadoPago(params) {
     let status = params.get('status')
@@ -340,7 +355,7 @@ function App() {
       .select(`id, codigo_orden, total, creado_en, liberado_en, pago_vendedor_enviado,
         boletas(tribuna, fila, silla, precio, vendedor_id,
           eventos(nombre, ciudad),
-          usuarios(nombre, correo, es_admin))`)
+          usuarios(nombre, correo, es_admin, datos_pago))`)
       .eq('estado_pago', 'pagada')
       .eq('liberado', true)
       .eq('pago_vendedor_enviado', false)
@@ -1206,8 +1221,27 @@ function App() {
                     )
                   })
             )}
-            {!cargandoMis && pestanaMis === 'ventas' && (
-              misVentas.length === 0
+            {!cargandoMis && pestanaMis === 'ventas' && (<>
+              <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'14px 16px',marginBottom:'14px'}}>
+                <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:editandoPago?'10px':'0'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                    <span style={{fontSize:'18px'}}>💳</span>
+                    <div>
+                      <p style={{color:'#8892a4',fontSize:'11px',fontWeight:'600',margin:'0 0 2px',textTransform:'uppercase',letterSpacing:'0.4px'}}>Mi dato de pago</p>
+                      {!editandoPago && <p style={{color:datosPagoVendedor?'#eef0f6':'#4e5a6e',fontSize:'13px',margin:'0',fontStyle:datosPagoVendedor?'normal':'italic'}}>{datosPagoVendedor||'No registrado — agrega tu Nequi o cuenta bancaria'}</p>}
+                    </div>
+                  </div>
+                  {!editandoPago && <button onClick={()=>setEditandoPago(true)} style={{background:'rgba(79,126,255,0.12)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>✏️ Editar</button>}
+                </div>
+                {editandoPago && (
+                  <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                    <input value={datosPagoVendedor} onChange={e=>setDatosPagoVendedor(e.target.value)} placeholder="Ej: 3001234567 Nequi · Banco Bogotá 123-456789" style={{flex:1,minWidth:'180px',background:'#080b12',border:'1px solid #2d3a55',borderRadius:'8px',padding:'9px 12px',color:'#eef0f6',fontSize:'13px',outline:'none'}} />
+                    <button onClick={guardarDatosPago} style={{background:'#4f7eff',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 16px',fontSize:'13px',fontWeight:'600',cursor:'pointer'}}>Guardar</button>
+                    <button onClick={()=>setEditandoPago(false)} style={{background:'transparent',color:'#8892a4',border:'1px solid #1e2a3a',borderRadius:'8px',padding:'9px 12px',fontSize:'13px',cursor:'pointer'}}>✕</button>
+                  </div>
+                )}
+              </div>
+              {misVentas.length === 0
                 ? <p style={{color:'#6b7280',fontSize:'13px'}}>No has publicado boletas aun.</p>
                 : misVentas.map(function(b) {
                     const ev = b.eventos
@@ -1276,6 +1310,7 @@ function App() {
                           </div>
                     )
                   })
+            </>
             )}
           </div>
           </div>
@@ -1321,6 +1356,7 @@ function App() {
                       <div>
                         <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 2px',fontSize:'13px'}}>{ev?.nombre || 'Evento'} · {ev?.ciudad || ''}</p>
                         <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Vendedor: {b?.usuarios?.nombre || 'N/A'} — {b?.usuarios?.correo || ''}</p>
+                        <p style={{color:'#6b93ff',fontSize:'12px',margin:'0 0 2px'}}>💳 {b?.usuarios?.datos_pago || <span style={{color:'#4e5a6e',fontStyle:'italic'}}>Sin dato de pago registrado</span>}</p>
                         <p style={{color:'#9ca3af',fontSize:'12px',margin:'0'}}>Ref: {o.codigo_orden} · Pagar: <strong style={{color:'#34d399'}}>${neto.toLocaleString('es-CO')}</strong> (95% del precio)</p>
                       </div>
                       <button onClick={() => marcarPagadoVendedor(o.id)}
@@ -1446,6 +1482,9 @@ function App() {
             <input name="password" type="password" value={formAuth.password} onChange={manejarCambioAuth} required style={s.input} />
             <label style={s.label}>Confirmar contraseña</label>
 <input name="nuevaPassword" type="password" value={formAuth.nuevaPassword} onChange={manejarCambioAuth} required style={s.input} />
+            <label style={s.label}>📱 Dato de pago (Nequi o banco)</label>
+            <input name="datosPago" placeholder="Ej: 3001234567 Nequi · Banco Bogotá 123-456789" value={formAuth.datosPago} onChange={manejarCambioAuth} style={s.input} />
+            <p style={{color:'#4e5a6e',fontSize:'11px',margin:'-8px 0 12px',lineHeight:1.5}}>Aquí te enviamos tu pago cuando vendes una boleta.</p>
             <button type="submit" style={s.botonSubmit}>Crear cuenta</button>
             {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
           </form>
