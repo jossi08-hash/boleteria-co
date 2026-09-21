@@ -1146,7 +1146,7 @@ function App() {
                     const b = o.boletas
                     const ev = b && b.eventos
                     const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
-                    const fecha = ev && ev.fecha ? new Date(ev.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : ''
+                    const fecha = ev && ev.fecha ? new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : ''
                     const esBoletaAdmin = b?.usuarios?.es_admin === true
                     const yaLiberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
                     const msRestantes = (new Date(o.creado_en).getTime() + 72 * 60 * 60 * 1000) - Date.now()
@@ -1409,7 +1409,7 @@ function App() {
                     <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'10px 14px',gap:'10px'}}>
                       <div style={{flex:1,minWidth:0}}>
                         <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.nombre}</p>
-                        {ev.fecha && <p style={{color: new Date(ev.fecha) < new Date() ? '#6b7280' : '#8892a4',fontSize:'11px',margin:0}}>{new Date(ev.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}{new Date(ev.fecha) < new Date() ? ' · pasado' : ''}</p>}
+                        {ev.fecha && <p style={{color: new Date(ev.fecha + 'T12:00:00') < new Date() ? '#6b7280' : '#8892a4',fontSize:'11px',margin:0}}>{new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}{new Date(ev.fecha + 'T12:00:00') < new Date() ? ' · pasado' : ''}</p>}
                       </div>
                       {confirmarEliminarEvento === ev.id
                         ? <div style={{display:'flex',gap:'6px',flexShrink:0}}>
@@ -1779,7 +1779,7 @@ function App() {
               <p style={s.detalleEvento}>{b.eventos ? b.eventos.ciudad : ''}{b.eventos && b.eventos.estadio ? ' · ' + b.eventos.estadio : ''}</p>
               {b.eventos && b.eventos.fecha && (
                 <p style={{...s.detalleEvento, color:'#a78bfa', fontSize:'12px'}}>
-                  {new Date(b.eventos.fecha).toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}
+                  {new Date(b.eventos.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}
                   {b.eventos.hora ? ` · ${b.eventos.hora.slice(0,5).replace(/^0/,'').replace(':','h')}` : ''}
                 </p>
               )}
