@@ -1310,6 +1310,7 @@ function App() {
                           </div>
                     )
                   })
+              }
             </>
             )}
           </div>
@@ -1350,14 +1351,14 @@ function App() {
                   const ev = b?.eventos
                   const esBoletaAdmin = b?.usuarios?.es_admin === true
                   if (esBoletaAdmin) return null
-                  const neto = Math.round(Number(b?.precio || 0) * 0.95)
+                  const neto = Math.round(Number(b?.precio || 0) * 0.92)
                   return (
                     <div key={o.id} style={{background:'#1c2a1c',border:'1px solid #166534',borderRadius:'10px',padding:'14px',marginBottom:'10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'10px'}}>
                       <div>
                         <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 2px',fontSize:'13px'}}>{ev?.nombre || 'Evento'} · {ev?.ciudad || ''}</p>
                         <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Vendedor: {b?.usuarios?.nombre || 'N/A'} — {b?.usuarios?.correo || ''}</p>
                         <p style={{color:'#6b93ff',fontSize:'12px',margin:'0 0 2px'}}>💳 {b?.usuarios?.datos_pago || <span style={{color:'#4e5a6e',fontStyle:'italic'}}>Sin dato de pago registrado</span>}</p>
-                        <p style={{color:'#9ca3af',fontSize:'12px',margin:'0'}}>Ref: {o.codigo_orden} · Pagar: <strong style={{color:'#34d399'}}>${neto.toLocaleString('es-CO')}</strong> (95% del precio)</p>
+                        <p style={{color:'#9ca3af',fontSize:'12px',margin:'0'}}>Ref: {o.codigo_orden} · Pagar: <strong style={{color:'#34d399'}}>${neto.toLocaleString('es-CO')}</strong> (92% del precio)</p>
                       </div>
                       <button onClick={() => marcarPagadoVendedor(o.id)}
                         style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'8px 16px',fontSize:'13px',fontWeight:'600',cursor:'pointer',whiteSpace:'nowrap'}}>
@@ -1476,7 +1477,7 @@ function App() {
             <p style={s.tituloForm}>Crear cuenta</p>
             <label style={s.label}>Nombre</label>
             <input name="nombre" value={formAuth.nombre} onChange={manejarCambioAuth} required style={s.input} />
-            <label style={s.label}>🪪 Número de documento (documento)</label>
+            <label style={s.label}>🪪 Número de documento</label>
             <input name="documento" placeholder="Ej: 1020304050" value={formAuth.documento} onChange={manejarCambioAuth} required style={s.input} inputMode="numeric" />
             <label style={s.label}>Correo</label>
             <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
