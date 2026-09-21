@@ -1,7 +1,19 @@
 import { supabase } from './supabase'
 
 // Registrar un nuevo usuario (comprador o vendedor)
-export async function registrarUsuario({ nombre, correo, password, datosPago }) {
+export async function registrarUsuario({ nombre, correo, password, datosPago, cedula }) {
+  // Verificar si la cédula ya está registrada
+  if (cedula && cedula.trim()) {
+    const { data: cedulaExistente } = await supabase
+      .from('usuarios')
+      .select('id')
+      .eq('cedula', cedula.trim())
+      .maybeSingle()
+    if (cedulaExistente) {
+      return { exito: false, mensaje: 'Ese número de documento ya tiene una cuenta registrada.' }
+    }
+  }
+
   const { data, error } = await supabase.auth.signUp({
     email: correo,
     password: password,
@@ -12,15 +24,20 @@ export async function registrarUsuario({ nombre, correo, password, datosPago }) 
 
   if (error) {
     console.error('Error al registrar usuario:', error.message)
-    return { exito: false, mensaje: error.message }
+    const msg = error.message.includes('already registered') || error.message.includes('User already registered')
+      ? 'Ese correo ya tiene una cuenta registrada.'
+      : error.message
+    return { exito: false, mensaje: msg }
   }
 
-  // Guardar datos de pago si se proporcionaron
-  if (data.user && datosPago && datosPago.trim()) {
-    await supabase
-      .from('usuarios')
-      .update({ datos_pago: datosPago.trim() })
-      .eq('id', data.user.id)
+  // Guardar cédula y datos de pago
+  if (data.user) {
+    const updates = {}
+    if (cedula && cedula.trim()) updates.cedula = cedula.trim()
+    if (datosPago && datosPago.trim()) updates.datos_pago = datosPago.trim()
+    if (Object.keys(updates).length > 0) {
+      await supabase.from('usuarios').update(updates).eq('id', data.user.id)
+    }
   }
 
   return { exito: true, usuario: data.user, session: data.session }
@@ -56,6 +73,7 @@ export async function obtenerUsuarioActual() {
   const { data: perfil } = await supabase.from('usuarios').select('es_admin').eq('id', data.user.id).single()
   return { ...data.user, es_admin: perfil?.es_admin || false }
 }
+
 // Enviar email de recuperación de contraseña
 export async function enviarRecuperacion(correo) {
   const { error } = await supabase.auth.resetPasswordForEmail(correo, {
