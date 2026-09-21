@@ -127,7 +127,7 @@ function App() {
   const [timerReserva, setTimerReserva] = useState(null) // segundos restantes
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
-  const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '', datosPago: '' })
+  const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '', datosPago: '', cedula: '' })
   const [datosPagoVendedor, setDatosPagoVendedor] = useState('')
   const [editandoPago, setEditandoPago] = useState(false)
   const [esRecuperacion, setEsRecuperacion] = useState(false)
@@ -1476,6 +1476,8 @@ function App() {
             <p style={s.tituloForm}>Crear cuenta</p>
             <label style={s.label}>Nombre</label>
             <input name="nombre" value={formAuth.nombre} onChange={manejarCambioAuth} required style={s.input} />
+            <label style={s.label}>🪪 Número de documento (cédula)</label>
+            <input name="cedula" placeholder="Ej: 1020304050" value={formAuth.cedula} onChange={manejarCambioAuth} required style={s.input} inputMode="numeric" />
             <label style={s.label}>Correo</label>
             <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
             <label style={s.label}>Contrasena</label>
