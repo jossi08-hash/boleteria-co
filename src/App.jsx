@@ -135,7 +135,9 @@ function App() {
   const [confirmarEliminarEvento, setConfirmarEliminarEvento] = useState(null)
   const [eventoEditando, setEventoEditando] = useState(null)
   const [formEditar, setFormEditar] = useState({})
-  const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP' })
+  const [tribunaInputTemp, setTribunaInputTemp] = useState('')
+  const [tribunaExpandida, setTribunaExpandida] = useState(null)
+  const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP', tribunas: [] })
   const [mensajeEvento, setMensajeEvento] = useState('')
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
   const [pagoStatus, setPagoStatus] = useState(null)
@@ -427,7 +429,7 @@ function App() {
   }
 
   async function cargarEventos() {
-    const { data } = await supabase.from('eventos').select('id, nombre, deporte, ciudad, estadio, fecha, hora, moneda')
+    const { data } = await supabase.from('eventos').select('id, nombre, deporte, ciudad, estadio, fecha, hora, moneda, tribunas')
     setEventos(data || [])
   }
 
@@ -437,6 +439,7 @@ function App() {
       const ev = eventos.find(ev => ev.id === e.target.value)
       const sugerida = ev ? sugerirPlataforma(ev.nombre) : ''
       if (sugerida) updated.plataforma = sugerida
+      updated.tribuna = ''
     }
     setForm(updated)
   }
@@ -451,10 +454,11 @@ function App() {
       estadio: formEvento.estadio,
       fecha: formEvento.fechaHora ? formEvento.fechaHora.split('T')[0] : '',
       hora: formEvento.fechaHora ? formEvento.fechaHora.split('T')[1] : '',
-      moneda: formEvento.moneda
+      moneda: formEvento.moneda,
+      tribunas: formEvento.tribunas
     })
     if (error) { setMensajeEvento('Error: ' + error.message) }
-    else { setMensajeEvento('Evento creado correctamente.'); setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP' }); cargarEventos() }
+    else { setMensajeEvento('Evento creado correctamente.'); setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP', tribunas: [] }); setTribunaInputTemp(''); cargarEventos() }
   }
 
   async function eliminarEvento(eventoId) {
@@ -472,11 +476,12 @@ function App() {
   async function editarEvento(e) {
     e.preventDefault()
     const { data: { session } } = await supabase.auth.getSession()
-    const { nombre, deporte, ciudad, estadio, fechaHora, moneda } = formEditar
+    const { nombre, deporte, ciudad, estadio, fechaHora, moneda, tribunas } = formEditar
     const campos = {
       nombre, deporte, ciudad, estadio, moneda,
       fecha: fechaHora.split('T')[0],
-      hora: fechaHora.split('T')[1]
+      hora: fechaHora.split('T')[1],
+      tribunas: tribunas || []
     }
     const res = await fetch('/api/editar-evento', {
       method: 'PATCH',
@@ -1444,10 +1449,27 @@ function App() {
                               <input value={formEditar.ciudad||''} onChange={e=>setFormEditar(f=>({...f,ciudad:e.target.value}))} required style={s.input} placeholder="Ciudad" />
                               <input value={formEditar.estadio||''} onChange={e=>setFormEditar(f=>({...f,estadio:e.target.value}))} required style={s.input} placeholder="Estadio" />
                             </div>
-                            <input type="datetime-local" value={formEditar.fechaHora||''} onChange={e=>setFormEditar(f=>({...f,fechaHora:e.target.value}))} required style={{...s.input,marginBottom:'10px'}} />
+                            <input type="datetime-local" value={formEditar.fechaHora||''} onChange={e=>setFormEditar(f=>({...f,fechaHora:e.target.value}))} required style={{...s.input,marginBottom:'8px'}} />
+                            <div style={{marginBottom:'10px'}}>
+                              <p style={{color:'#8892a4',fontSize:'11px',margin:'0 0 6px',textTransform:'uppercase',letterSpacing:'0.05em'}}>Tribunas</p>
+                              <div style={{display:'flex',gap:'8px',marginBottom:'6px'}}>
+                                <input value={tribunaInputTemp} onChange={e=>setTribunaInputTemp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaInputTemp.trim();if(t&&!(formEditar.tribunas||[]).includes(t)){setFormEditar(f=>({...f,tribunas:[...(f.tribunas||[]),t]}));setTribunaInputTemp('')}}}} style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental Preferencial" />
+                                <button type="button" onClick={()=>{const t=tribunaInputTemp.trim();if(t&&!(formEditar.tribunas||[]).includes(t)){setFormEditar(f=>({...f,tribunas:[...(f.tribunas||[]),t]}));setTribunaInputTemp('')}}} style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+                              </div>
+                              {(formEditar.tribunas||[]).length > 0 && (
+                                <div style={{display:'flex',flexWrap:'wrap',gap:'6px'}}>
+                                  {(formEditar.tribunas||[]).map(t => (
+                                    <span key={t} style={{background:'rgba(147,197,253,0.1)',border:'1px solid #1e3a6a',borderRadius:'20px',color:'#93c5fd',fontSize:'11px',padding:'3px 10px',display:'flex',alignItems:'center',gap:'6px'}}>
+                                      {t}
+                                      <button type="button" onClick={()=>setFormEditar(f=>({...f,tribunas:(f.tribunas||[]).filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                             <div style={{display:'flex',gap:'8px'}}>
                               <button type="submit" style={{background:'#1a3a6a',border:'none',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'6px 14px'}}>Guardar</button>
-                              <button type="button" onClick={()=>{setEventoEditando(null);setFormEditar({})}} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
+                              <button type="button" onClick={()=>{setEventoEditando(null);setFormEditar({});setTribunaInputTemp('')}} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
                             </div>
                           </form>
                         : <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px'}}>
@@ -1461,7 +1483,7 @@ function App() {
                                   <button onClick={() => setConfirmarEliminarEvento(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'5px 10px'}}>Cancelar</button>
                                 </div>
                               : <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                                  <button onClick={() => { setEventoEditando(ev.id); setFormEditar({ nombre: ev.nombre, deporte: ev.deporte, ciudad: ev.ciudad, estadio: ev.estadio, moneda: ev.moneda, fechaHora: ev.fecha && ev.hora ? ev.fecha + 'T' + ev.hora : '' }) }} style={{background:'transparent',border:'1px solid #1e3a6a',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
+                                  <button onClick={() => { setEventoEditando(ev.id); setTribunaInputTemp(''); setFormEditar({ nombre: ev.nombre, deporte: ev.deporte, ciudad: ev.ciudad, estadio: ev.estadio, moneda: ev.moneda, fechaHora: ev.fecha && ev.hora ? ev.fecha + 'T' + ev.hora : '', tribunas: ev.tribunas || [] }) }} style={{background:'transparent',border:'1px solid #1e3a6a',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
                                   <button onClick={() => setConfirmarEliminarEvento(ev.id)} style={{background:'transparent',border:'1px solid #3a1e1e',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Eliminar</button>
                                 </div>
                             }
@@ -1494,6 +1516,23 @@ function App() {
               <div>
                 <label style={s.label}>Fecha y hora</label>
                 <input name="fechaHora" type="datetime-local" value={formEvento.fechaHora || ''} onChange={manejarCambioEvento} required style={s.input} />
+              </div>
+              <div>
+                <label style={s.label}>Tribunas del evento</label>
+                <div style={{display:'flex',gap:'8px',marginBottom:'8px'}}>
+                  <input value={tribunaInputTemp} onChange={e=>setTribunaInputTemp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaInputTemp.trim();if(t&&!formEvento.tribunas.includes(t)){setFormEvento({...formEvento,tribunas:[...formEvento.tribunas,t]});setTribunaInputTemp('')}}}} style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental Preferencial" />
+                  <button type="button" onClick={()=>{const t=tribunaInputTemp.trim();if(t&&!formEvento.tribunas.includes(t)){setFormEvento({...formEvento,tribunas:[...formEvento.tribunas,t]});setTribunaInputTemp('')}}} style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+                </div>
+                {formEvento.tribunas.length > 0 && (
+                  <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'8px'}}>
+                    {formEvento.tribunas.map(t => (
+                      <span key={t} style={{background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#93c5fd',display:'flex',alignItems:'center',gap:'6px'}}>
+                        {t}
+                        <button type="button" onClick={()=>setFormEvento({...formEvento,tribunas:formEvento.tribunas.filter(x=>x!==t)})} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>x</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <button type="submit" style={s.botonSubmitVerde}>Crear evento</button>
               {mensajeEvento && <p style={s.mensaje}>{mensajeEvento}</p>}
@@ -1717,7 +1756,16 @@ function App() {
               </p>
             )}
             <label style={s.label}>Tribuna</label>
-            <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} />
+            {(() => {
+              const evSel = eventos.find(ev => ev.id === form.eventoId)
+              const trbs = evSel?.tribunas || []
+              return trbs.length > 0
+                ? <select name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input}>
+                    <option value="">Selecciona tribuna</option>
+                    {trbs.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                : <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} placeholder="Ej: Occidental" />
+            })()}
             <label style={s.label}>Fila</label>
             <input name="fila" value={form.fila} onChange={manejarCambio} required style={s.input} />
             <label style={s.label}>Silla</label>
@@ -1816,76 +1864,84 @@ function App() {
             </div>
           )
           if (!cargando && boletasFiltradas.length === 0) return <p style={s.vacio}>No hay boletas que coincidan con los filtros.</p>
-          return boletasFiltradas.map(function(b) {
-          const moneda = b.eventos ? b.eventos.moneda : 'COP'
-          const esBoleteriaCO = b.publicada_por_admin === true
-          const nombreVendedor = b.usuarios ? b.usuarios.nombre : 'Usuario'
-          const ventasVendedor = b.vendedor_id ? (ventasPorVendedor[b.vendedor_id] || 0) : 0
-
-          return (
-            <div key={b.id} style={{...s.tarjetaBoleta, borderTop: '2px solid #4f7eff', background: 'linear-gradient(135deg, #0f1a2e 0%, #0f1623 100%)'}}>
-              <h3 style={s.nombreEvento}>{b.eventos ? b.eventos.nombre : ''}</h3>
-              <p style={s.detalleEvento}>{b.eventos ? b.eventos.ciudad : ''}{b.eventos && b.eventos.estadio ? ' · ' + b.eventos.estadio : ''}</p>
-              {b.eventos && b.eventos.fecha && (
-                <p style={{...s.detalleEvento, color:'#a78bfa', fontSize:'12px'}}>
-                  {new Date(b.eventos.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}
-                  {b.eventos.hora ? ` · ${b.eventos.hora.slice(0,5).replace(/^0/,'').replace(':','h')}` : ''}
-                </p>
-              )}
-              <p style={s.detalleEvento}>Tribuna {b.tribuna} - Fila {b.fila} - Silla {b.silla}</p>
-              <div style={s.vendedorRow}>
-                {esBoleteriaCO ? (
-                  <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                    <span style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700'}}>Boletería CO</span>
-                    <span style={{background:'#4f7eff',color:'#fff',fontSize:'10px',fontWeight:'700',padding:'2px 7px',borderRadius:'20px',letterSpacing:'0.3px'}}>✓ Verificado</span>
+          // Agrupar por (evento_id, tribuna)
+          const grupos = {}
+          boletasFiltradas.forEach(b => {
+            const key = `${b.evento_id || (b.eventos && b.eventos.id) || b.id}-${b.tribuna}`
+            if (!grupos[key]) grupos[key] = { evento: b.eventos, tribuna: b.tribuna, boletas: [], esAdmin: b.publicada_por_admin === true }
+            grupos[key].boletas.push(b)
+          })
+          return Object.entries(grupos).map(([key, grupo]) => {
+            const disponibles = grupo.boletas.filter(b => b.estado === 'disponible')
+            const precios = disponibles.map(b => Number(b.precio)).filter(p => p > 0)
+            const precioMin = precios.length > 0 ? Math.min(...precios) : 0
+            const moneda = grupo.evento ? grupo.evento.moneda : 'COP'
+            const expandida = tribunaExpandida === key
+            return (
+              <div key={key} style={{...s.tarjetaBoleta, borderTop: '2px solid #4f7eff', background: 'linear-gradient(135deg, #0f1a2e 0%, #0f1623 100%)'}}>
+                <h3 style={s.nombreEvento}>{grupo.evento ? grupo.evento.nombre : ''}</h3>
+                <p style={s.detalleEvento}>{grupo.evento ? grupo.evento.ciudad : ''}{grupo.evento && grupo.evento.estadio ? ' · ' + grupo.evento.estadio : ''}</p>
+                {grupo.evento && grupo.evento.fecha && (
+                  <p style={{...s.detalleEvento, color:'#a78bfa', fontSize:'12px'}}>
+                    {new Date(grupo.evento.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}
+                    {grupo.evento.hora ? ` · ${grupo.evento.hora.slice(0,5).replace(/^0/,'').replace(':','h')}` : ''}
+                  </p>
+                )}
+                <p style={{...s.detalleEvento, fontWeight:'600', color:'#93c5fd', marginBottom:'12px'}}>🏟 Tribuna {grupo.tribuna}</p>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'12px'}}>
+                  <div>
+                    {disponibles.length > 0
+                      ? <p style={{...s.precio, marginBottom:'2px'}}>{`desde ${calcularTotal(precioMin, moneda, grupo.esAdmin)}`}</p>
+                      : <p style={{color:'#6b7280',fontSize:'13px',margin:'0 0 2px'}}>Sin disponibles</p>
+                    }
+                    <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{disponibles.length} asiento{disponibles.length !== 1 ? 's' : ''} disponible{disponibles.length !== 1 ? 's' : ''}</p>
                   </div>
-                ) : (
-                  <>
-                    <span style={s.vendedorNombre}>{nombreVendedor || 'Vendedor'}</span>
-                    <span style={s.ventasCount}>{ventasVendedor} ventas</span>
-                  </>
+                  {disponibles.length > 0 && (
+                    <button
+                      onClick={() => setTribunaExpandida(expandida ? null : key)}
+                      style={{background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',fontSize:'13px',fontWeight:'700',cursor:'pointer',padding:'10px 18px',flexShrink:0}}
+                    >
+                      {expandida ? 'Ocultar' : `Ver ${disponibles.length} asiento${disponibles.length !== 1 ? 's' : ''}`}
+                    </button>
+                  )}
+                </div>
+                {expandida && (
+                  <div style={{marginTop:'12px',borderTop:'1px solid #1e2a3a',paddingTop:'12px',display:'flex',flexDirection:'column',gap:'8px'}}>
+                    {disponibles.map(b => {
+                      const enCarrito = carrito.some(ci => ci.id === b.id)
+                      return (
+                        <div key={b.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'rgba(255,255,255,0.03)',borderRadius:'8px',padding:'10px 12px',gap:'10px'}}>
+                          <div style={{flex:1,minWidth:0}}>
+                            <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'600',margin:'0 0 2px'}}>
+                              {b.fila ? `Fila ${b.fila}` : ''}{b.fila && b.silla ? ' · ' : ''}{b.silla ? `Silla ${b.silla}` : ''}
+                            </p>
+                            <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{calcularTotal(b.precio, moneda, b.publicada_por_admin === true)}</p>
+                          </div>
+                          <button
+                            onClick={() => enCarrito ? setCarrito(carrito.filter(ci => ci.id !== b.id)) : setCarrito([...carrito, b])}
+                            style={{...s.botonComprar, background: enCarrito ? '#0f2d1e' : '#4f7eff', color: enCarrito ? '#4ade80' : '#fff', border: enCarrito ? '1px solid #166534' : 'none', flexShrink:0}}
+                          >
+                            {enCarrito ? '✓ En carrito' : '+ Añadir'}
+                          </button>
+                        </div>
+                      )
+                    })}
+                  </div>
                 )}
+                <div style={{marginTop:'10px',borderTop:'1px solid #1e2a3a',paddingTop:'10px'}}>
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(`🎟 ${grupo.evento ? grupo.evento.nombre : 'Boleta'} — Tribuna ${grupo.tribuna} — desde ${calcularTotal(precioMin, moneda, grupo.esAdmin)} | Boletería CO: https://boleteriaco.com`)}`}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'12px',color:'#4ade80',textDecoration:'none',fontWeight:'600'}}
+                  >
+                    <svg width='14' height='14' viewBox='0 0 24 24' fill='currentColor'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z'/><path d='M12 0C5.373 0 0 5.373 0 12c0 2.136.562 4.14 1.542 5.873L.057 23.98l6.264-1.641A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.032-1.382l-.36-.214-3.733.979.997-3.643-.235-.374A9.818 9.818 0 1112 21.818z'/></svg>
+                    Compartir
+                  </a>
+                </div>
               </div>
-              <div style={s.filaPrecio}>
-                <p style={s.precio}>{b.estado === 'vendida' ? <span style={{color:'#6b7280',fontSize:'13px'}}>Vendida</span> : calcularTotal(b.precio, moneda, b.publicada_por_admin === true)}</p>
-                {b.estado === 'reservada' ? (
-                  <span style={{background:'#3d2a00',color:'#facc15',fontSize:'12px',fontWeight:'600',padding:'6px 14px',borderRadius:'8px'}}>⏳ Reservada</span>
-                ) : b.estado === 'vendida' ? (
-                  <span style={{background:'#1a1a1a',color:'#6b7280',fontSize:'12px',fontWeight:'600',padding:'6px 14px',borderRadius:'8px'}}>Vendida</span>
-                ) : (
-                  (() => {
-                    const enCarrito = carrito.some(c => c.id === b.id)
-                    return (
-                      <button
-                        onClick={() => {
-                          if (enCarrito) {
-                            setCarrito(carrito.filter(c => c.id !== b.id))
-                          } else {
-                            setCarrito([...carrito, b])
-                          }
-                        }}
-                        style={{...s.botonComprar, background: enCarrito ? '#0f2d1e' : '#4f7eff', color: enCarrito ? '#4ade80' : '#fff', border: enCarrito ? '1px solid #166534' : 'none'}}
-                      >
-                        {enCarrito ? '✓ En carrito' : '+ Añadir'}
-                      </button>
-                    )
-                  })()
-                )}
-              </div>
-              <div style={{marginTop:'10px',borderTop:'1px solid #1e2a3a',paddingTop:'10px'}}>
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`🎟 ${b.eventos ? b.eventos.nombre : 'Boleta'} — ${calcularTotal(b.precio, moneda, b.publicada_por_admin === true)} | Boletería CO: https://boleteriaco.com`)}`}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'12px',color:'#4ade80',textDecoration:'none',fontWeight:'600'}}
-                >
-                  <svg width='14' height='14' viewBox='0 0 24 24' fill='currentColor'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z'/><path d='M12 0C5.373 0 0 5.373 0 12c0 2.136.562 4.14 1.542 5.873L.057 23.98l6.264-1.641A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.032-1.382l-.36-.214-3.733.979.997-3.643-.235-.374A9.818 9.818 0 1112 21.818z'/></svg>
-                  Compartir
-                </a>
-              </div>
-            </div>
-          )
-        })
+            )
+          })
         })()}
 
         {/* CARRITO */}
