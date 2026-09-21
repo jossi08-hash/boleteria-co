@@ -133,6 +133,8 @@ function App() {
   const [esRecuperacion, setEsRecuperacion] = useState(false)
   const [mensajeAuth, setMensajeAuth] = useState('')
   const [confirmarEliminarEvento, setConfirmarEliminarEvento] = useState(null)
+  const [eventoEditando, setEventoEditando] = useState(null)
+  const [formEditar, setFormEditar] = useState({})
   const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP' })
   const [mensajeEvento, setMensajeEvento] = useState('')
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
@@ -425,7 +427,7 @@ function App() {
   }
 
   async function cargarEventos() {
-    const { data } = await supabase.from('eventos').select('id, nombre, moneda, fecha')
+    const { data } = await supabase.from('eventos').select('id, nombre, deporte, ciudad, estadio, fecha, hora, moneda')
     setEventos(data || [])
   }
 
@@ -465,6 +467,25 @@ function App() {
     const result = await res.json()
     if (!res.ok) { setMensajeEvento('Error: ' + (result.error || res.status)) }
     else { setConfirmarEliminarEvento(null); setMensajeEvento('Evento eliminado.'); cargarEventos() }
+  }
+
+  async function editarEvento(e) {
+    e.preventDefault()
+    const { data: { session } } = await supabase.auth.getSession()
+    const { nombre, deporte, ciudad, estadio, fechaHora, moneda } = formEditar
+    const campos = {
+      nombre, deporte, ciudad, estadio, moneda,
+      fecha: fechaHora.split('T')[0],
+      hora: fechaHora.split('T')[1]
+    }
+    const res = await fetch('/api/editar-evento', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+      body: JSON.stringify({ eventoId: eventoEditando, campos })
+    })
+    const result = await res.json()
+    if (!res.ok) { setMensajeEvento('Error al editar: ' + (result.error || res.status)) }
+    else { setEventoEditando(null); setFormEditar({}); setMensajeEvento('Evento actualizado.'); cargarEventos() }
   }
 
   async function manejarPublicar(e) {
@@ -1406,17 +1427,45 @@ function App() {
               ? <p style={{color:'#4e5a6e',fontSize:'13px',marginBottom:'16px'}}>No hay eventos.</p>
               : <div style={{marginBottom:'20px',display:'flex',flexDirection:'column',gap:'8px'}}>
                   {[...eventos].sort((a,b)=> new Date(a.fecha||0)-new Date(b.fecha||0)).map(ev => (
-                    <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'10px 14px',gap:'10px'}}>
-                      <div style={{flex:1,minWidth:0}}>
-                        <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.nombre}</p>
-                        {ev.fecha && <p style={{color: new Date(ev.fecha + 'T12:00:00') < new Date() ? '#6b7280' : '#8892a4',fontSize:'11px',margin:0}}>{new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}{new Date(ev.fecha + 'T12:00:00') < new Date() ? ' · pasado' : ''}</p>}
-                      </div>
-                      {confirmarEliminarEvento === ev.id
-                        ? <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                            <button onClick={() => eliminarEvento(ev.id)} style={{background:'#7f1d1d',border:'none',borderRadius:'7px',color:'#fca5a5',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'5px 10px'}}>Sí, eliminar</button>
-                            <button onClick={() => setConfirmarEliminarEvento(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'5px 10px'}}>Cancelar</button>
+                    <div key={ev.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'10px 14px'}}>
+                      {eventoEditando === ev.id
+                        ? <form onSubmit={editarEvento}>
+                            <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 10px'}}>Editando: {ev.nombre}</p>
+                            <input value={formEditar.nombre||''} onChange={e=>setFormEditar(f=>({...f,nombre:e.target.value}))} required style={{...s.input,marginBottom:'8px'}} placeholder="Nombre del evento" />
+                            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+                              <select value={formEditar.deporte||''} onChange={e=>setFormEditar(f=>({...f,deporte:e.target.value}))} style={s.input}>
+                                <option>Futbol</option><option>Baloncesto</option><option>Tenis</option><option>Ciclismo</option><option>Otro</option>
+                              </select>
+                              <select value={formEditar.moneda||''} onChange={e=>setFormEditar(f=>({...f,moneda:e.target.value}))} style={s.input}>
+                                <option value="COP">COP</option><option value="USD">USD</option>
+                              </select>
+                            </div>
+                            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+                              <input value={formEditar.ciudad||''} onChange={e=>setFormEditar(f=>({...f,ciudad:e.target.value}))} required style={s.input} placeholder="Ciudad" />
+                              <input value={formEditar.estadio||''} onChange={e=>setFormEditar(f=>({...f,estadio:e.target.value}))} required style={s.input} placeholder="Estadio" />
+                            </div>
+                            <input type="datetime-local" value={formEditar.fechaHora||''} onChange={e=>setFormEditar(f=>({...f,fechaHora:e.target.value}))} required style={{...s.input,marginBottom:'10px'}} />
+                            <div style={{display:'flex',gap:'8px'}}>
+                              <button type="submit" style={{background:'#1a3a6a',border:'none',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'6px 14px'}}>Guardar</button>
+                              <button type="button" onClick={()=>{setEventoEditando(null);setFormEditar({})}} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
+                            </div>
+                          </form>
+                        : <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px'}}>
+                            <div style={{flex:1,minWidth:0}}>
+                              <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.nombre}</p>
+                              {ev.fecha && <p style={{color: new Date(ev.fecha + 'T12:00:00') < new Date() ? '#6b7280' : '#8892a4',fontSize:'11px',margin:0}}>{new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}{new Date(ev.fecha + 'T12:00:00') < new Date() ? ' · pasado' : ''}</p>}
+                            </div>
+                            {confirmarEliminarEvento === ev.id
+                              ? <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                                  <button onClick={() => eliminarEvento(ev.id)} style={{background:'#7f1d1d',border:'none',borderRadius:'7px',color:'#fca5a5',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'5px 10px'}}>Sí, eliminar</button>
+                                  <button onClick={() => setConfirmarEliminarEvento(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'5px 10px'}}>Cancelar</button>
+                                </div>
+                              : <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                                  <button onClick={() => { setEventoEditando(ev.id); setFormEditar({ nombre: ev.nombre, deporte: ev.deporte, ciudad: ev.ciudad, estadio: ev.estadio, moneda: ev.moneda, fechaHora: ev.fecha && ev.hora ? ev.fecha + 'T' + ev.hora : '' }) }} style={{background:'transparent',border:'1px solid #1e3a6a',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
+                                  <button onClick={() => setConfirmarEliminarEvento(ev.id)} style={{background:'transparent',border:'1px solid #3a1e1e',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Eliminar</button>
+                                </div>
+                            }
                           </div>
-                        : <button onClick={() => setConfirmarEliminarEvento(ev.id)} style={{background:'transparent',border:'1px solid #3a1e1e',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px',flexShrink:0}}>Eliminar</button>
                       }
                     </div>
                   ))}
