@@ -133,6 +133,7 @@ function App() {
   const [esRecuperacion, setEsRecuperacion] = useState(false)
   const [mensajeAuth, setMensajeAuth] = useState('')
   const [confirmarEliminarEvento, setConfirmarEliminarEvento] = useState(null)
+  const [confirmarEliminarBoleta, setConfirmarEliminarBoleta] = useState(null)
   const [eventoEditando, setEventoEditando] = useState(null)
   const [formEditar, setFormEditar] = useState({})
   const [tribunaInputTemp, setTribunaInputTemp] = useState('')
@@ -1416,11 +1417,19 @@ function App() {
                       </p>
                     </div>
                     <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                      {b.estado === 'oculta'
-                        ? <button onClick={()=>mostrarBoleta(b.id)} style={{background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Publicar</button>
-                        : <button onClick={()=>ocultarBoleta(b.id)} style={{background:'#3d2a00',color:'#facc15',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Ocultar</button>
+                      {confirmarEliminarBoleta === b.id
+                        ? <>
+                            <button onClick={()=>{eliminarBoleta(b.id);setConfirmarEliminarBoleta(null)}} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, eliminar</button>
+                            <button onClick={()=>setConfirmarEliminarBoleta(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'6px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
+                          </>
+                        : <>
+                            {b.estado === 'oculta'
+                              ? <button onClick={()=>mostrarBoleta(b.id)} style={{background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Publicar</button>
+                              : <button onClick={()=>ocultarBoleta(b.id)} style={{background:'#3d2a00',color:'#facc15',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Ocultar</button>
+                            }
+                            <button onClick={()=>setConfirmarEliminarBoleta(b.id)} style={{background:'#3b0a0a',color:'#f87171',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Eliminar</button>
+                          </>
                       }
-                      <button onClick={()=>{if(window.confirm('¿Eliminar esta boleta?')) eliminarBoleta(b.id)}} style={{background:'#3b0a0a',color:'#f87171',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Eliminar</button>
                     </div>
                   </div>
                 ))}
