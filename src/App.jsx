@@ -368,7 +368,14 @@ function App() {
       .from('ordenes')
       .update({ pago_vendedor_enviado: true })
       .eq('id', ordenId)
-    if (!error) cargarOrdenesLiberadas()
+    if (!error) {
+      cargarOrdenesLiberadas()
+      fetch('/api/notificar-pago-admin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ordenId })
+      }).catch(() => {})
+    }
   }
 
   async function cargarBoletasAdmin() {
