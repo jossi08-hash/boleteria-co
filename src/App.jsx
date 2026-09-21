@@ -132,6 +132,7 @@ function App() {
   const [editandoPago, setEditandoPago] = useState(false)
   const [esRecuperacion, setEsRecuperacion] = useState(false)
   const [mensajeAuth, setMensajeAuth] = useState('')
+  const [confirmarEliminarEvento, setConfirmarEliminarEvento] = useState(null)
   const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP' })
   const [mensajeEvento, setMensajeEvento] = useState('')
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
@@ -455,10 +456,9 @@ function App() {
   }
 
   async function eliminarEvento(eventoId) {
-    if (!window.confirm('¿Eliminar este evento? Se borrará permanentemente.')) return
     const { error } = await supabase.from('eventos').delete().eq('id', eventoId)
-    if (error) { alert('Error al eliminar: ' + error.message) }
-    else { cargarEventos() }
+    if (error) { setMensajeEvento('Error al eliminar: ' + error.message) }
+    else { setConfirmarEliminarEvento(null); setMensajeEvento('Evento eliminado.'); cargarEventos() }
   }
 
   async function manejarPublicar(e) {
@@ -1405,7 +1405,13 @@ function App() {
                         <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.nombre}</p>
                         {ev.fecha && <p style={{color: new Date(ev.fecha) < new Date() ? '#6b7280' : '#8892a4',fontSize:'11px',margin:0}}>{new Date(ev.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}{new Date(ev.fecha) < new Date() ? ' · pasado' : ''}</p>}
                       </div>
-                      <button onClick={() => eliminarEvento(ev.id)} style={{background:'transparent',border:'1px solid #3a1e1e',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px',flexShrink:0}}>Eliminar</button>
+                      {confirmarEliminarEvento === ev.id
+                        ? <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                            <button onClick={() => eliminarEvento(ev.id)} style={{background:'#7f1d1d',border:'none',borderRadius:'7px',color:'#fca5a5',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'5px 10px'}}>Sí, eliminar</button>
+                            <button onClick={() => setConfirmarEliminarEvento(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'5px 10px'}}>Cancelar</button>
+                          </div>
+                        : <button onClick={() => setConfirmarEliminarEvento(ev.id)} style={{background:'transparent',border:'1px solid #3a1e1e',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px',flexShrink:0}}>Eliminar</button>
+                      }
                     </div>
                   ))}
                 </div>
