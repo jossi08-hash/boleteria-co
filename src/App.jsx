@@ -523,7 +523,7 @@ function App() {
     e.preventDefault()
     setMensajeAuth('Iniciando sesion...')
     const resultado = await iniciarSesion(formAuth)
-    if (resultado.exito) { setUsuario(resultado.usuario); setVistaAuth(null); setMensajeAuth('') }
+    if (resultado.exito) { setUsuario(resultado.usuario); setVistaAuth(null); setPaginaActual('inicio'); setMensajeAuth('') }
     else { setMensajeAuth('Error: ' + resultado.mensaje) }
   }
 
@@ -1089,8 +1089,8 @@ function App() {
               </>
             ) : (
               <>
-                <button style={s.botonSec} onClick={() => setVistaAuth('login')}>Iniciar sesión</button>
-                <button style={s.botonPrin} onClick={() => setVistaAuth('registro')}>Registrarse</button>
+                <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
+                <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
               </>
             )}
           </div>
@@ -1107,26 +1107,6 @@ function App() {
           </div>
         )}
 
-
-        {/* SECCIÓN DE SEGURIDAD */}
-        <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 0'}}>
-          <h3 style={{color:'#eef0f6',fontSize:'18px',fontWeight:'800',textAlign:'center',margin:'0 0 6px',letterSpacing:'-0.3px'}}>¿Por qué confiar en Boletería CO?</h3>
-          <p style={{color:'#8892a4',fontSize:'13px',textAlign:'center',margin:'0 0 24px'}}>Tu dinero y tu boleta están protegidos en cada compra</p>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:'10px'}}>
-            {[
-              {icon:'🔒', title:'Custodia de pago', desc:'Tu dinero queda retenido hasta que recibas tu boleta y confirmes la entrega.'},
-              {icon:'✅', title:'Vendedores verificados', desc:'Solo vendemos boletas de usuarios con cuenta real. Sin intermediarios desconocidos.'},
-              {icon:'📲', title:'Solo cesión oficial', desc:'Transferencias directas desde TuBoletaPass, Quentro, W Arena y DIM Plus. Sin capturas ni PDFs.'},
-              {icon:'🛟', title:'Soporte garantizado', desc:'Si algo falla, te ayudamos. Escríbenos a boletas@boleteriaco.com.'},
-            ].map(({icon,title,desc}) => (
-              <div key={title} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px'}}>
-                <div style={{fontSize:'26px',marginBottom:'8px'}}>{icon}</div>
-                <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 6px'}}>{title}</p>
-                <p style={{color:'#8892a4',fontSize:'12px',margin:'0',lineHeight:1.6}}>{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
 
         {paginaActual === 'mis-boletas' && usuario && (
           <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
@@ -1432,6 +1412,122 @@ function App() {
               <button type="submit" style={s.botonSubmitVerde}>Crear evento</button>
               {mensajeEvento && <p style={s.mensaje}>{mensajeEvento}</p>}
             </form>
+          </div>
+        )}
+
+        {/* ── Página de Login ── */}
+        {paginaActual === 'login' && (
+          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+              <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
+                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Iniciar sesión</p>
+                <div style={{width:'60px'}}></div>
+              </div>
+            </nav>
+            <div style={{maxWidth:'480px',margin:'0 auto',padding:'40px 20px 60px'}}>
+              <form onSubmit={manejarLogin} style={s.tarjetaForm}>
+                <label style={s.label}>Correo</label>
+                <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
+                <label style={s.label}>Contraseña</label>
+                <input name="password" type="password" value={formAuth.password} onChange={manejarCambioAuth} required style={s.input} />
+                <button type="submit" style={s.botonSubmit}>Entrar</button>
+                <p style={{textAlign:'center',marginTop:'12px'}}>
+                  <button type="button" onClick={() => { setPaginaActual('recuperar'); setMensajeAuth('') }}
+                    style={{background:'none',border:'none',color:'#6366f1',fontSize:'13px',cursor:'pointer',textDecoration:'underline'}}>
+                    ¿Olvidaste tu contraseña?
+                  </button>
+                </p>
+                <p style={{textAlign:'center',marginTop:'8px'}}>
+                  <button type="button" onClick={() => { setPaginaActual('registro'); setMensajeAuth('') }}
+                    style={{background:'none',border:'none',color:'#8892a4',fontSize:'13px',cursor:'pointer'}}>
+                    ¿No tienes cuenta? Regístrate
+                  </button>
+                </p>
+                {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ── Página de Recuperar contraseña ── */}
+        {paginaActual === 'recuperar' && (
+          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+              <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
+                <button onClick={()=>setPaginaActual('login')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Recuperar contraseña</p>
+                <div style={{width:'60px'}}></div>
+              </div>
+            </nav>
+            <div style={{maxWidth:'480px',margin:'0 auto',padding:'40px 20px 60px'}}>
+              <form onSubmit={manejarRecuperacion} style={s.tarjetaForm}>
+                <p style={{color:'#9ca3af',fontSize:'13px',marginBottom:'16px'}}>Ingresa tu correo y te enviamos un link para crear una nueva contraseña.</p>
+                <label style={s.label}>Correo</label>
+                <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
+                <button type="submit" style={s.botonSubmit}>Enviar link</button>
+                {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ── Página de Nueva contraseña ── */}
+        {paginaActual === 'nueva-password' && (
+          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+              <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
+                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Nueva contraseña</p>
+                <div style={{width:'60px'}}></div>
+              </div>
+            </nav>
+            <div style={{maxWidth:'480px',margin:'0 auto',padding:'40px 20px 60px'}}>
+              <form onSubmit={manejarNuevaPassword} style={s.tarjetaForm}>
+                <label style={s.label}>Nueva contraseña</label>
+                <input name="nuevaPassword" type="password" value={formAuth.nuevaPassword} onChange={manejarCambioAuth} required minLength={6} style={s.input} />
+                <button type="submit" style={s.botonSubmit}>Guardar contraseña</button>
+                {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* ── Página de Registro ── */}
+        {paginaActual === 'registro' && (
+          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+              <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
+                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Crear cuenta</p>
+                <div style={{width:'60px'}}></div>
+              </div>
+            </nav>
+            <div style={{maxWidth:'480px',margin:'0 auto',padding:'40px 20px 60px'}}>
+              <form onSubmit={manejarRegistro} style={s.tarjetaForm}>
+                <label style={s.label}>Nombre</label>
+                <input name="nombre" value={formAuth.nombre} onChange={manejarCambioAuth} required style={s.input} />
+                <label style={s.label}>🪪 Número de documento</label>
+                <input name="documento" placeholder="Ej: 1020304050" value={formAuth.documento} onChange={manejarCambioAuth} required style={s.input} inputMode="numeric" />
+                <label style={s.label}>Correo</label>
+                <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
+                <label style={s.label}>Contraseña</label>
+                <input name="password" type="password" value={formAuth.password} onChange={manejarCambioAuth} required style={s.input} />
+                <label style={s.label}>Confirmar contraseña</label>
+                <input name="nuevaPassword" type="password" value={formAuth.nuevaPassword} onChange={manejarCambioAuth} required style={s.input} />
+                <label style={s.label}>📱 Dato de pago (Nequi o banco)</label>
+                <input name="datosPago" placeholder="Ej: 3001234567 Nequi · Banco Bogotá 123-456789" value={formAuth.datosPago} onChange={manejarCambioAuth} style={s.input} />
+                <p style={{color:'#4e5a6e',fontSize:'11px',margin:'-8px 0 12px',lineHeight:1.5}}>Aquí te enviamos tu pago cuando vendes una boleta.</p>
+                <button type="submit" style={s.botonSubmit}>Crear cuenta</button>
+                <p style={{textAlign:'center',marginTop:'12px'}}>
+                  <button type="button" onClick={() => { setPaginaActual('login'); setMensajeAuth('') }}
+                    style={{background:'none',border:'none',color:'#8892a4',fontSize:'13px',cursor:'pointer'}}>
+                    ¿Ya tienes cuenta? Inicia sesión
+                  </button>
+                </p>
+                {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
+              </form>
+            </div>
           </div>
         )}
 
@@ -1955,6 +2051,27 @@ soporte@boleteriaco.com`},
           </div>
         </div>
       )}
+
+        {/* SECCIÓN DE SEGURIDAD */}
+        <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 0'}}>
+          <h3 style={{color:'#eef0f6',fontSize:'18px',fontWeight:'800',textAlign:'center',margin:'0 0 6px',letterSpacing:'-0.3px'}}>¿Por qué confiar en Boletería CO?</h3>
+          <p style={{color:'#8892a4',fontSize:'13px',textAlign:'center',margin:'0 0 24px'}}>Tu dinero y tu boleta están protegidos en cada compra</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:'10px'}}>
+            {[
+              {icon:'🔒', title:'Custodia de pago', desc:'Tu dinero queda retenido hasta que recibas tu boleta y confirmes la entrega.'},
+              {icon:'✅', title:'Vendedores verificados', desc:'Solo vendemos boletas de usuarios con cuenta real. Sin intermediarios desconocidos.'},
+              {icon:'📲', title:'Solo cesión oficial', desc:'Transferencias directas desde TuBoletaPass, Quentro, W Arena y DIM Plus. Sin capturas ni PDFs.'},
+              {icon:'🛟', title:'Soporte garantizado', desc:'Si algo falla, te ayudamos. Escríbenos a boletas@boleteriaco.com.'},
+            ].map(({icon,title,desc}) => (
+              <div key={title} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px'}}>
+                <div style={{fontSize:'26px',marginBottom:'8px'}}>{icon}</div>
+                <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 6px'}}>{title}</p>
+                <p style={{color:'#8892a4',fontSize:'12px',margin:'0',lineHeight:1.6}}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
 
       {/* ── Preguntas frecuentes ── */}
       {paginaActual === 'inicio' && (
