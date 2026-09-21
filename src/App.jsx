@@ -10,7 +10,7 @@ const PLATAFORMAS = {
     equipos: ['santa fe','america','llaneros','tolima'],
     color: '#e85d04',
     instrVendedor: 'Abre TuBoletaPass → Mis entradas → selecciona la boleta → Enviar Entrada → ingresa boletas@boleteriaco.com.',
-    instrComprador: 'Descarga TuBoletaPass en App Store o Google Play. Regístrate con tu cédula y correo. Boletería CO te transferirá la boleta; aparecerá en "Mis entradas".',
+    instrComprador: 'Descarga TuBoletaPass en App Store o Google Play. Regístrate con tu documento y correo. Boletería CO te transferirá la boleta; aparecerá en "Mis entradas".',
     tipoEntrega: 'email',
     requisitoReceptor: 'El destinatario debe tener cuenta activa y registrada en Tuboleta Pass para recibir la entrada.',
     pasosVendedor: [
@@ -23,7 +23,7 @@ const PLATAFORMAS = {
     ],
     pasosComprador: [
       'Descarga Tuboleta Pass en App Store o Google Play.',
-      'Regístrate con tu cédula y correo electrónico.',
+      'Regístrate con tu documento y correo electrónico.',
       'Acepta la entrada cuando llegue la notificación o el correo de transferencia.',
       'La boleta aparecerá en "Mis entradas".',
     ],
@@ -127,7 +127,7 @@ function App() {
   const [timerReserva, setTimerReserva] = useState(null) // segundos restantes
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
-  const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '', datosPago: '', cedula: '' })
+  const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '', datosPago: '', documento: '' })
   const [datosPagoVendedor, setDatosPagoVendedor] = useState('')
   const [editandoPago, setEditandoPago] = useState(false)
   const [esRecuperacion, setEsRecuperacion] = useState(false)
@@ -137,8 +137,8 @@ function App() {
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
-  const [cedModal, setCedModal] = useState(null)   // null | { tipo: 'boleta'|'carrito', boleta?: object }
-  const [cedulaInput, setCedulaInput] = useState('')
+  const [docModal, setCedModal] = useState(null)   // null | { tipo: 'boleta'|'carrito', boleta?: object }
+  const [documentoInput, setDocumentoInput] = useState('')
   const [qrModal, setQrModal] = useState(null)      // null | { qr, referencia, ordenes, carritoCount }
   const [boldCargando, setBoldCargando] = useState(false)
   const [paginaActual, setPaginaActual] = useState('inicio')
@@ -596,7 +596,7 @@ function App() {
   }, [qrModal?.referencia])
 
   // ── Iniciar pago Bold Bre-B (carrito) ──
-  async function iniciarBoldCarrito(cedula) {
+  async function iniciarBoldCarrito(documento) {
     if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return }
     setBoldCargando(true)
     setCedModal(null)
@@ -648,7 +648,7 @@ function App() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         referencia, total: totalCombinado, moneda,
-        comprador: { nombre: usuario.nombre || usuario.email, correo: usuario.email, cedula }
+        comprador: { nombre: usuario.nombre || usuario.email, correo: usuario.email, documento }
       })
     })
 
@@ -676,7 +676,7 @@ function App() {
   }
 
   // ── Iniciar pago Bold Bre-B (boleta individual) ──
-  async function iniciarBold(boleta, cedula) {
+  async function iniciarBold(boleta, documento) {
     if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return }
     setBoldCargando(true)
     setCedModal(null)
@@ -711,7 +711,7 @@ function App() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         referencia: orden.codigo_orden, total, moneda,
-        comprador: { nombre: usuario.nombre || usuario.email, correo: usuario.email, cedula }
+        comprador: { nombre: usuario.nombre || usuario.email, correo: usuario.email, documento }
       })
     })
 
@@ -1476,8 +1476,8 @@ function App() {
             <p style={s.tituloForm}>Crear cuenta</p>
             <label style={s.label}>Nombre</label>
             <input name="nombre" value={formAuth.nombre} onChange={manejarCambioAuth} required style={s.input} />
-            <label style={s.label}>🪪 Número de documento (cédula)</label>
-            <input name="cedula" placeholder="Ej: 1020304050" value={formAuth.cedula} onChange={manejarCambioAuth} required style={s.input} inputMode="numeric" />
+            <label style={s.label}>🪪 Número de documento (documento)</label>
+            <input name="documento" placeholder="Ej: 1020304050" value={formAuth.documento} onChange={manejarCambioAuth} required style={s.input} inputMode="numeric" />
             <label style={s.label}>Correo</label>
             <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
             <label style={s.label}>Contrasena</label>
@@ -1784,7 +1784,7 @@ function App() {
                         return (
                           <div key={plat} style={{marginBottom:'10px'}}>
                             <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>
-                              {tipo === 'email' ? `📧 Tu correo registrado en ${plat}` : `🪪 Tu número de cédula registrado en ${plat}`}
+                              {tipo === 'email' ? `📧 Tu correo registrado en ${plat}` : `🪪 Tu número de documento registrado en ${plat}`}
                             </label>
                             <input
                               type={tipo === 'email' ? 'email' : 'text'}
@@ -1814,7 +1814,7 @@ function App() {
                     <div style={{flex:1,height:'1px',background:'#1e2a3a'}}/>
                   </div>
                   <button
-                    onClick={() => { if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return } setCedulaInput(''); setCedModal({ tipo: 'carrito' }) }}
+                    onClick={() => { if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return } setDocumentoInput(''); setCedModal({ tipo: 'carrito' }) }}
                     disabled={boldCargando}
                     style={{...s.botonSubmit,fontSize:'14px',padding:'13px',background:boldCargando?'#1a2a1a':'#064e3b',border:'1px solid #065f46',cursor:boldCargando?'not-allowed':'pointer'}}
                   >
@@ -1879,37 +1879,37 @@ soporte@boleteriaco.com`},
       )}
 
 
-      {/* ── Modal Cédula (antes de mostrar QR Bold) ── */}
-      {cedModal && (
+      {/* ── Modal Documento (antes de mostrar QR Bold) ── */}
+      {docModal && (
         <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
           <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'32px 28px',width:'100%',maxWidth:'360px'}}>
             <h3 style={{color:'#eef0f6',fontSize:'18px',fontWeight:'900',margin:'0 0 6px'}}>📱 Pagar con Bre-B</h3>
-            <p style={{color:'#8892a4',fontSize:'13px',margin:'0 0 24px',lineHeight:'1.5'}}>Necesitamos tu cédula para generar el QR de pago de acuerdo con las normas de Bancolombia.</p>
-            <label style={{display:'block',color:'#8892a4',fontSize:'12px',fontWeight:'700',marginBottom:'6px',textTransform:'uppercase',letterSpacing:'0.5px'}}>Número de cédula</label>
+            <p style={{color:'#8892a4',fontSize:'13px',margin:'0 0 24px',lineHeight:'1.5'}}>Necesitamos tu documento para generar el QR de pago de acuerdo con las normas de Bancolombia.</p>
+            <label style={{display:'block',color:'#8892a4',fontSize:'12px',fontWeight:'700',marginBottom:'6px',textTransform:'uppercase',letterSpacing:'0.5px'}}>Número de documento</label>
             <input
               type="number"
-              value={cedulaInput}
-              onChange={e => setCedulaInput(e.target.value)}
+              value={documentoInput}
+              onChange={e => setDocumentoInput(e.target.value)}
               placeholder="Ej: 1234567890"
-              onKeyDown={e => { if (e.key === 'Enter' && cedulaInput.trim().length >= 6) {
-                if (cedModal.tipo === 'carrito') iniciarBoldCarrito(cedulaInput.trim())
-                else iniciarBold(cedModal.boleta, cedulaInput.trim())
+              onKeyDown={e => { if (e.key === 'Enter' && documentoInput.trim().length >= 6) {
+                if (docModal.tipo === 'carrito') iniciarBoldCarrito(documentoInput.trim())
+                else iniciarBold(docModal.boleta, documentoInput.trim())
               }}}
               style={{width:'100%',boxSizing:'border-box',background:'#080b12',border:'1px solid #2d3f55',borderRadius:'8px',padding:'11px 14px',color:'#eef0f6',fontSize:'15px',outline:'none',marginBottom:'16px'}}
             />
             <button
               onClick={() => {
-                if (cedulaInput.trim().length < 6) { return }
-                if (cedModal.tipo === 'carrito') iniciarBoldCarrito(cedulaInput.trim())
-                else iniciarBold(cedModal.boleta, cedulaInput.trim())
+                if (documentoInput.trim().length < 6) { return }
+                if (docModal.tipo === 'carrito') iniciarBoldCarrito(documentoInput.trim())
+                else iniciarBold(docModal.boleta, documentoInput.trim())
               }}
-              disabled={cedulaInput.trim().length < 6}
-              style={{width:'100%',background:cedulaInput.trim().length < 6?'#1a2a1a':'#064e3b',border:'1px solid #065f46',borderRadius:'10px',padding:'13px',color:'#fff',fontSize:'15px',fontWeight:'700',cursor:cedulaInput.trim().length < 6?'not-allowed':'pointer',marginBottom:'10px'}}
+              disabled={documentoInput.trim().length < 6}
+              style={{width:'100%',background:documentoInput.trim().length < 6?'#1a2a1a':'#064e3b',border:'1px solid #065f46',borderRadius:'10px',padding:'13px',color:'#fff',fontSize:'15px',fontWeight:'700',cursor:documentoInput.trim().length < 6?'not-allowed':'pointer',marginBottom:'10px'}}
             >
               Generar QR →
             </button>
             <button
-              onClick={() => { setCedModal(null); setCedulaInput('') }}
+              onClick={() => { setCedModal(null); setDocumentoInput('') }}
               style={{width:'100%',background:'transparent',border:'none',color:'#4e5a6e',fontSize:'13px',cursor:'pointer',padding:'6px'}}
             >
               Cancelar
