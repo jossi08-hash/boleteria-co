@@ -132,7 +132,7 @@ function App() {
   const [editandoPago, setEditandoPago] = useState(false)
   const [esRecuperacion, setEsRecuperacion] = useState(false)
   const [mensajeAuth, setMensajeAuth] = useState('')
-  const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fecha: '', hora: '', moneda: 'COP' })
+  const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP' })
   const [mensajeEvento, setMensajeEvento] = useState('')
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
   const [pagoStatus, setPagoStatus] = useState(null)
@@ -445,10 +445,13 @@ function App() {
     setMensajeEvento('Creando evento...')
     const { error } = await supabase.from('eventos').insert({
       nombre: formEvento.nombre, deporte: formEvento.deporte, ciudad: formEvento.ciudad,
-      estadio: formEvento.estadio, fecha: formEvento.fecha, hora: formEvento.hora, moneda: formEvento.moneda
+      estadio: formEvento.estadio,
+      fecha: formEvento.fechaHora ? formEvento.fechaHora.split('T')[0] : '',
+      hora: formEvento.fechaHora ? formEvento.fechaHora.split('T')[1] : '',
+      moneda: formEvento.moneda
     })
     if (error) { setMensajeEvento('Error: ' + error.message) }
-    else { setMensajeEvento('Evento creado correctamente.'); setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fecha: '', hora: '', moneda: 'COP' }); cargarEventos() }
+    else { setMensajeEvento('Evento creado correctamente.'); setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP' }); cargarEventos() }
   }
 
   async function manejarPublicar(e) {
@@ -1405,9 +1408,9 @@ function App() {
                 <div><label style={s.label}>Ciudad</label><input name="ciudad" value={formEvento.ciudad} onChange={manejarCambioEvento} required style={s.input} placeholder="Bogota" /></div>
                 <div><label style={s.label}>Estadio o lugar</label><input name="estadio" value={formEvento.estadio} onChange={manejarCambioEvento} required style={s.input} placeholder="El Campin" /></div>
               </div>
-              <div style={s.row2}>
-                <div><label style={s.label}>Fecha</label><input name="fecha" type="date" value={formEvento.fecha} onChange={manejarCambioEvento} required style={s.input} /></div>
-                <div><label style={s.label}>Hora</label><input name="hora" type="time" value={formEvento.hora} onChange={manejarCambioEvento} required style={s.input} /></div>
+              <div>
+                <label style={s.label}>Fecha y hora</label>
+                <input name="fechaHora" type="datetime-local" value={formEvento.fechaHora || ''} onChange={manejarCambioEvento} required style={s.input} />
               </div>
               <button type="submit" style={s.botonSubmitVerde}>Crear evento</button>
               {mensajeEvento && <p style={s.mensaje}>{mensajeEvento}</p>}
