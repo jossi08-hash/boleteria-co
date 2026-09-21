@@ -424,7 +424,7 @@ function App() {
   }
 
   async function cargarEventos() {
-    const { data } = await supabase.from('eventos').select('id, nombre, moneda')
+    const { data } = await supabase.from('eventos').select('id, nombre, moneda, fecha')
     setEventos(data || [])
   }
 
@@ -452,6 +452,13 @@ function App() {
     })
     if (error) { setMensajeEvento('Error: ' + error.message) }
     else { setMensajeEvento('Evento creado correctamente.'); setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP' }); cargarEventos() }
+  }
+
+  async function eliminarEvento(eventoId) {
+    if (!window.confirm('¿Eliminar este evento? Se borrará permanentemente.')) return
+    const { error } = await supabase.from('eventos').delete().eq('id', eventoId)
+    if (error) { alert('Error al eliminar: ' + error.message) }
+    else { cargarEventos() }
   }
 
   async function manejarPublicar(e) {
@@ -1388,6 +1395,21 @@ function App() {
                 <hr style={s.separador}/>
               </div>
             )}
+            <p style={s.tituloAdmin}>Eventos registrados</p>
+            {eventos.length === 0
+              ? <p style={{color:'#4e5a6e',fontSize:'13px',marginBottom:'16px'}}>No hay eventos.</p>
+              : <div style={{marginBottom:'20px',display:'flex',flexDirection:'column',gap:'8px'}}>
+                  {[...eventos].sort((a,b)=> new Date(a.fecha||0)-new Date(b.fecha||0)).map(ev => (
+                    <div key={ev.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'10px 14px',gap:'10px'}}>
+                      <div style={{flex:1,minWidth:0}}>
+                        <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.nombre}</p>
+                        {ev.fecha && <p style={{color: new Date(ev.fecha) < new Date() ? '#6b7280' : '#8892a4',fontSize:'11px',margin:0}}>{new Date(ev.fecha).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}{new Date(ev.fecha) < new Date() ? ' · pasado' : ''}</p>}
+                      </div>
+                      <button onClick={() => eliminarEvento(ev.id)} style={{background:'transparent',border:'1px solid #3a1e1e',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px',flexShrink:0}}>Eliminar</button>
+                    </div>
+                  ))}
+                </div>
+            }
             <p style={s.tituloAdmin}>Crear evento</p>
             <form onSubmit={manejarCrearEvento}>
               <label style={s.label}>Nombre del evento</label>
