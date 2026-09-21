@@ -456,11 +456,14 @@ function App() {
   }
 
   async function eliminarEvento(eventoId) {
-    console.log('eliminando evento id:', eventoId)
-    const { data, error, status, statusText } = await supabase.from('eventos').delete().eq('id', eventoId).select()
-    console.log('resultado delete:', { data, error, status, statusText })
-    if (error) { setMensajeEvento('Error ' + status + ': ' + error.message) }
-    else if (!data || data.length === 0) { setMensajeEvento('Sin permiso para eliminar (RLS). Status: ' + status) }
+    const { data: { session } } = await supabase.auth.getSession()
+    const res = await fetch('/api/eliminar-evento', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token}` },
+      body: JSON.stringify({ eventoId, userEmail: usuario?.email })
+    })
+    const result = await res.json()
+    if (!res.ok) { setMensajeEvento('Error: ' + (result.error || res.status)) }
     else { setConfirmarEliminarEvento(null); setMensajeEvento('Evento eliminado.'); cargarEventos() }
   }
 
