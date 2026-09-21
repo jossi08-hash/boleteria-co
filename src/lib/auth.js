@@ -1,15 +1,15 @@
 import { supabase } from './supabase'
 
 // Registrar un nuevo usuario (comprador o vendedor)
-export async function registrarUsuario({ nombre, correo, password, datosPago, cedula }) {
-  // Verificar si la cédula ya está registrada
-  if (cedula && cedula.trim()) {
-    const { data: cedulaExistente } = await supabase
+export async function registrarUsuario({ nombre, correo, password, datosPago, documento }) {
+  // Verificar si la documento ya está registrada
+  if (documento && documento.trim()) {
+    const { data: documentoExistente } = await supabase
       .from('usuarios')
       .select('id')
-      .eq('cedula', cedula.trim())
+      .eq('documento', documento.trim())
       .maybeSingle()
-    if (cedulaExistente) {
+    if (documentoExistente) {
       return { exito: false, mensaje: 'Ese número de documento ya tiene una cuenta registrada.' }
     }
   }
@@ -30,10 +30,10 @@ export async function registrarUsuario({ nombre, correo, password, datosPago, ce
     return { exito: false, mensaje: msg }
   }
 
-  // Guardar cédula y datos de pago
+  // Guardar documento y datos de pago
   if (data.user) {
     const updates = {}
-    if (cedula && cedula.trim()) updates.cedula = cedula.trim()
+    if (documento && documento.trim()) updates.documento = documento.trim()
     if (datosPago && datosPago.trim()) updates.datos_pago = datosPago.trim()
     if (Object.keys(updates).length > 0) {
       await supabase.from('usuarios').update(updates).eq('id', data.user.id)
