@@ -383,7 +383,7 @@ function App() {
   async function cargarBoletasAdmin() {
     const { data } = await supabase
       .from('boletas')
-      .select('id, tribuna, fila, silla, precio, estado, eventos(nombre, ciudad), usuarios(nombre)')
+      .select('id, tribuna, fila, silla, precio, estado, plataforma, publicada_por_admin, eventos(nombre, ciudad, estadio, fecha, hora, deporte, moneda), usuarios(nombre, es_admin)')
       .in('estado', ['publicada', 'reservada', 'oculta'])
       .order('creado_en', { ascending: false })
     setBoletasAdmin(data || [])
@@ -408,7 +408,7 @@ function App() {
   async function cargarBoletasPendientes() {
     const { data } = await supabase
       .from('boletas')
-      .select('id, tribuna, fila, silla, precio, estado, eventos(nombre, ciudad)')
+      .select('id, tribuna, fila, silla, precio, estado, plataforma, publicada_por_admin, eventos(nombre, ciudad, estadio, fecha, hora, deporte, moneda)')
       .eq('estado', 'verificando')
     setBoletasPendientes(data || [])
   }
@@ -1774,7 +1774,12 @@ function App() {
             <div key={b.id} style={{...s.tarjetaBoleta, borderTop: '2px solid #4f7eff', background: 'linear-gradient(135deg, #0f1a2e 0%, #0f1623 100%)'}}>
               <h3 style={s.nombreEvento}>{b.eventos ? b.eventos.nombre : ''}</h3>
               <p style={s.detalleEvento}>{b.eventos ? b.eventos.ciudad : ''}{b.eventos && b.eventos.estadio ? ' · ' + b.eventos.estadio : ''}</p>
-              {b.eventos && b.eventos.fecha && <p style={{...s.detalleEvento, color:'#a78bfa', fontSize:'12px'}}>{new Date(b.eventos.fecha).toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}</p>}
+              {b.eventos && b.eventos.fecha && (
+                <p style={{...s.detalleEvento, color:'#a78bfa', fontSize:'12px'}}>
+                  {new Date(b.eventos.fecha).toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}
+                  {b.eventos.hora ? ` · ${b.eventos.hora.slice(0,5).replace(/^0/,'').replace(':','h')}` : ''}
+                </p>
+              )}
               <p style={s.detalleEvento}>Tribuna {b.tribuna} - Fila {b.fila} - Silla {b.silla}</p>
               <div style={s.vendedorRow}>
                 {esBoleteriaCO ? (
