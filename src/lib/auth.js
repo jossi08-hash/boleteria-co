@@ -1,7 +1,7 @@
 import { supabase } from './supabase'
 
 // Registrar un nuevo usuario (comprador o vendedor)
-export async function registrarUsuario({ nombre, correo, password }) {
+export async function registrarUsuario({ nombre, correo, password, datosPago }) {
   const { data, error } = await supabase.auth.signUp({
     email: correo,
     password: password,
@@ -14,6 +14,15 @@ export async function registrarUsuario({ nombre, correo, password }) {
     console.error('Error al registrar usuario:', error.message)
     return { exito: false, mensaje: error.message }
   }
+
+  // Guardar datos de pago si se proporcionaron
+  if (data.user && datosPago && datosPago.trim()) {
+    await supabase
+      .from('usuarios')
+      .update({ datos_pago: datosPago.trim() })
+      .eq('id', data.user.id)
+  }
+
   return { exito: true, usuario: data.user, session: data.session }
 }
 
