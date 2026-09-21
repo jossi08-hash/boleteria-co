@@ -11,6 +11,7 @@ const PLATAFORMAS = {
     color: '#e85d04',
     instrVendedor: 'Abre TuBoletaPass → Mis entradas → selecciona la boleta → Enviar Entrada → ingresa boletas@boleteriaco.com.',
     instrComprador: 'Descarga TuBoletaPass en App Store o Google Play. Regístrate con tu cédula y correo. Boletería CO te transferirá la boleta; aparecerá en "Mis entradas".',
+    tipoEntrega: 'email',
     requisitoReceptor: 'El destinatario debe tener cuenta activa y registrada en Tuboleta Pass para recibir la entrada.',
     pasosVendedor: [
       'Abre la aplicación Tuboleta Pass en tu celular.',
@@ -32,6 +33,7 @@ const PLATAFORMAS = {
     color: '#2563eb',
     instrVendedor: 'Abre Quentro → Mis Entradas → selecciona la entrada → icono de flecha → ingresa boletas@boleteriaco.com.',
     instrComprador: 'Descarga Quentro en App Store o Google Play. Regístrate con tu correo y número de documento. Boletería CO te transferirá la entrada; recibirás una notificación en la app.',
+    tipoEntrega: 'email',
     requisitoReceptor: 'El destinatario debe tener descargada la app y una cuenta creada en Quentro.',
     pasosVendedor: [
       'Abre Quentro e inicia sesión con tu cuenta.',
@@ -52,6 +54,7 @@ const PLATAFORMAS = {
     color: '#7c3aed',
     instrVendedor: 'Abre W Arena → perfil → entradas → Transferir → ingresa el documento de identidad registrado en la cuenta de boletas@boleteriaco.com.',
     instrComprador: 'Descarga W Arena en App Store o Google Play. Regístrate con tu documento de identidad. Boletería CO te cederá la entrada a tu documento registrado en la app.',
+    tipoEntrega: 'documento',
     requisitoReceptor: 'El destinatario debe tener cuenta activa en W Arena con su documento de identidad registrado.',
     pasosVendedor: [
       'Descarga e ingresa a la aplicación oficial de W Arena.',
@@ -72,6 +75,7 @@ const PLATAFORMAS = {
     color: '#dc2626',
     instrVendedor: 'Abre DIM Plus → Mis boletas → Ver boleta → Ceder boleta → llena los datos de la cuenta boletas@boleteriaco.com.',
     instrComprador: 'Descarga DIM Plus en App Store o Google Play. Regístrate con tus datos exactos (nombre y documento). Boletería CO te cederá la boleta a tus datos registrados.',
+    tipoEntrega: 'documento',
     requisitoReceptor: 'El receptor debe tener cuenta activa en DIM Plus con sus datos personales exactos registrados. Una boleta puede cederse máximo 3 veces. No se permiten capturas del QR ni descargas en PDF — el código es dinámico.',
     pasosVendedor: [
       'Entra a la App DIM Plus e inicia sesión.',
@@ -141,6 +145,7 @@ function App() {
   const [misVentas, setMisVentas] = useState([])
   const [cargandoMis, setCargandoMis] = useState(false)
   const [filtros, setFiltros] = useState({ ciudad: '', deporte: '', precioMax: '' })
+  const [datosEntrega, setDatosEntrega] = useState({})
 
 
   const esAdmin = usuario && usuario.es_admin === true
@@ -226,19 +231,23 @@ function App() {
             }))
             sessionStorage.removeItem('carrito_ordenes_extra')
             // Notificar al vendedor por cada extra
+            let datosEntregaSS = {}
+            try { datosEntregaSS = JSON.parse(sessionStorage.getItem('datos_entrega') || '{}'); sessionStorage.removeItem('datos_entrega') } catch(e) {}
             extras.forEach(o => {
               if (o.codigo_orden) fetch('/api/notificar-vendedor', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ referencia: o.codigo_orden })
+                body: JSON.stringify({ referencia: o.codigo_orden, datosEntrega: datosEntregaSS })
               })
             })
           }
         } catch(e) { console.error('Error procesando extras carrito:', e) }
         // Notificar al vendedor por email (boleta principal)
+        let datosEntregaMain = {}
+        try { datosEntregaMain = JSON.parse(sessionStorage.getItem('datos_entrega') || '{}'); sessionStorage.removeItem('datos_entrega') } catch(e) {}
         fetch('/api/notificar-vendedor', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ referencia })
+          body: JSON.stringify({ referencia, datosEntrega: datosEntregaMain })
         })
       }
       let carritoCount = 1
@@ -714,6 +723,14 @@ function App() {
   async function manejarCompraCarrito() {
     if (carrito.length === 0) return
     if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return }
+    const platsConRequisito = [...new Set(carrito.filter(b => b.plataforma && PLATAFORMAS[b.plataforma]).map(b => b.plataforma))]
+    for (const plat of platsConRequisito) {
+      const tipo = PLATAFORMAS[plat].tipoEntrega
+      if (!datosEntrega[plat]?.trim()) {
+        toast('Por favor ingresa tu ' + (tipo === 'email' ? 'correo electrónico' : 'número de documento') + ' para recibir tu boleta en ' + plat + '.', 'info')
+        return
+      }
+    }
     setComprando('carrito')
 
     const reservadaHasta = new Date(Date.now() + 15 * 60 * 1000).toISOString()
@@ -775,6 +792,7 @@ function App() {
     })
     startTimer(15 * 60)
     try { sessionStorage.setItem('carrito_count', String(carrito.length)) } catch(e) {}
+    try { sessionStorage.setItem('datos_entrega', JSON.stringify(datosEntrega)) } catch(e) {}
     window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
   }
 
@@ -1067,6 +1085,26 @@ function App() {
         )}
 
 
+        {/* SECCIÓN DE SEGURIDAD */}
+        <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 0'}}>
+          <h3 style={{color:'#eef0f6',fontSize:'18px',fontWeight:'800',textAlign:'center',margin:'0 0 6px',letterSpacing:'-0.3px'}}>¿Por qué confiar en Boletería CO?</h3>
+          <p style={{color:'#8892a4',fontSize:'13px',textAlign:'center',margin:'0 0 24px'}}>Tu dinero y tu boleta están protegidos en cada compra</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:'10px'}}>
+            {[
+              {icon:'🔒', title:'Custodia de pago', desc:'Tu dinero queda retenido hasta que recibas tu boleta y confirmes la entrega.'},
+              {icon:'✅', title:'Vendedores verificados', desc:'Solo vendemos boletas de usuarios con cuenta real. Sin intermediarios desconocidos.'},
+              {icon:'📲', title:'Solo cesión oficial', desc:'Transferencias directas desde TuBoletaPass, Quentro, W Arena y DIM Plus. Sin capturas ni PDFs.'},
+              {icon:'🛟', title:'Soporte garantizado', desc:'Si algo falla, te ayudamos. Escríbenos a boletas@boleteriaco.com.'},
+            ].map(({icon,title,desc}) => (
+              <div key={title} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px'}}>
+                <div style={{fontSize:'26px',marginBottom:'8px'}}>{icon}</div>
+                <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 6px'}}>{title}</p>
+                <p style={{color:'#8892a4',fontSize:'12px',margin:'0',lineHeight:1.6}}>{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {paginaActual === 'mis-boletas' && usuario && (
           <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
           <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
@@ -1110,6 +1148,29 @@ function App() {
                             </div>
                             {!esAdmin && (
                               <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
+                                {/* Status tracker */}
+                                {(() => {
+                                  const tpasos = [
+                                    { label: 'Pago en custodia', done: true },
+                                    { label: 'Boleta transferida', done: !!o.archivo_url },
+                                    { label: 'Pago liberado', done: !!(yaLiberado || o.liberado) },
+                                  ]
+                                  return (
+                                    <div style={{display:'flex',alignItems:'flex-start',marginBottom:'14px'}}>
+                                      {tpasos.map((paso, tidx) => (
+                                        <div key={tidx} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',position:'relative'}}>
+                                          {tidx < tpasos.length - 1 && (
+                                            <div style={{position:'absolute',top:'11px',left:'50%',width:'100%',height:'2px',background:paso.done&&tpasos[tidx+1]?.done?'#22c55e':paso.done?'#f59e0b':'#1e2a3a',zIndex:0}} />
+                                          )}
+                                          <div style={{width:'22px',height:'22px',borderRadius:'50%',background:paso.done?'#22c55e':'#1e2a3a',border:paso.done?'none':'1px solid #2d3a55',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1,flexShrink:0}}>
+                                            {paso.done && <span style={{color:'#fff',fontSize:'11px',fontWeight:'800'}}>✓</span>}
+                                          </div>
+                                          <p style={{color:paso.done?'#eef0f6':'#4e5a6e',fontSize:'10px',fontWeight:paso.done?'700':'400',margin:'5px 0 0',textAlign:'center',lineHeight:1.3,padding:'0 2px'}}>{paso.label}</p>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )
+                                })()}
                                 {(() => {
                                   const plat = b?.plataforma && PLATAFORMAS[b.plataforma]
                                   return plat ? (
@@ -1672,6 +1733,31 @@ function App() {
                       )}
                     </div>
                   ))}
+
+                  {/* Campo de entrega */}
+                  {[...new Set(carrito.filter(b=>b.plataforma&&PLATAFORMAS[b.plataforma]).map(b=>b.plataforma))].length > 0 && (
+                    <div style={{background:'rgba(79,126,255,0.06)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'12px',padding:'14px 16px',marginBottom:'16px'}}>
+                      <p style={{color:'#6b93ff',fontSize:'13px',fontWeight:'700',margin:'0 0 12px'}}>📋 ¿Dónde te enviamos tu boleta?</p>
+                      {[...new Set(carrito.filter(b=>b.plataforma&&PLATAFORMAS[b.plataforma]).map(b=>b.plataforma))].map(plat => {
+                        const tipo = PLATAFORMAS[plat]?.tipoEntrega
+                        return (
+                          <div key={plat} style={{marginBottom:'10px'}}>
+                            <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>
+                              {tipo === 'email' ? `📧 Tu correo registrado en ${plat}` : `🪪 Tu número de cédula registrado en ${plat}`}
+                            </label>
+                            <input
+                              type={tipo === 'email' ? 'email' : 'text'}
+                              placeholder={tipo === 'email' ? 'correo@ejemplo.com' : 'Ej: 1234567890'}
+                              value={datosEntrega[plat] || ''}
+                              onChange={e => setDatosEntrega(prev => ({...prev, [plat]: e.target.value}))}
+                              style={{width:'100%',background:'#080b12',border:'1px solid #1e2a3a',borderRadius:'8px',padding:'10px 12px',color:'#eef0f6',fontSize:'13px',boxSizing:'border-box',outline:'none'}}
+                            />
+                          </div>
+                        )
+                      })}
+                      <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0',lineHeight:1.5}}>Boletería CO transferirá tu boleta a este dato registrado en la app.</p>
+                    </div>
+                  )}
 
                   <button
                     onClick={manejarCompraCarrito}
