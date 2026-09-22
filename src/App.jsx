@@ -1812,7 +1812,7 @@ function App() {
                 </div>
               </div>
             ))}
-            <button type="button" onClick={()=>setSilasExtra([...silasExtra,{tribuna:'',fila:'',silla:''}])} style={{background:'transparent',border:'1px dashed #1e2a3a',borderRadius:'8px',padding:'8px',fontSize:'12px',color:'#4e5a6e',cursor:'pointer',width:'100%',marginBottom:'16px'}}>+ Añadir otra silla</button>
+            <button type="button" onClick={()=>setSilasExtra([...silasExtra,{tribuna:form.tribuna||'',fila:'',silla:''}])} style={{background:'transparent',border:'1px dashed #1e2a3a',borderRadius:'8px',padding:'8px',fontSize:'12px',color:'#4e5a6e',cursor:'pointer',width:'100%',marginBottom:'16px'}}>+ Añadir otra silla</button>
             <button type="submit" style={s.botonSubmit}>Publicar {silasExtra.length > 0 ? silasExtra.length+1+' boletas' : 'boleta'}</button>
             {mensaje && <p style={s.mensaje}>{mensaje}</p>}
           </form>
