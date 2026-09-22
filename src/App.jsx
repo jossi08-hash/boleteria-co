@@ -1572,27 +1572,19 @@ function App() {
           <nav style={s.nav}>
             <div style={s.navInner}>
               <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                {usuario && (
-                  <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
-                    🛒
-                    {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
-                  </button>
-                )}
-                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                </button>
-              </div>
+              <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+              </button>
             </div>
           </nav>
           <div style={{maxWidth:'680px',margin:'0 auto',padding:'28px 20px 48px'}}>
             <div style={{display:'flex',gap:'3px',marginBottom:'20px',background:'rgba(255,255,255,0.03)',borderRadius:'10px',padding:'4px',overflowX:'auto'}}>
-              <button onClick={() => setPestanaMis('pedidos')} style={{flex:1,minWidth:'72px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='pedidos'?'#4f7eff':'transparent',color:pestanaMis==='pedidos'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>🛍 Pedidos</button>
-              <button onClick={() => setPestanaMis('ventas')} style={{flex:1,minWidth:'72px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='ventas'?'#4f7eff':'transparent',color:pestanaMis==='ventas'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>📦 Mis ventas</button>
-              <button onClick={() => setPestanaMis('en-venta')} style={{flex:1,minWidth:'72px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='en-venta'?'#4f7eff':'transparent',color:pestanaMis==='en-venta'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>🎟 En venta</button>
-              <button onClick={() => setPestanaMis('pagos')} style={{flex:1,minWidth:'72px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='pagos'?'#4f7eff':'transparent',color:pestanaMis==='pagos'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>💰 Mis pagos</button>
+              <button onClick={() => setPestanaMis('pedidos')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='pedidos'?'#4f7eff':'transparent',color:pestanaMis==='pedidos'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>🛍 Pedidos</button>
+              <button onClick={() => setPestanaMis('ventas')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='ventas'?'#4f7eff':'transparent',color:pestanaMis==='ventas'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>📦 Mis ventas</button>
+              <button onClick={() => setPestanaMis('en-venta')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='en-venta'?'#4f7eff':'transparent',color:pestanaMis==='en-venta'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>🎟 En venta</button>
+              <button onClick={() => setPestanaMis('pagos')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='pagos'?'#4f7eff':'transparent',color:pestanaMis==='pagos'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>💰 Mis pagos</button>
             </div>
             {cargandoMis && <p style={{color:'#6b7280',fontSize:'13px'}}>Cargando...</p>}
             {!cargandoMis && pestanaMis === 'pedidos' && (
@@ -1774,110 +1766,75 @@ function App() {
             </>
             )}
             {!cargandoMis && pestanaMis === 'en-venta' && (
-              <div>
-                <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'16px'}}>
-                  <span style={{fontSize:'20px'}}>🎟</span>
-                  <div>
-                    <p style={{color:'#eef0f6',fontWeight:'700',margin:'0',fontSize:'15px'}}>Boletas en venta</p>
-                    <p style={{color:'#8892a4',fontSize:'12px',margin:'2px 0 0'}}>Tus boletas publicadas esperando comprador</p>
-                  </div>
-                </div>
-                {(() => {
-                  const activas = misVentas.filter(b => b.estado === 'publicada')
-                  if (activas.length === 0) return <p style={{color:'#6b7280',fontSize:'13px'}}>No tienes boletas activas en venta.</p>
-                  return activas.map(function(b) {
-                    const ev = b.eventos
-                    const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
-                    const fecha = ev && ev.fecha ? new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : ''
-                    return (
-                      <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'12px',flexWrap:'wrap'}}>
-                        <div style={{flex:1,minWidth:'0'}}>
-                          <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
-                          <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>{[ev&&ev.ciudad,ev&&ev.estadio].filter(Boolean).join(' · ')}{fecha ? ' · '+fecha : ''}</p>
-                          <p style={{color:'#6b7a94',fontSize:'12px',margin:'0'}}>Tribuna {b.tribuna}{b.fila?' · Fila '+b.fila:''}{b.silla?' · Silla '+b.silla:''}</p>
-                        </div>
-                        <div style={{textAlign:'right',flexShrink:0}}>
-                          <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'16px',margin:'0 0 6px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
-                          <span style={{background:'rgba(79,126,255,0.12)',color:'#6b93ff',fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>Publicada</span>
-                        </div>
-                      </div>
-                    )
-                  })
-                })()}
-              </div>
-            )}
-            {!cargandoMis && pestanaMis === 'pagos' && (
-              <div>
-                <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'16px'}}>
-                  <span style={{fontSize:'20px'}}>💰</span>
-                  <div>
-                    <p style={{color:'#eef0f6',fontWeight:'700',margin:'0',fontSize:'15px'}}>Mis pagos</p>
-                    <p style={{color:'#8892a4',fontSize:'12px',margin:'2px 0 0'}}>Seguimiento de ingresos por tus ventas</p>
-                  </div>
-                </div>
-                <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'14px 16px',marginBottom:'16px'}}>
-                  <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
-                    <span style={{fontSize:'16px'}}>💳</span>
-                    <div style={{flex:1,minWidth:0}}>
-                      <p style={{color:'#8892a4',fontSize:'11px',fontWeight:'600',margin:'0 0 2px',textTransform:'uppercase',letterSpacing:'0.4px'}}>Dato de pago registrado</p>
-                      <p style={{color:datosPagoVendedor?'#eef0f6':'#4e5a6e',fontSize:'13px',margin:'0',fontStyle:datosPagoVendedor?'normal':'italic'}}>{datosPagoVendedor||'No registrado — ve a Mis ventas para agregar'}</p>
-                    </div>
-                  </div>
-                </div>
-                {(() => {
-                  const liberadas = misVentas.filter(function(b) {
-                    const ord = Array.isArray(b.ordenes) ? b.ordenes.find(function(o){return o.estado_pago === 'pagada'}) : null
-                    return ord && (ord.liberado || (Date.now() - new Date(ord.creado_en).getTime() > 72*3600000))
-                  })
-                  const pendientes = misVentas.filter(function(b) {
-                    const ord = Array.isArray(b.ordenes) ? b.ordenes.find(function(o){return o.estado_pago === 'pagada'}) : null
-                    return ord && !ord.liberado && (Date.now() - new Date(ord.creado_en).getTime() <= 72*3600000)
-                  })
-                  const totalGanado = liberadas.reduce(function(sum,b){return sum + Math.round(Number(b.precio||0)*0.92)}, 0)
-                  const totalPendiente = pendientes.reduce(function(sum,b){return sum + Math.round(Number(b.precio||0)*0.92)}, 0)
-                  return (
-                    <>
-                      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'16px'}}>
-                        <div style={{background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.2)',borderRadius:'10px',padding:'14px'}}>
-                          <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'600',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'0.4px'}}>Recibido</p>
-                          <p style={{color:'#4ade80',fontSize:'18px',fontWeight:'800',margin:'0'}}>${totalGanado.toLocaleString('es-CO')}</p>
-                          <p style={{color:'#6b7a94',fontSize:'11px',margin:'4px 0 0'}}>{liberadas.length} venta{liberadas.length!==1?'s':''}</p>
-                        </div>
-                        <div style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.2)',borderRadius:'10px',padding:'14px'}}>
-                          <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'600',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'0.4px'}}>En custodia</p>
-                          <p style={{color:'#fbbf24',fontSize:'18px',fontWeight:'800',margin:'0'}}>${totalPendiente.toLocaleString('es-CO')}</p>
-                          <p style={{color:'#6b7a94',fontSize:'11px',margin:'4px 0 0'}}>{pendientes.length} venta{pendientes.length!==1?'s':''}</p>
-                        </div>
-                      </div>
-                      {pendientes.length === 0 && liberadas.length === 0 && (
-                        <p style={{color:'#6b7280',fontSize:'13px'}}>Aún no tienes ventas completadas.</p>
-                      )}
-                      {[...pendientes, ...liberadas].map(function(b) {
-                        const ord = Array.isArray(b.ordenes) ? b.ordenes.find(function(o){return o.estado_pago === 'pagada'}) : null
-                        const libOrd = ord && (ord.liberado || (Date.now() - new Date(ord.creado_en).getTime() > 72*3600000))
-                        const neto = Math.round(Number(b.precio||0)*0.92)
-                        const ev = b.eventos
-                        const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
-                        return (
-                          <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'14px 16px',marginBottom:'10px'}}>
-                            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'8px',flexWrap:'wrap'}}>
-                              <div style={{flex:1,minWidth:0}}>
-                                <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 3px',fontSize:'14px'}}>{ev?ev.nombre:'Evento'}</p>
-                                <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila?' · Fila '+b.fila:''}</p>
-                                {ord && <p style={{color:'#4e5a6e',fontSize:'11px',margin:'2px 0 0'}}>Ref: {ord.codigo_orden}</p>}
-                              </div>
-                              <div style={{textAlign:'right',flexShrink:0}}>
-                                <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'15px',margin:'0 0 4px'}}>{moneda}{neto.toLocaleString('es-CO')} <span style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'400'}}>(92%)</span></p>
-                                <span style={{background:libOrd?'rgba(34,197,94,0.1)':'rgba(245,158,11,0.1)',color:libOrd?'#4ade80':'#fbbf24',fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>{libOrd?'✅ Liberado':'⏳ En custodia'}</span>
-                              </div>
+              (() => {
+                const enVenta = misVentas.filter(b => b.estado === 'publicada' && !(Array.isArray(b.ordenes) && b.ordenes.some(o => o.estado_pago === 'pagada')))
+                return enVenta.length === 0
+                  ? <p style={{color:'#6b7280',fontSize:'13px'}}>No tienes boletas en venta actualmente.</p>
+                  : enVenta.map(function(b) {
+                      const ev = b.eventos
+                      const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
+                      return (
+                        <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
+                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                            <div>
+                              <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
+                              <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}</p>
+                              <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
+                            </div>
+                            <div style={{textAlign:'right'}}>
+                              <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'16px',margin:'0 0 6px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
+                              <span style={{background:'rgba(79,126,255,0.1)',color:'#6b93ff',fontSize:'11px',fontWeight:'700',padding:'3px 10px',borderRadius:'20px'}}>⏳ Esperando comprador</span>
                             </div>
                           </div>
-                        )
-                      })}
-                    </>
-                  )
-                })()}
-              </div>
+                        </div>
+                      )
+                    })
+              })()
+            )}
+            {!cargandoMis && pestanaMis === 'pagos' && (
+              (() => {
+                const ordenesVentas = misVentas.flatMap(b => Array.isArray(b.ordenes) ? b.ordenes.filter(o => o.estado_pago === 'pagada').map(o => ({...o, precio: b.precio, moneda: b.eventos ? b.eventos.moneda : null})) : [])
+                const liberadas = ordenesVentas.filter(o => o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000))
+                const enEscrow = ordenesVentas.filter(o => !(o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)))
+                const totalLiberado = liberadas.reduce((s, o) => s + Math.round(Number(o.precio || 0) * 0.92), 0)
+                const totalEscrow = enEscrow.reduce((s, o) => s + Math.round(Number(o.precio || 0) * 0.92), 0)
+                return (
+                  <>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'20px'}}>
+                      <div style={{background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.2)',borderRadius:'12px',padding:'16px'}}>
+                        <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 4px'}}>Recibido</p>
+                        <p style={{color:'#22c55e',fontSize:'22px',fontWeight:'800',margin:'0'}}>${totalLiberado.toLocaleString('es-CO')}</p>
+                        <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>{liberadas.length} venta{liberadas.length !== 1 ? 's' : ''}</p>
+                      </div>
+                      <div style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.2)',borderRadius:'12px',padding:'16px'}}>
+                        <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 4px'}}>En custodia</p>
+                        <p style={{color:'#f59e0b',fontSize:'22px',fontWeight:'800',margin:'0'}}>${totalEscrow.toLocaleString('es-CO')}</p>
+                        <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>{enEscrow.length} venta{enEscrow.length !== 1 ? 's' : ''}</p>
+                      </div>
+                    </div>
+                    {ordenesVentas.length === 0
+                      ? <p style={{color:'#6b7280',fontSize:'13px'}}>Aún no tienes ventas registradas.</p>
+                      : ordenesVentas.map(function(o, i) {
+                          const liberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
+                          const moneda = o.moneda === 'USD' ? 'US$' : '$'
+                          const neto = Math.round(Number(o.precio || 0) * 0.92)
+                          return (
+                            <div key={o.id || i} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'14px 16px',marginBottom:'10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
+                              <div>
+                                <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 3px',fontSize:'13px'}}>Ref: {o.codigo_orden}</p>
+                                <p style={{color:'#4e5a6e',fontSize:'11px',margin:'0'}}>{new Date(o.creado_en).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}</p>
+                              </div>
+                              <div style={{textAlign:'right'}}>
+                                <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'15px',margin:'0 0 4px'}}>{moneda}{neto.toLocaleString('es-CO')} <span style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'400'}}>(92%)</span></p>
+                                <span style={{background:liberado?'rgba(34,197,94,0.1)':'rgba(245,158,11,0.1)',color:liberado?'#4ade80':'#fbbf24',fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>{liberado?'✅ Liberado':'⏳ En custodia'}</span>
+                              </div>
+                            </div>
+                          )
+                        })
+                    }
+                  </>
+                )
+              })()
             )}
           </div>
           </div>
@@ -2639,19 +2596,11 @@ function App() {
               <nav style={s.nav}>
                 <div style={s.navInner}>
                   <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                    {usuario && (
-                      <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
-                        🛒
-                        {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
-                      </button>
-                    )}
-                    <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
-                      <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                      <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                      <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                    </button>
-                  </div>
+                  <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                  </button>
                 </div>
               </nav>
               <div style={{maxWidth:'680px',margin:'0 auto',padding:'0 20px 80px'}}>
@@ -2823,7 +2772,7 @@ function App() {
                 </button>
               </div>
             </nav>
-            <div style={{maxWidth:'480px',margin:'0 auto',padding:'28px 20px 48px'}}>
+            <div style={{maxWidth:'480px',margin:'0 auto',padding: esMobile ? '24px 16px 48px' : '32px 20px 48px'}}>
               {carrito.length === 0 ? (
                 <div style={{textAlign:'center',padding:'60px 0'}}>
                   <div style={{fontSize:'48px',marginBottom:'16px'}}>🛒</div>
