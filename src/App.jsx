@@ -1468,6 +1468,12 @@ function App() {
         <div style={s.navInner}>
           <h1 style={s.logo}><span style={{fontSize:'20px'}}>🎟</span> Boletería <span style={s.logoPunto}>CO</span></h1>
           <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+            {esAdmin && (
+              <button onClick={()=>{setMostrarAdmin(true);setPaginaActual('inicio')}} style={{position:'relative',background:'rgba(160,82,255,0.1)',border:'1px solid rgba(160,82,255,0.3)',borderRadius:'8px',cursor:'pointer',color:'#c084fc',fontSize:'12px',fontWeight:'700',padding:'5px 10px',lineHeight:1}}>
+                ⚙️ Admin
+                {boletasPendientes.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#a855f7',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{boletasPendientes.length}</span>}
+              </button>
+            )}
             {usuario && (
               <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
                 🛒
