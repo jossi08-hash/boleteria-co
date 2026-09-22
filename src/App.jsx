@@ -1278,8 +1278,8 @@ function App() {
     acento: '#4f7eff', verde: '#22c55e', ambar: '#f59e0b',
   }
   const s = {
-    pagina: { minHeight: '100vh', background: '#080b12', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,126,255,0.07), transparent)' },
-    nav: { background: 'rgba(13,17,23,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1e2a3a', position: 'sticky', top: 0, zIndex: 100, padding: esMobile ? '0 12px' : '0 20px' },
+    pagina: { minHeight: '100vh', paddingTop: esMobile ? '52px' : '60px', background: '#080b12', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,126,255,0.07), transparent)' },
+    nav: { background: 'rgba(13,17,23,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1e2a3a', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 400, padding: esMobile ? '0 12px' : '0 20px' },
     navInner: { maxWidth: '720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: esMobile ? '52px' : '60px' },
     logo: { color: '#eef0f6', fontSize: esMobile ? '15px' : '17px', fontWeight: '800', letterSpacing: '-0.5px', margin: 0, whiteSpace: 'nowrap' },
     logoPunto: { color: '#4f7eff' },
@@ -1591,16 +1591,11 @@ function App() {
 
 
         {paginaActual === 'mis-boletas' && usuario && (
-          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
           <nav style={s.nav}>
             <div style={s.navInner}>
               <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
               <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🎟 Mis boletas</p>
-              <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
-                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-              </button>
             </div>
           </nav>
           <div style={{maxWidth:'680px',margin:'0 auto',padding:'28px 20px 48px'}}>
@@ -1865,17 +1860,12 @@ function App() {
         )}
 
         {esAdmin && mostrarAdmin && (
-          <div style={{position:'fixed',inset:0,zIndex:350,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:350,background:'#080b12',overflowY:'auto'}}>
             {/* NAV ADMIN */}
             <nav style={s.nav}>
               <div style={s.navInner}>
                 <button onClick={()=>setMostrarAdmin(false)} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
                 <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>⚙️ Admin</span>
-                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                </button>
               </div>
             </nav>
             <div style={{maxWidth:'720px',margin:'0 auto',padding:'28px 20px 48px'}}>
@@ -2251,16 +2241,11 @@ function App() {
 
         {/* ── Vista Publicar Boleta ── */}
         {mostrarFormulario && usuario && (
-          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
             <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
                 <button onClick={()=>{setMostrarFormulario(false);setSilasExtra([])}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
                 <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>➕ Publicar boleta</p>
-                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                </button>
               </div>
             </nav>
             <div style={{maxWidth:'560px',margin:'0 auto',padding:'28px 20px 60px'}}>
@@ -2327,7 +2312,7 @@ function App() {
 
                 {/* ── Página de Login ── */}
         {paginaActual === 'login' && (
-          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
             <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
                 <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
@@ -2362,7 +2347,7 @@ function App() {
 
         {/* ── Página de Recuperar contraseña ── */}
         {paginaActual === 'recuperar' && (
-          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
             <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
                 <button onClick={()=>setPaginaActual('login')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
@@ -2384,7 +2369,7 @@ function App() {
 
         {/* ── Página de Nueva contraseña ── */}
         {paginaActual === 'nueva-password' && (
-          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
             <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
                 <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
@@ -2405,7 +2390,7 @@ function App() {
 
         {/* ── Página de Registro ── */}
         {paginaActual === 'registro' && (
-          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
             <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
                 <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
@@ -2672,17 +2657,12 @@ function App() {
           const esAtanasio = (info?.estadio||'').toLowerCase().includes('atanasio') || (info?.estadio||'').toLowerCase().includes('girardot')
           const esTecho = (info?.estadio||'').toLowerCase().includes('techo')
           return (
-            <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+            <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
               {/* NAV */}
               <nav style={s.nav}>
                 <div style={s.navInner}>
                   <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
                   <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>🏟 Evento</span>
-                  <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
-                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                  </button>
                 </div>
               </nav>
               <div style={{maxWidth:'680px',margin:'0 auto',padding:'0 20px 80px'}}>
@@ -2843,16 +2823,11 @@ function App() {
 
         {/* CARRITO */}
         {paginaActual === 'carrito' && (
-          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
             <nav style={s.nav}>
               <div style={s.navInner}>
                 <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
                 <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>🛒 Carrito</span>
-                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-                </button>
               </div>
             </nav>
             <div style={{maxWidth:'480px',margin:'0 auto',padding: esMobile ? '24px 16px 48px' : '32px 20px 48px'}}>
@@ -3160,8 +3135,7 @@ soporte@boleteriaco.com`},
 
 
       {/* ── Preguntas frecuentes ── */}
-      {paginaActual === 'inicio' && (
-        <section style={{maxWidth:'680px',margin:'0 auto 48px',padding:'0 4px'}}>
+      <section style={{maxWidth:'680px',margin:'0 auto 48px',padding:'0 4px'}}>
           <h2 style={{color:'#eef0f6',fontSize:'20px',fontWeight:'900',textAlign:'center',margin:'0 0 24px',letterSpacing:'-0.3px'}}>Preguntas frecuentes</h2>
           {[
             {
@@ -3194,8 +3168,7 @@ soporte@boleteriaco.com`},
               )}
             </div>
           ))}
-        </section>
-      )}
+      </section>
       <footer style={{borderTop:'1px solid #1e2a3a', marginTop:'48px', paddingTop:'28px', paddingBottom:'32px', textAlign:'center'}}>
         <p style={{color:'#4e5a6e', fontSize:'13px', margin:'0 0 8px', fontWeight:'700', letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#4f7eff'}}>CO</span></p>
         <p style={{color:'#4e5a6e', fontSize:'12px', margin:0}}>© 2026 · <a href='/terminos.html' target='_blank' style={{color:'#8892a4', textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0,textDecoration:'none'}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
