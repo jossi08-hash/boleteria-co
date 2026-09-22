@@ -2577,6 +2577,26 @@ function App() {
                   )
                 })}
 
+                {/* MAPA GOOGLE MAPS */}
+                {info?.estadio && (
+                  <div style={{marginTop:'28px',marginBottom:'8px'}}>
+                    <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.8px',margin:'0 0 10px',display:'flex',alignItems:'center',gap:'6px'}}>
+                      📍 Cómo llegar
+                    </p>
+                    <div style={{borderRadius:'14px',overflow:'hidden',border:'1px solid #1a2332',height:'200px'}}>
+                      <iframe
+                        title="Ubicación del estadio"
+                        width="100%"
+                        height="200"
+                        style={{border:0,display:'block'}}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent((info.estadio||'')+(info.ciudad?', '+info.ciudad:''))}&output=embed&z=15`}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* BOTÓN VER CARRITO */}
                 {carrito.length > 0 && (
                   <button
