@@ -463,9 +463,10 @@ function App() {
     }
 
     // Escuchar cambios de autenticación: confirmación de email y recuperación de contraseña
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        setUsuario(session.user)
+        const { data: perfil } = await supabase.from('usuarios').select('es_admin').eq('id', session.user.id).single()
+        setUsuario({ ...session.user, es_admin: perfil?.es_admin || false })
         setVistaAuth(null)
         setMensajeAuth('')
       }
