@@ -383,6 +383,7 @@ function App() {
   const [cargando, setCargando] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [mostrarAdmin, setMostrarAdmin] = useState(false)
+  const [mostrarMenu, setMostrarMenu] = useState(false)
   const [eventos, setEventos] = useState([])
   const [mensaje, setMensaje] = useState('')
   const [comprando, setComprando] = useState(null)
@@ -1466,26 +1467,110 @@ function App() {
         <div style={s.navInner}>
           <h1 style={s.logo}><span style={{fontSize:'20px'}}>🎟</span> Boletería <span style={s.logoPunto}>CO</span></h1>
           <div style={s.authBar}>
-            {usuario ? (
-              <>
-                {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
-                {!esMobile && <span style={s.usuarioNombre}>{usuario.email}</span>}
-                <button style={s.botonSec} onClick={irAMisBoletas}>{esMobile ? '🎟' : 'Mis boletas'}</button>
-                <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
-                  🛒
-                  {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
-                </button>
-                <button style={s.botonSec} onClick={manejarCerrarSesion}>{esMobile ? '←' : 'Salir'}</button>
-              </>
+            {esMobile ? (
+              /* ── MOBILE: hamburger ── */
+              <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',fontSize:'18px',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+              </button>
             ) : (
-              <>
-                <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
-                <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
-              </>
+              /* ── DESKTOP: botones ── */
+              usuario ? (
+                <>
+                  {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
+                  <span style={s.usuarioNombre}>{usuario.email}</span>
+                  <button style={s.botonSec} onClick={irAMisBoletas}>Mis boletas</button>
+                  <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+                    🛒
+                    {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                  </button>
+                  <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
+                </>
+              ) : (
+                <>
+                  <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
+                  <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
+                </>
+              )
             )}
           </div>
         </div>
       </nav>
+      {/* ── MENÚ MÓVIL ── */}
+      {mostrarMenu && (
+        <>
+          {/* Overlay */}
+          <div onClick={()=>setMostrarMenu(false)} style={{position:'fixed',inset:0,zIndex:998,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(2px)'}}/>
+          {/* Panel */}
+          <div style={{position:'fixed',top:0,right:0,bottom:0,width:'78%',maxWidth:'300px',zIndex:999,background:'#0d1117',borderLeft:'1px solid #1e2a3a',display:'flex',flexDirection:'column',overflowY:'auto'}}>
+            {/* Header */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'18px 20px',borderBottom:'1px solid #1e2a3a'}}>
+              <h2 style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🎟 Boletería <span style={{color:'#4f7eff'}}>CO</span></h2>
+              <button onClick={()=>setMostrarMenu(false)} style={{background:'transparent',border:'none',color:'#6b7a94',cursor:'pointer',fontSize:'20px',lineHeight:1,padding:'2px 6px'}}>✕</button>
+            </div>
+            {/* Usuario */}
+            {usuario && (
+              <div style={{padding:'14px 20px',borderBottom:'1px solid #1e2a3a',background:'rgba(79,126,255,0.05)'}}>
+                <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.8px',margin:'0 0 3px'}}>Sesión activa</p>
+                <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'600',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{usuario.email}</p>
+              </div>
+            )}
+            {/* Opciones */}
+            <nav style={{flex:1,padding:'8px 0'}}>
+              {/* Inicio */}
+              <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null);setMostrarMenu(false)}}
+                style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🏠</span> Inicio
+              </button>
+              {/* Vender */}
+              {usuario && (
+                <button onClick={()=>{setMostrarFormulario(true);setPaginaActual('inicio');setMostrarMenu(false)}}
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                  <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>➕</span> Vender boleta
+                </button>
+              )}
+              {/* Mis boletas */}
+              {usuario && (
+                <button onClick={()=>{irAMisBoletas();setMostrarMenu(false)}}
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                  <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🎟</span> Mis boletas
+                </button>
+              )}
+              {/* Carrito */}
+              {usuario && (
+                <button onClick={()=>{setPaginaActual('carrito');setMostrarMenu(false)}}
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
+                  <span style={{display:'flex',alignItems:'center',gap:'12px'}}><span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🛒</span> Carrito</span>
+                  {carrito.length > 0 && <span style={{background:'#4f7eff',color:'#fff',borderRadius:'20px',padding:'2px 9px',fontSize:'11px',fontWeight:'800'}}>{carrito.length}</span>}
+                </button>
+              )}
+              {/* Admin */}
+              {esAdmin && (
+                <button onClick={()=>{setMostrarAdmin(true);setPaginaActual('inicio');setMostrarMenu(false)}}
+                  style={{width:'100%',background:'rgba(160,82,255,0.06)',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#c084fc',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
+                  <span style={{display:'flex',alignItems:'center',gap:'12px'}}><span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>⚙️</span> Admin</span>
+                  {boletasPendientes.length > 0 && <span style={{background:'rgba(160,82,255,0.25)',color:'#c084fc',borderRadius:'20px',padding:'2px 9px',fontSize:'11px',fontWeight:'800'}}>{boletasPendientes.length}</span>}
+                </button>
+              )}
+            </nav>
+            {/* Footer: Salir / Auth */}
+            <div style={{padding:'16px 20px',borderTop:'1px solid #1e2a3a'}}>
+              {usuario ? (
+                <button onClick={()=>{manejarCerrarSesion();setMostrarMenu(false)}}
+                  style={{width:'100%',background:'rgba(255,59,48,0.08)',border:'1px solid rgba(255,59,48,0.2)',borderRadius:'10px',color:'#f87171',cursor:'pointer',fontSize:'14px',fontWeight:'700',padding:'12px 0'}}>
+                  Salir
+                </button>
+              ) : (
+                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                  <button onClick={()=>{setPaginaActual('login');setMostrarMenu(false)}} style={{width:'100%',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'10px',color:'#eef0f6',cursor:'pointer',fontSize:'14px',fontWeight:'600',padding:'12px 0'}}>Iniciar sesión</button>
+                  <button onClick={()=>{setPaginaActual('registro');setMostrarMenu(false)}} style={{width:'100%',background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',cursor:'pointer',fontSize:'14px',fontWeight:'700',padding:'12px 0'}}>Registrarse</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
       <div style={s.contenedor}>
         {/* HERO */}
         {!usuario && (
@@ -1503,25 +1588,33 @@ function App() {
           <nav style={s.nav}>
             <div style={s.navInner}>
               <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-              <div style={s.authBar}>
-              {usuario ? (
-                <>
-                  {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
-                  {!esMobile && <span style={s.usuarioNombre}>{usuario.email}</span>}
-                  <button style={s.botonSec} onClick={irAMisBoletas}>{esMobile ? '🎟' : 'Mis boletas'}</button>
-                  <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
-                    🛒
-                    {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+              {esMobile ? (
+                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
                   </button>
-                  <button style={s.botonSec} onClick={manejarCerrarSesion}>{esMobile ? '⏻' : 'Salir'}</button>
-                </>
               ) : (
-                <>
-                  <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
-                  <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
-                </>
+                <div style={s.authBar}>
+                  {usuario ? (
+                    <>
+                      {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
+                      <span style={s.usuarioNombre}>{usuario.email}</span>
+                      <button style={s.botonSec} onClick={irAMisBoletas}>Mis boletas</button>
+                      <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+                        🛒
+                        {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                      </button>
+                      <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
+                    </>
+                  ) : (
+                    <>
+                      <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
+                      <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
+                    </>
+                  )}
+                </div>
               )}
-            </div>
             </div>
           </nav>
           <div style={{maxWidth:'680px',margin:'0 auto',padding:'28px 20px 48px'}}>
@@ -2468,25 +2561,33 @@ function App() {
               <nav style={s.nav}>
                 <div style={s.navInner}>
                   <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                  <div style={s.authBar}>
-              {usuario ? (
-                <>
-                  {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
-                  {!esMobile && <span style={s.usuarioNombre}>{usuario.email}</span>}
-                  <button style={s.botonSec} onClick={irAMisBoletas}>{esMobile ? '🎟' : 'Mis boletas'}</button>
-                  <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
-                    🛒
-                    {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                  {esMobile ? (
+                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
                   </button>
-                  <button style={s.botonSec} onClick={manejarCerrarSesion}>{esMobile ? '⏻' : 'Salir'}</button>
-                </>
               ) : (
-                <>
-                  <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
-                  <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
-                </>
+                <div style={s.authBar}>
+                  {usuario ? (
+                    <>
+                      {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
+                      <span style={s.usuarioNombre}>{usuario.email}</span>
+                      <button style={s.botonSec} onClick={irAMisBoletas}>Mis boletas</button>
+                      <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+                        🛒
+                        {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                      </button>
+                      <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
+                    </>
+                  ) : (
+                    <>
+                      <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
+                      <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
+                    </>
+                  )}
+                </div>
               )}
-            </div>
                 </div>
               </nav>
               <div style={{maxWidth:'680px',margin:'0 auto',padding:'0 20px 80px'}}>
@@ -2651,25 +2752,33 @@ function App() {
             <nav style={s.nav}>
               <div style={s.navInner}>
                 <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <div style={s.authBar}>
-              {usuario ? (
-                <>
-                  {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
-                  {!esMobile && <span style={s.usuarioNombre}>{usuario.email}</span>}
-                  <button style={s.botonSec} onClick={irAMisBoletas}>{esMobile ? '🎟' : 'Mis boletas'}</button>
-                  <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
-                    🛒
-                    {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                {esMobile ? (
+                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
                   </button>
-                  <button style={s.botonSec} onClick={manejarCerrarSesion}>{esMobile ? '⏻' : 'Salir'}</button>
-                </>
               ) : (
-                <>
-                  <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
-                  <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
-                </>
+                <div style={s.authBar}>
+                  {usuario ? (
+                    <>
+                      {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
+                      <span style={s.usuarioNombre}>{usuario.email}</span>
+                      <button style={s.botonSec} onClick={irAMisBoletas}>Mis boletas</button>
+                      <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+                        🛒
+                        {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                      </button>
+                      <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
+                    </>
+                  ) : (
+                    <>
+                      <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
+                      <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
+                    </>
+                  )}
+                </div>
               )}
-            </div>
               </div>
             </nav>
             <div style={{maxWidth:'480px',margin:'0 auto',padding: esMobile ? '24px 16px 48px' : '32px 20px 48px'}}>
