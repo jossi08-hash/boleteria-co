@@ -3158,8 +3158,14 @@ function App() {
         )}
 
       {paginaActual === 'mi-perfil' && usuario && (
-        <div style={{maxWidth:'540px',margin:'0 auto',padding:'32px 20px 80px'}}>
-          <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:'0 0 28px'}}>← Volver</button>
+        <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <nav style={s.navSec}>
+            <div style={s.navInner}>
+              <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+              <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>👤 Mi perfil</p>
+            </div>
+          </nav>
+          <div style={{maxWidth:'540px',margin:'0 auto',padding:'28px 20px 64px'}}>
           <div style={{display:'flex',alignItems:'center',gap:'14px',marginBottom:'32px'}}>
             <div style={{width:'52px',height:'52px',borderRadius:'50%',background:'linear-gradient(135deg,#4f7eff,#a05fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',flexShrink:0}}>
               {(perfilData.nombre||usuario.email||'?')[0].toUpperCase()}
@@ -3265,6 +3271,7 @@ function App() {
                 </button>
               </div>
             )}
+          </div>
           </div>
         </div>
       )}
