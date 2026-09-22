@@ -2240,24 +2240,24 @@ function App() {
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#4f7eff'}
                 onMouseLeave={e=>e.currentTarget.style.borderColor='#1e2a3a'}
               >
-                {/* Top: fecha + escudos + flecha en una sola fila */}
-                <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-                  {fechaObj ? (
-                    <div style={{background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'10px',padding:'8px 12px',textAlign:'center',minWidth:'58px',flexShrink:0}}>
+                {/* Top: escudos centrados, fecha y flecha en absolute */}
+                <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'center',minHeight:'84px'}}>
+                  {fechaObj && (
+                    <div style={{position:'absolute',top:0,left:0,background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'10px',padding:'8px 12px',textAlign:'center',minWidth:'58px'}}>
                       <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'800',margin:0,textTransform:'uppercase',letterSpacing:'0.8px'}}>{mesAbr}</p>
                       <p style={{color:'#eef0f6',fontSize:'22px',fontWeight:'900',margin:'2px 0',lineHeight:'1'}}>{diaN}</p>
                       <p style={{color:'#8892a4',fontSize:'10px',fontWeight:'600',margin:0}}>{anioN}</p>
                       {horaStr && <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'700',margin:'3px 0 0',background:'rgba(79,126,255,0.15)',borderRadius:'6px',padding:'1px 4px'}}>{horaStr}</p>}
                     </div>
-                  ) : <div/>}
-                  <div style={{flex:1,display:'flex',alignItems:'center',justifyContent:'center',gap:'16px'}}>
+                  )}
+                  <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
                     <EscudoSVG nombre={equipo1} size={60} />
                     {equipo2 && <>
                       <span style={{color:'#2a3a52',fontSize:'13px',fontWeight:'800',letterSpacing:'1px'}}>VS</span>
                       <EscudoSVG nombre={equipo2} size={60} />
                     </>}
                   </div>
-                  <span style={{color:'#4e5a6e',fontSize:'20px',flexShrink:0}}>›</span>
+                  <span style={{position:'absolute',top:'50%',right:0,transform:'translateY(-50%)',color:'#4e5a6e',fontSize:'20px'}}>›</span>
                 </div>
                 {/* Nombre + estadio centrados */}
                 <div style={{textAlign:'center'}}>
