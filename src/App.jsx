@@ -2228,48 +2228,53 @@ function App() {
             const esAdminEvento = ev.boletas.some(b => b.publicada_por_admin === true || b.usuarios?.es_admin === true)
             const [equipo1, equipo2] = extraerEquipos(info?.nombre || '')
             const fechaObj = info?.fecha ? new Date(info.fecha + 'T12:00:00') : null
-            const diaSemana = fechaObj ? fechaObj.toLocaleDateString('es-CO',{weekday:'short'}) : ''
-            const diaNum = fechaObj ? fechaObj.toLocaleDateString('es-CO',{day:'2-digit',month:'short'}) : ''
+            const diaN = fechaObj ? fechaObj.getDate() : ''
+            const mesAbr = fechaObj ? fechaObj.toLocaleDateString('es-CO',{month:'short'}).replace('.','').toUpperCase() : ''
+            const anioN = fechaObj ? fechaObj.getFullYear() : ''
             const horaStr = info?.hora ? info.hora.slice(0,5) : ''
             return (
               <div
                 key={eid}
                 onClick={() => { setEventoSeleccionado({eid, ev}); setSeccionMapa(null); setPaginaActual('evento') }}
-                style={{background:'linear-gradient(135deg,#0f1a2e 0%,#0c1220 100%)',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'16px',marginBottom:'12px',cursor:'pointer',display:'flex',flexDirection:'column',gap:'12px'}}
+                style={{background:'linear-gradient(135deg,#0f1a2e 0%,#0c1220 100%)',border:'1px solid #1e2a3a',borderRadius:'18px',padding:'20px 16px',marginBottom:'12px',cursor:'pointer',display:'flex',flexDirection:'column',gap:'14px'}}
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#4f7eff'}
                 onMouseLeave={e=>e.currentTarget.style.borderColor='#1e2a3a'}
               >
-                <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-                  {fechaObj && (
-                    <div style={{background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'10px',padding:'7px 10px',textAlign:'center',flexShrink:0,minWidth:'52px'}}>
-                      <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'700',margin:0,textTransform:'uppercase',letterSpacing:'0.5px'}}>{diaSemana}</p>
-                      <p style={{color:'#eef0f6',fontSize:'14px',fontWeight:'800',margin:0,lineHeight:'1.3'}}>{diaNum.split(' ')[0]}</p>
-                      <p style={{color:'#8892a4',fontSize:'10px',fontWeight:'600',margin:0}}>{diaNum.split(' ')[1]}</p>
-                      {horaStr && <p style={{color:'#4e5a6e',fontSize:'9px',margin:0,marginTop:'2px'}}>{horaStr}</p>}
+                {/* Top: fecha + flecha */}
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                  {fechaObj ? (
+                    <div style={{background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'10px',padding:'8px 12px',textAlign:'center',minWidth:'58px'}}>
+                      <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'800',margin:0,textTransform:'uppercase',letterSpacing:'0.8px'}}>{mesAbr}</p>
+                      <p style={{color:'#eef0f6',fontSize:'22px',fontWeight:'900',margin:'2px 0',lineHeight:'1'}}>{diaN}</p>
+                      <p style={{color:'#8892a4',fontSize:'10px',fontWeight:'600',margin:0}}>{anioN}</p>
+                      {horaStr && <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'700',margin:'3px 0 0',background:'rgba(79,126,255,0.15)',borderRadius:'6px',padding:'1px 4px'}}>{horaStr}</p>}
                     </div>
-                  )}
-                  <div style={{flex:1,display:'flex',alignItems:'center',gap:'10px',justifyContent:'center'}}>
-                    <EscudoSVG nombre={equipo1} size={42} />
-                    {equipo2 && <>
-                      <span style={{color:'#4e5a6e',fontSize:'12px',fontWeight:'700'}}>vs</span>
-                      <EscudoSVG nombre={equipo2} size={42} />
-                    </>}
-                  </div>
-                  <span style={{color:'#4e5a6e',fontSize:'20px',flexShrink:0}}>›</span>
+                  ) : <div/>}
+                  <span style={{color:'#4e5a6e',fontSize:'20px'}}>›</span>
                 </div>
-                <div>
-                  <p style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700',margin:'0 0 3px',lineHeight:'1.3'}}>{info?.nombre || 'Evento'}</p>
-                  <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{[info?.ciudad, info?.estadio].filter(Boolean).join(' · ')}</p>
+                {/* Centro: escudos */}
+                <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'18px'}}>
+                  <EscudoSVG nombre={equipo1} size={60} />
+                  {equipo2 && <>
+                    <span style={{color:'#2a3a52',fontSize:'13px',fontWeight:'800',letterSpacing:'1px'}}>VS</span>
+                    <EscudoSVG nombre={equipo2} size={60} />
+                  </>}
                 </div>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderTop:'1px solid #1e2a3a',paddingTop:'10px'}}>
+                {/* Nombre + estadio centrados */}
+                <div style={{textAlign:'center'}}>
+                  <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:'0 0 4px',lineHeight:'1.3'}}>{info?.nombre || 'Evento'}</p>
+                  <p style={{color:'#6b7a94',fontSize:'12px',margin:0}}>{[info?.ciudad, info?.estadio].filter(Boolean).join(' · ')}</p>
+                </div>
+                {/* Footer: precio + badge */}
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderTop:'1px solid #111d2b',paddingTop:'12px'}}>
                   <div>
-                    <p style={{color:'#4ade80',fontSize:'13px',fontWeight:'700',margin:'0 0 1px'}}>
+                    <p style={{color:'#4ade80',fontSize:'14px',fontWeight:'800',margin:'0 0 1px'}}>
                       {ev.boletas.length > 0 ? `desde ${calcularTotal(precioMin, moneda, esAdminEvento)}` : 'Sin disponibles'}
                     </p>
-                    <p style={{color:'#8892a4',fontSize:'11px',margin:0}}>{ev.boletas.length} entrada{ev.boletas.length !== 1 ? 's' : ''} disponible{ev.boletas.length !== 1 ? 's' : ''}</p>
+                    <p style={{color:'#4e5a6e',fontSize:'11px',margin:0}}>{ev.boletas.length} entrada{ev.boletas.length !== 1 ? 's' : ''} disponible{ev.boletas.length !== 1 ? 's' : ''}</p>
                   </div>
                   {esAdminEvento && (
-                    <span style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>✓ Verificado</span>
+                    <span style={{background:'rgba(79,126,255,0.15)',border:'1px solid rgba(79,126,255,0.25)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'4px 10px',borderRadius:'20px'}}>✓ Verificado</span>
                   )}
                 </div>
               </div>
