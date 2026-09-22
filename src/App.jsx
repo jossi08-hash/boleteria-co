@@ -136,6 +136,9 @@ function EscudoSVG({nombre, size=44}) {
   )
 }
 function MapaElCampin({avail, selected, onSelect}) {
+  // avail: { 'Nombre Tribuna': [boletas], ... }  — usa los nombres exactos de la DB
+  // selected: string tribuna seleccionada | null
+  // onSelect: fn(tribunaName)
   const CX=240, CY=180
   const r2d = d => d*Math.PI/180
   const ptx = (rx,ry,d) => CX+rx*Math.cos(r2d(d))
@@ -149,13 +152,20 @@ function MapaElCampin({avail, selected, onSelect}) {
     const span=((e-s)%360+360)%360, mid=s+span/2
     return [f(CX+(oRx+iRx)/2*Math.cos(r2d(mid))), f(CY+(oRy+iRy)/2*Math.sin(r2d(mid)))]
   }
+  // Ángulos: Norte=arriba(210→330), Sur=abajo(30→150), Occ=izq(150→210), Ori=der(330→30)
+  // Anillos de adentro (General=cerca cancha) hacia afuera (Pref/Plata=lejos)
   const SECS=[
-    {id:'norte',   name:'Norte',        oRx:200,oRy:155,iRx:158,iRy:112,s:210,e:330},
-    {id:'sur',     name:'Sur',          oRx:200,oRy:155,iRx:158,iRy:112,s:30, e:150},
-    {id:'or-gen',  name:'Or. General',  oRx:200,oRy:155,iRx:158,iRy:112,s:330,e:30 },
-    {id:'or-pref', name:'Or. Pref.',    oRx:158,oRy:112,iRx:118,iRy:68, s:330,e:30 },
-    {id:'occ-gen', name:'Occ. General', oRx:200,oRy:155,iRx:158,iRy:112,s:150,e:210},
-    {id:'occ-pref',name:'Occ. Pref.',   oRx:158,oRy:112,iRx:118,iRy:68, s:150,e:210},
+    {id:'Norte',                   name:'Norte',       oRx:199,oRy:145,iRx:112,iRy:67, s:210,e:330},
+    {id:'Sur',                     name:'Sur',         oRx:199,oRy:145,iRx:112,iRy:67, s:30, e:150},
+    // Occidental: 4 anillos de adentro (General) a afuera (Preferencial)
+    {id:'Occidental General',      name:'Occ.Gen',     oRx:134,oRy:87, iRx:112,iRy:67, s:150,e:210},
+    {id:'Occidental Platea Baja',  name:'Occ.Pl.B',    oRx:156,oRy:107,iRx:134,iRy:87, s:150,e:210},
+    {id:'Occidental Platea Alta',  name:'Occ.Pl.A',    oRx:178,oRy:127,iRx:156,iRy:107,s:150,e:210},
+    {id:'Occidental Preferencial', name:'Occ.Pref',    oRx:199,oRy:145,iRx:178,iRy:127,s:150,e:210},
+    // Oriental: 3 anillos de adentro (General) a afuera (Platea)
+    {id:'Oriental General',        name:'Ori.Gen',     oRx:141,oRy:93, iRx:112,iRy:67, s:330,e:30},
+    {id:'Oriental Preferencial',   name:'Ori.Pref',    oRx:170,oRy:119,iRx:141,iRy:93, s:330,e:30},
+    {id:'Oriental Platea',         name:'Ori.Plata',   oRx:199,oRy:145,iRx:170,iRy:119,s:330,e:30},
   ]
   const fw=220, fh=120, fx=CX-fw/2, fy=CY-fh/2
   const stripes = Array.from({length:9},(_,i)=>({x:f(fx+i*(fw/9)),fill:i%2===0?'#1e5c28':'#226630'}))
@@ -165,9 +175,18 @@ function MapaElCampin({avail, selected, onSelect}) {
       <rect width="480" height="360" fill="#06101c" rx="10"/>
       {SECS.map(sec=>{
         const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
-        return <path key={sec.id} d={ringPath(sec)} fill={isSel?'rgba(79,126,255,0.3)':isAvail?'rgba(61,219,122,0.18)':'rgba(255,255,255,0.04)'} stroke={isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.4)':'rgba(255,255,255,0.07)'} strokeWidth={isSel?2:0.8} style={{cursor:isAvail?'pointer':'default'}} onClick={()=>isAvail&&onSelect(sec.id)}/>
+        return (
+          <path
+            key={sec.id} d={ringPath(sec)}
+            fill={isSel?'rgba(79,126,255,0.45)':isAvail?'rgba(61,219,122,0.22)':'rgba(255,255,255,0.04)'}
+            stroke={isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.5)':'rgba(255,255,255,0.08)'}
+            strokeWidth={isSel?2:1}
+            style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}
+            onClick={()=>isAvail&&onSelect(sec.id)}
+          />
+        )
       })}
-      <ellipse cx={CX} cy={CY} rx="118" ry="68" fill="#0a1827"/>
+      <ellipse cx={CX} cy={CY} rx="108" ry="63" fill="#0a1827"/>
       {stripes.map((s,i)=><rect key={i} x={s.x} y={fy} width={f(fw/9)} height={fh} fill={s.fill} clipPath="url(#fcc)"/>)}
       <g clipPath="url(#fcc)">
         <rect x={f(fx+1.5)} y={f(fy+1.5)} width={f(fw-3)} height={f(fh-3)} rx="6" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
@@ -177,14 +196,14 @@ function MapaElCampin({avail, selected, onSelect}) {
         <rect x={f(fx+1.5)} y={f(CY-20)} width="34" height="40" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
         <rect x={f(fx+fw-35.5)} y={f(CY-20)} width="34" height="40" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
       </g>
-      {SECS.filter(sec=>(avail[sec.id]||[]).length>0).map(sec=>{
+      {SECS.filter(sec=>(avail[sec.id]||[]).length>0||selected===sec.id).map(sec=>{
         const [lx,ly]=midPt(sec)
-        return <text key={sec.id+'l'} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fontWeight="700" fill="rgba(255,255,255,0.7)" style={{pointerEvents:'none'}}>{sec.name}</text>
+        return (
+          <text key={sec.id+'l'} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
+            fontSize="8" fontWeight="700" fill={selected===sec.id?'#fff':'rgba(255,255,255,0.85)'}
+            style={{pointerEvents:'none'}}>{sec.name}</text>
+        )
       })}
-      <text x={CX} y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill="rgba(255,255,255,0.2)">N</text>
-      <text x={CX} y="350" textAnchor="middle" fontSize="10" fontWeight="700" fill="rgba(255,255,255,0.2)">S</text>
-      <text x="472" y={CY+4} textAnchor="middle" fontSize="10" fontWeight="700" fill="rgba(255,255,255,0.2)">E</text>
-      <text x="8" y={CY+4} textAnchor="middle" fontSize="10" fontWeight="700" fill="rgba(255,255,255,0.2)">O</text>
     </svg>
   )
 }
@@ -2268,8 +2287,9 @@ function App() {
             porTribuna[t].push(b)
           })
           const tribunas = Object.keys(porTribuna)
-          const seccionActual = seccionMapa || tribunas[0] || null
+          const seccionActual = seccionMapa || null
           const boletasSeccion = seccionActual ? (porTribuna[seccionActual] || []) : disponibles
+          const esElCampin = (info?.estadio||'').toLowerCase().replace(/[íi]/g,'i').includes('campin')
           return (
             <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
               <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
@@ -2292,10 +2312,23 @@ function App() {
                   <p style={{color:'#8892a4',fontSize:'14px',margin:'0 0 4px'}}>{[info?.ciudad, info?.estadio].filter(Boolean).join(' · ')}</p>
                   {fechaStr && <p style={{color:'#a78bfa',fontSize:'13px',margin:0,fontWeight:'600'}}>{fechaStr}{horaStr ? ` · ${horaStr}` : ''}</p>}
                 </div>
-                <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'20px',marginBottom:'20px',textAlign:'center'}}>
-                  <p style={{color:'#4f7eff',fontSize:'13px',fontWeight:'700',margin:'0 0 6px',textTransform:'uppercase',letterSpacing:'0.5px'}}>Mapa del estadio</p>
-                  <p style={{color:'#4e5a6e',fontSize:'13px',margin:0}}>🗺️ Próximamente — selección interactiva de tribuna</p>
-                </div>
+                {esElCampin ? (
+                  <div style={{marginBottom:'16px'}}>
+                    <p style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600',textAlign:'center',margin:'0 0 8px',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+                      {seccionActual ? `📍 ${seccionActual}` : 'Toca una tribuna disponible'}
+                    </p>
+                    <MapaElCampin
+                      avail={porTribuna}
+                      selected={seccionActual}
+                      onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
+                    />
+                  </div>
+                ) : (
+                  <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'20px',marginBottom:'20px',textAlign:'center'}}>
+                    <p style={{color:'#4f7eff',fontSize:'13px',fontWeight:'700',margin:'0 0 6px',textTransform:'uppercase',letterSpacing:'0.5px'}}>Mapa del estadio</p>
+                    <p style={{color:'#4e5a6e',fontSize:'13px',margin:0}}>🗺️ Próximamente — selección interactiva de tribuna</p>
+                  </div>
+                )}
                 {tribunas.length > 1 && (
                   <div style={{display:'flex',gap:'8px',overflowX:'auto',paddingBottom:'4px',marginBottom:'16px'}}>
                     {tribunas.map(t => (
