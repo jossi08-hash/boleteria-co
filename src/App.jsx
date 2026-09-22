@@ -112,7 +112,7 @@ function coloresEquipo(nombre) {
   if (n.includes('santa fe')) return ['#c8102e','#ffffff']
   if (n.includes('millonarios')) return ['#003fa0','#b8d4f5']
   if (n.includes('atletico nacional')||(n.includes('nacional')&&!n.includes('santa'))) return ['#006400','#f5c518']
-  if (n.includes('america')) return ['#dd0000','#c9a227']
+  if (n.includes('america')||n.includes('américa')) return ['#dd0000','#c9a227']
   if (n.includes('aguilas')||n.includes('águilas')||n.includes('doradas')) return ['#f0a500','#1a1a1a']
   if (n.includes('junior')) return ['#cc0000','#f5c518']
   if (n.includes('medellin')||n.includes('medellín')||n.includes('dim')) return ['#cc0000','#003fa0']
