@@ -454,6 +454,7 @@ function App() {
   useEffect(() => {
     cargarBoletas()
     cargarEventos()
+    cargarEstadios()
     obtenerUsuarioActual().then(u => setUsuario(u))
 
     const urlParams = new URLSearchParams(window.location.search)
@@ -771,7 +772,10 @@ function App() {
       const sugerida = ev ? sugerirPlataforma(ev.nombre) : ''
       if (sugerida) updated.plataforma = sugerida
       updated.tribuna = ''
-      setTribunasEvento(ev ? (ev.tribunas || []) : [])
+      const estNombre = ev ? (ev.estadio || '') : ''
+      const estObj = estadios.find(e => e.nombre.toLowerCase() === estNombre.toLowerCase())
+      const tribs = (estObj && estObj.tribunas && estObj.tribunas.length > 0) ? estObj.tribunas : (ev ? (ev.tribunas || []) : [])
+      setTribunasEvento(tribs)
     }
     setForm(updated)
   }
@@ -2263,6 +2267,15 @@ function App() {
               <option value="">Selecciona un evento</option>
               {eventos.map(function(ev) { return <option key={ev.id} value={ev.id}>{ev.nombre} ({ev.moneda || 'COP'})</option> })}
             </select>
+            {form.eventoId && (() => {
+              const ev = eventos.find(e => e.id === form.eventoId)
+              const info = ev ? [ev.ciudad, ev.estadio].filter(Boolean).join(' · ') : ''
+              return info ? (
+                <p style={{color:'#6b93ff',fontSize:'12px',margin:'-8px 0 14px',display:'flex',alignItems:'center',gap:'6px'}}>
+                  <span>📍</span><span>{info}</span>
+                </p>
+              ) : null
+            })()}
             <label style={s.label}>Plataforma de la boleta</label>
             <select name="plataforma" value={form.plataforma} onChange={manejarCambio} required style={s.input}>
               <option value="">Selecciona la app donde tienes la boleta</option>
