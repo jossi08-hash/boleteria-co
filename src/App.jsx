@@ -438,6 +438,7 @@ function App() {
   const [eventoSeleccionado, setEventoSeleccionado] = useState(null)
   const [seccionMapa, setSeccionMapa] = useState(null)
   const [faqAbierto, setFaqAbierto] = useState(null)
+  const [instruccionesAbiertas, setInstruccionesAbiertas] = useState(true)
   const [datosEntrega, setDatosEntrega] = useState({})
 
 
@@ -2758,6 +2759,51 @@ function App() {
                     <p style={{color:'#4e5a6e',fontSize:'13px',margin:0}}>🗺️ Próximamente — selección interactiva de tribuna</p>
                   </div>
                 )}
+
+
+                {/* ── BANNER ¿CÓMO FUNCIONA? ── */}
+                {(() => {
+                  const plataformasEvento = [...new Set(disponibles.map(b=>b.plataforma).filter(p=>p&&PLATAFORMAS[p]))]
+                  return (
+                    <div style={{background:'rgba(79,126,255,0.06)',border:'1px solid rgba(79,126,255,0.18)',borderRadius:'14px',marginBottom:'20px',overflow:'hidden'}}>
+                      <button
+                        onClick={()=>setInstruccionesAbiertas(!instruccionesAbiertas)}
+                        style={{width:'100%',background:'none',border:'none',padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',gap:'8px'}}
+                      >
+                        <span style={{color:'#6b93ff',fontSize:'13px',fontWeight:'800',letterSpacing:'-0.2px'}}>ℹ️ ¿Cómo funciona la compra?</span>
+                        <span style={{color:'#4f7eff',fontSize:'14px',transition:'transform 0.2s',display:'inline-block',transform:instruccionesAbiertas?'rotate(180deg)':'rotate(0deg)'}}>▾</span>
+                      </button>
+                      {instruccionesAbiertas && (
+                        <div style={{padding:'0 16px 16px'}}>
+                          {[
+                            {n:'1', text:'Elige tu sección y presiona "Añadir al carrito"'},
+                            {n:'2', text:'Paga con Wompi — tu dinero queda en custodia hasta que confirmes la recepción'},
+                            {n:'3', text:'El vendedor tiene máximo 24 horas para transferirte la boleta'},
+                            {n:'4', text:'Confirmas que la recibiste → el vendedor cobra'},
+                          ].map(({n,text})=>(
+                            <div key={n} style={{display:'flex',gap:'10px',marginBottom:'8px',alignItems:'flex-start'}}>
+                              <span style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',fontSize:'11px',fontWeight:'800',borderRadius:'50%',width:'20px',height:'20px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'1px'}}>{n}</span>
+                              <p style={{color:'#8892a4',fontSize:'13px',lineHeight:'1.5',margin:0}}>{text}</p>
+                            </div>
+                          ))}
+                          {plataformasEvento.map(plat => (
+                            <div key={plat} style={{marginTop:'14px',background:'rgba(0,0,0,0.25)',borderRadius:'10px',padding:'12px 14px',borderLeft:`3px solid ${PLATAFORMAS[plat].color}`}}>
+                              <p style={{color:'#eef0f6',fontSize:'12px',fontWeight:'800',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'0.5px'}}>
+                                📲 Cómo recibir tu boleta en {plat}
+                              </p>
+                              {PLATAFORMAS[plat].pasosComprador.map((paso,i)=>(
+                                <div key={i} style={{display:'flex',gap:'8px',marginBottom:'6px',alignItems:'flex-start'}}>
+                                  <span style={{color:PLATAFORMAS[plat].color,fontSize:'11px',fontWeight:'800',flexShrink:0,minWidth:'14px',marginTop:'2px'}}>{i+1}.</span>
+                                  <p style={{color:'#6b7a94',fontSize:'12px',lineHeight:'1.5',margin:0}}>{paso}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })()}
 
                 {/* TRIBUNA PILLS (non-Campín) */}
                 {!esElCampin && !esAtanasio && !esTecho && tribunas.length > 1 && (
