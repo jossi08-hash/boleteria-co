@@ -1466,7 +1466,7 @@ function App() {
       {/* NAV */}
       <nav style={s.nav}>
         <div style={s.navInner}>
-          <h1 style={s.logo}><img src='/icon-192.png' style={{width:'28px',height:'28px',borderRadius:'6px',flexShrink:0,verticalAlign:'middle',marginRight:'6px'}} alt='BCO' />Boletería <span style={s.logoPunto}>CO</span></h1>
+          <h1 style={s.logo}><img src='/icon-192.png' style={{width:'38px',height:'38px',borderRadius:'8px',flexShrink:0,verticalAlign:'middle',marginRight:'6px'}} alt='BCO' />Boletería <span style={s.logoPunto}>CO</span></h1>
           <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
             {usuario ? (
               <>
@@ -1513,7 +1513,7 @@ function App() {
           <div style={{position:'fixed',top:0,right:0,bottom:0,width:'78%',maxWidth:'300px',zIndex:999,background:'#0d1117',borderLeft:'1px solid #1e2a3a',display:'flex',flexDirection:'column',overflowY:'auto'}}>
             {/* Header */}
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'18px 20px',borderBottom:'1px solid #1e2a3a'}}>
-              <h2 style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px',display:'flex',alignItems:'center',gap:'7px'}}><img src='/icon-192.png' style={{width:'26px',height:'26px',borderRadius:'5px',flexShrink:0}} alt='BCO' />Boletería <span style={{color:'#4f7eff'}}>CO</span></h2>
+              <h2 style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px',display:'flex',alignItems:'center',gap:'7px'}}><img src='/icon-192.png' style={{width:'34px',height:'34px',borderRadius:'7px',flexShrink:0}} alt='BCO' />Boletería <span style={{color:'#4f7eff'}}>CO</span></h2>
               <button onClick={()=>setMostrarMenu(false)} style={{background:'transparent',border:'none',color:'#6b7a94',cursor:'pointer',fontSize:'20px',lineHeight:1,padding:'2px 6px'}}>✕</button>
             </div>
             {/* Usuario */}
