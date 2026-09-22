@@ -1766,6 +1766,7 @@ function App() {
               </p>
             )}
             <label style={s.label}>Tribuna</label>
+            <p style={{color:'#f87171',fontSize:'10px',margin:'-8px 0 6px'}}>DEBUG: {form.tribunasEvento.length} tribunas | eventoId: {form.eventoId ? 'ok' : 'vacio'}</p>
             {form.tribunasEvento.length > 0
               ? <select name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input}>
                   <option value="">Selecciona tribuna</option>
@@ -1790,6 +1791,7 @@ function App() {
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
                   <div>
                     <label style={{...s.label,marginBottom:'4px'}}>Tribuna</label>
+                    <p style={{color:'#f87171',fontSize:'9px',margin:'-4px 0 4px'}}>trbs:{trbs.length}</p>
                     {trbs.length > 0
                       ? <select value={s2.tribuna} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:e.target.value}:x))} required style={{...s.input,marginBottom:0}}>
                           <option value="">Selecciona tribuna</option>
