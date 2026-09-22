@@ -429,6 +429,14 @@ function App() {
   const [pagoInfo, setPagoInfo] = useState(null)
   const [docModal, setCedModal] = useState(null)   // null | { tipo: 'boleta'|'carrito', boleta?: object }
   const [documentoInput, setDocumentoInput] = useState('')
+  const [perfilData, setPerfilData] = useState({ nombre: '', documento: '', telefono: '' })
+  const [perfilCargado, setPerfilCargado] = useState(false)
+  const [perfilGuardando, setPerfilGuardando] = useState(false)
+  const [perfilMensaje, setPerfilMensaje] = useState('')
+  const [perfilCambiandoPassword, setPerfilCambiandoPassword] = useState(false)
+  const [perfilPassActual, setPerfilPassActual] = useState('')
+  const [perfilPassNueva, setPerfilPassNueva] = useState('')
+  const [perfilPassConfirm, setPerfilPassConfirm] = useState('')
   const [qrModal, setQrModal] = useState(null)      // null | { qr, referencia, ordenes, carritoCount }
   const [boldCargando, setBoldCargando] = useState(false)
   const [paginaActual, setPaginaActual] = useState('inicio')
@@ -926,6 +934,51 @@ function App() {
   }
 
   async function manejarCerrarSesion() { await cerrarSesion(); setUsuario(null); setPaginaActual('inicio') }
+
+  async function cargarPerfil() {
+    if (!usuario) return
+    const { data } = await supabase.from('usuarios').select('nombre, documento, telefono').eq('id', usuario.id).single()
+    if (data) {
+      setPerfilData({ nombre: data.nombre || '', documento: data.documento || '', telefono: data.telefono || '' })
+      setPerfilCargado(true)
+    }
+  }
+
+  async function guardarPerfil() {
+    if (!usuario) return
+    setPerfilGuardando(true)
+    setPerfilMensaje('')
+    const { error } = await supabase.from('usuarios').update({
+      nombre: perfilData.nombre.trim(),
+      documento: perfilData.documento.trim(),
+      telefono: perfilData.telefono.trim(),
+    }).eq('id', usuario.id)
+    setPerfilGuardando(false)
+    if (error) {
+      setPerfilMensaje('❌ Error al guardar: ' + error.message)
+    } else {
+      setUsuario(u => ({...u, nombre: perfilData.nombre.trim()}))
+      setPerfilMensaje('✅ Datos actualizados correctamente.')
+      setTimeout(() => setPerfilMensaje(''), 3000)
+    }
+  }
+
+  async function cambiarPasswordPerfil() {
+    if (!perfilPassNueva || perfilPassNueva.length < 6) { setPerfilMensaje('❌ La contraseña debe tener al menos 6 caracteres.'); return }
+    if (perfilPassNueva !== perfilPassConfirm) { setPerfilMensaje('❌ Las contraseñas no coinciden.'); return }
+    setPerfilGuardando(true)
+    setPerfilMensaje('')
+    const { error } = await supabase.auth.updateUser({ password: perfilPassNueva })
+    setPerfilGuardando(false)
+    if (error) {
+      setPerfilMensaje('❌ ' + error.message)
+    } else {
+      setPerfilMensaje('✅ Contraseña actualizada.')
+      setPerfilPassActual(''); setPerfilPassNueva(''); setPerfilPassConfirm('')
+      setPerfilCambiandoPassword(false)
+      setTimeout(() => setPerfilMensaje(''), 3000)
+    }
+  }
 
   function irAMisBoletas() {
     setPaginaActual('mis-boletas')
@@ -1581,6 +1634,13 @@ function App() {
                 <button onClick={()=>{irAMisBoletas();setMostrarMenu(false)}}
                   style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
                   <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🎟</span> Mis boletas
+                </button>
+              )}
+              {/* Mi perfil */}
+              {usuario && (
+                <button onClick={()=>{setPaginaActual('mi-perfil');cargarPerfil();cerrarOverlays()}}
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                  <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>👤</span> Mi perfil
                 </button>
               )}
               {/* Carrito */}
@@ -3096,6 +3156,118 @@ function App() {
             </div>
           </div>
         )}
+
+      {paginaActual === 'mi-perfil' && usuario && (
+        <div style={{maxWidth:'540px',margin:'0 auto',padding:'32px 20px 80px'}}>
+          <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:'0 0 28px'}}>← Volver</button>
+          <div style={{display:'flex',alignItems:'center',gap:'14px',marginBottom:'32px'}}>
+            <div style={{width:'52px',height:'52px',borderRadius:'50%',background:'linear-gradient(135deg,#4f7eff,#a05fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',flexShrink:0}}>
+              {(perfilData.nombre||usuario.email||'?')[0].toUpperCase()}
+            </div>
+            <div>
+              <h1 style={{fontSize:'22px',fontWeight:'900',color:'#eef0f6',margin:'0 0 2px'}}>Mi perfil</h1>
+              <p style={{color:'#4e5a6e',fontSize:'13px',margin:0}}>{usuario.email}</p>
+            </div>
+          </div>
+
+          {/* Datos personales */}
+          <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginBottom:'16px'}}>
+            <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 18px'}}>Datos personales</p>
+
+            <div style={{marginBottom:'14px'}}>
+              <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Nombre completo</label>
+              <input
+                value={perfilData.nombre}
+                onChange={e=>setPerfilData(d=>({...d,nombre:e.target.value}))}
+                placeholder="Tu nombre completo"
+                style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+              />
+            </div>
+
+            <div style={{marginBottom:'14px'}}>
+              <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Número de documento</label>
+              <input
+                value={perfilData.documento}
+                onChange={e=>setPerfilData(d=>({...d,documento:e.target.value}))}
+                placeholder="Cédula o pasaporte"
+                style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+              />
+            </div>
+
+            <div style={{marginBottom:'14px'}}>
+              <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Teléfono / celular</label>
+              <input
+                value={perfilData.telefono}
+                onChange={e=>setPerfilData(d=>({...d,telefono:e.target.value}))}
+                placeholder="Ej: 3001234567"
+                style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+              />
+            </div>
+
+            <div style={{marginBottom:'18px'}}>
+              <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Correo electrónico</label>
+              <input
+                value={usuario.email}
+                readOnly
+                style={{width:'100%',background:'rgba(13,17,26,0.5)',border:'1px solid #131c28',borderRadius:'8px',color:'#4e5a6e',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',cursor:'not-allowed'}}
+              />
+              <p style={{color:'#2e3a4e',fontSize:'11px',margin:'4px 0 0'}}>El correo no se puede cambiar desde aquí.</p>
+            </div>
+
+            {perfilMensaje && !perfilCambiandoPassword && (
+              <p style={{color:perfilMensaje.startsWith('✅')?'#4ade80':'#f87171',fontSize:'13px',margin:'0 0 12px'}}>{perfilMensaje}</p>
+            )}
+
+            <button
+              onClick={guardarPerfil}
+              disabled={perfilGuardando}
+              style={{width:'100%',background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',fontSize:'14px',fontWeight:'700',padding:'12px',cursor:'pointer',opacity:perfilGuardando?0.6:1}}>
+              {perfilGuardando?'Guardando...':'Guardar cambios'}
+            </button>
+          </div>
+
+          {/* Cambiar contraseña */}
+          <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer'}} onClick={()=>{setPerfilCambiandoPassword(!perfilCambiandoPassword);setPerfilMensaje('')}}>
+              <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:0}}>Cambiar contraseña</p>
+              <span style={{color:'#4e5a6e',fontSize:'18px',lineHeight:1,transform:perfilCambiandoPassword?'rotate(180deg)':'rotate(0deg)',transition:'transform 0.2s'}}>▾</span>
+            </div>
+            {perfilCambiandoPassword && (
+              <div style={{marginTop:'16px'}}>
+                <div style={{marginBottom:'12px'}}>
+                  <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Nueva contraseña</label>
+                  <input
+                    type="password"
+                    value={perfilPassNueva}
+                    onChange={e=>setPerfilPassNueva(e.target.value)}
+                    placeholder="Mínimo 6 caracteres"
+                    style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+                  />
+                </div>
+                <div style={{marginBottom:'16px'}}>
+                  <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Confirmar contraseña</label>
+                  <input
+                    type="password"
+                    value={perfilPassConfirm}
+                    onChange={e=>setPerfilPassConfirm(e.target.value)}
+                    placeholder="Repite la nueva contraseña"
+                    style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+                  />
+                </div>
+                {perfilMensaje && perfilCambiandoPassword && (
+                  <p style={{color:perfilMensaje.startsWith('✅')?'#4ade80':'#f87171',fontSize:'13px',margin:'0 0 12px'}}>{perfilMensaje}</p>
+                )}
+                <button
+                  onClick={cambiarPasswordPerfil}
+                  disabled={perfilGuardando}
+                  style={{width:'100%',background:'rgba(160,82,255,0.15)',border:'1px solid rgba(160,82,255,0.3)',borderRadius:'10px',color:'#c084fc',fontSize:'14px',fontWeight:'700',padding:'12px',cursor:'pointer',opacity:perfilGuardando?0.6:1}}>
+                  {perfilGuardando?'Actualizando...':'Actualizar contraseña'}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {paginaActual === 'privacidad' && (
         <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 60px'}}>
