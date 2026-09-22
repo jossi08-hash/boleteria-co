@@ -2993,6 +2993,14 @@ function App() {
                       <div style={{background:'#E40046',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center'}}>
                         <span style={{color:'white',fontSize:'9px',fontWeight:'800'}}>Daviplata</span>
                       </div>
+                      {/* Addi */}
+                      <div style={{background:'#00C896',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center'}}>
+                        <span style={{color:'white',fontSize:'10px',fontWeight:'800',letterSpacing:'-0.3px'}}>Addi</span>
+                      </div>
+                      {/* Sumas */}
+                      <div style={{background:'#FF6B00',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center'}}>
+                        <span style={{color:'white',fontSize:'9px',fontWeight:'800',letterSpacing:'-0.2px'}}>Sumas</span>
+                      </div>
                     </div>
                     <p style={{color:'#4e5a6e',fontSize:'11px',textAlign:'center',marginTop:'10px',margin:'10px 0 0'}}>🔒 Un solo cargo para todo el carrito</p>
                   </div>
