@@ -204,6 +204,11 @@ function MapaElCampin({avail, selected, onSelect}) {
             style={{pointerEvents:'none'}}>{sec.name}</text>
         )
       })}
+      {/* Compass markers */}
+      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
+      <text x="210" y="372" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
+      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
+      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
     </svg>
   )
 }
@@ -2292,91 +2297,129 @@ function App() {
           const esElCampin = (info?.estadio||'').toLowerCase().replace(/[íi]/g,'i').includes('campin')
           return (
             <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-              <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
-                <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
-                  <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                  <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0}}>🎟️ Entradas</p>
+              {/* NAV */}
+              <nav style={{background:'rgba(8,11,18,0.96)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1a2332',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+                <div style={{maxWidth:'680px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'56px'}}>
+                  <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#6b7a94',cursor:'pointer',fontSize:'13px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                  <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.2px'}}>🎟️ Entradas</p>
                   <div style={{width:'60px'}} />
                 </div>
               </nav>
-              <div style={{maxWidth:'720px',margin:'0 auto',padding:'0 20px 40px'}}>
-                <div style={{textAlign:'center',padding:'32px 0 24px'}}>
-                  <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:'16px',marginBottom:'16px'}}>
-                    <EscudoSVG nombre={equipo1} size={56} />
+              <div style={{maxWidth:'680px',margin:'0 auto',padding:'0 20px 80px'}}>
+
+                {/* HERO */}
+                <div style={{padding:'24px 0 20px',borderBottom:'1px solid #111d2b',marginBottom:'20px'}}>
+                  <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:'20px',marginBottom:'14px'}}>
+                    <EscudoSVG nombre={equipo1} size={52} />
                     {equipo2 && <>
-                      <span style={{color:'#4e5a6e',fontSize:'18px',fontWeight:'700'}}>vs</span>
-                      <EscudoSVG nombre={equipo2} size={56} />
+                      <span style={{color:'#293748',fontSize:'13px',fontWeight:'700',letterSpacing:'1px'}}>VS</span>
+                      <EscudoSVG nombre={equipo2} size={52} />
                     </>}
                   </div>
-                  <h1 style={{color:'#eef0f6',fontSize:'20px',fontWeight:'800',margin:'0 0 8px',lineHeight:'1.3'}}>{info?.nombre}</h1>
-                  <p style={{color:'#8892a4',fontSize:'14px',margin:'0 0 4px'}}>{[info?.ciudad, info?.estadio].filter(Boolean).join(' · ')}</p>
-                  {fechaStr && <p style={{color:'#a78bfa',fontSize:'13px',margin:0,fontWeight:'600'}}>{fechaStr}{horaStr ? ` · ${horaStr}` : ''}</p>}
+                  <h1 style={{color:'#eef0f6',fontSize:'19px',fontWeight:'800',margin:'0 0 8px',lineHeight:'1.25',textAlign:'center'}}>{info?.nombre}</h1>
+                  <div style={{display:'flex',justifyContent:'center',flexWrap:'wrap',gap:'6px',alignItems:'center'}}>
+                    {fechaStr && <span style={{color:'#a78bfa',fontSize:'12px',fontWeight:'600',background:'rgba(167,139,250,0.1)',padding:'4px 10px',borderRadius:'20px'}}>{fechaStr}{horaStr ? ` · ${horaStr}` : ''}</span>}
+                    {info?.estadio && <span style={{color:'#6b7a94',fontSize:'12px',fontWeight:'500'}}>{[info?.ciudad, info?.estadio].filter(Boolean).join(' · ')}</span>}
+                  </div>
                 </div>
+
+                {/* MAPA */}
                 {esElCampin ? (
-                  <div style={{marginBottom:'16px'}}>
-                    <p style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600',textAlign:'center',margin:'0 0 8px',textTransform:'uppercase',letterSpacing:'0.5px'}}>
-                      {seccionActual ? `📍 ${seccionActual}` : 'Toca una tribuna disponible'}
+                  <div style={{marginBottom:'20px'}}>
+                    <p style={{color:'#4e5a6e',fontSize:'10px',fontWeight:'700',textAlign:'center',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'1px'}}>
+                      🗺️ Toca una tribuna para ver las boletas
                     </p>
                     <MapaElCampin
                       avail={porTribuna}
                       selected={seccionActual}
                       onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
                     />
+                    {/* Leyenda */}
+                    <div style={{display:'flex',justifyContent:'center',gap:'16px',marginTop:'10px',flexWrap:'wrap'}}>
+                      {[['rgba(61,219,122,0.7)','Disponible'],['rgba(79,126,255,0.8)','Seleccionado'],['rgba(255,255,255,0.15)','Sin disponibilidad']].map(([col,lbl])=>(
+                        <div key={lbl} style={{display:'flex',alignItems:'center',gap:'5px'}}>
+                          <span style={{width:'10px',height:'10px',borderRadius:'2px',background:col,display:'inline-block',flexShrink:0}}/>
+                          <span style={{color:'#6b7a94',fontSize:'11px',fontWeight:'500'}}>{lbl}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 ) : (
-                  <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'20px',marginBottom:'20px',textAlign:'center'}}>
-                    <p style={{color:'#4f7eff',fontSize:'13px',fontWeight:'700',margin:'0 0 6px',textTransform:'uppercase',letterSpacing:'0.5px'}}>Mapa del estadio</p>
+                  <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1a2332',borderRadius:'14px',padding:'18px',marginBottom:'20px',textAlign:'center'}}>
+                    <p style={{color:'#4f7eff',fontSize:'12px',fontWeight:'700',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>Mapa del estadio</p>
                     <p style={{color:'#4e5a6e',fontSize:'13px',margin:0}}>🗺️ Próximamente — selección interactiva de tribuna</p>
                   </div>
                 )}
-                {tribunas.length > 1 && (
+
+                {/* TRIBUNA PILLS (non-Campín) */}
+                {!esElCampin && tribunas.length > 1 && (
                   <div style={{display:'flex',gap:'8px',overflowX:'auto',paddingBottom:'4px',marginBottom:'16px'}}>
                     {tribunas.map(t => (
-                      <button
-                        key={t}
-                        onClick={()=>setSeccionMapa(t)}
-                        style={{background: seccionActual===t ? '#4f7eff' : 'rgba(255,255,255,0.04)', border: seccionActual===t ? 'none' : '1px solid #1e2a3a', borderRadius:'20px', color: seccionActual===t ? '#fff' : '#8892a4', fontSize:'13px', fontWeight:'600', padding:'8px 16px', cursor:'pointer', whiteSpace:'nowrap', flexShrink:0}}
+                      <button key={t} onClick={()=>setSeccionMapa(seccionMapa===t?null:t)}
+                        style={{background:seccionActual===t?'#4f7eff':'rgba(255,255,255,0.04)',border:seccionActual===t?'none':'1px solid #1a2332',borderRadius:'20px',color:seccionActual===t?'#fff':'#8892a4',fontSize:'12px',fontWeight:'600',padding:'7px 14px',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}
                       >{t}</button>
                     ))}
                   </div>
                 )}
-                <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:'0 0 12px'}}>{boletasSeccion.length} entrada{boletasSeccion.length !== 1 ? 's' : ''} disponible{boletasSeccion.length !== 1 ? 's' : ''}</p>
+
+                {/* SECCIÓN HEADER */}
+                {seccionActual ? (
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
+                    <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                      <span style={{width:'10px',height:'10px',borderRadius:'50%',background:'#4f7eff',display:'inline-block',flexShrink:0}}/>
+                      <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700'}}>Tribuna {seccionActual}</span>
+                    </div>
+                    <span style={{color:'#6b93ff',fontSize:'12px',fontWeight:'600',background:'rgba(79,126,255,0.1)',padding:'4px 10px',borderRadius:'20px'}}>
+                      {boletasSeccion.length} disponible{boletasSeccion.length!==1?'s':''}
+                    </span>
+                  </div>
+                ) : (
+                  <p style={{color:'#6b7a94',fontSize:'13px',fontWeight:'600',margin:'0 0 12px'}}>
+                    {boletasSeccion.length} entrada{boletasSeccion.length!==1?'s':''} disponible{boletasSeccion.length!==1?'s':''}
+                  </p>
+                )}
+
+                {/* BOLETA CARDS */}
                 {boletasSeccion.map(b => {
                   const moneda = info?.moneda || 'COP'
                   const esAdminB = b.publicada_por_admin === true || b.usuarios?.es_admin === true
                   const enCarrito = carrito.some(ci => ci.id === b.id)
+                  const precioFinal = calcularTotal(b.precio, moneda, esAdminB)
                   return (
-                    <div
-                      key={b.id}
-                      onClick={() => enCarrito ? setCarrito(carrito.filter(ci => ci.id !== b.id)) : setCarrito([...carrito, b])}
-                      style={{display:'flex',justifyContent:'space-between',alignItems:'center',background: enCarrito ? 'rgba(79,222,128,0.07)' : 'rgba(255,255,255,0.03)',border: enCarrito ? '1px solid #166534' : '1px solid #1e2a3a',borderRadius:'12px',padding:'14px 16px',marginBottom:'8px',cursor:'pointer',transition:'all 0.15s'}}
-                    >
-                      <div style={{display:'flex',alignItems:'center',gap:'12px'}}>
-                        <div style={{width:'22px',height:'22px',borderRadius:'50%',border: enCarrito ? 'none' : '2px solid #2a3a4a',background: enCarrito ? '#4ade80' : 'transparent',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                          {enCarrito && <svg width='12' height='12' viewBox='0 0 12 12' fill='none'><path d='M2 6l3 3 5-5' stroke='#0a1a0a' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/></svg>}
+                    <div key={b.id} style={{background:enCarrito?'rgba(61,219,122,0.05)':'#0d1420',border:enCarrito?'1px solid rgba(74,222,128,0.3)':'1px solid #1a2332',borderRadius:'14px',padding:'14px 16px',marginBottom:'10px',transition:'all 0.15s'}}>
+                      {/* Badge */}
+                      {esAdminB && (
+                        <div style={{display:'inline-flex',alignItems:'center',gap:'4px',background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'20px',padding:'3px 10px',marginBottom:'10px'}}>
+                          <span style={{color:'#6b93ff',fontSize:'10px',fontWeight:'700'}}>✓ Verificado · Boletería CO</span>
                         </div>
-                        <div>
-                          <p style={{color: enCarrito ? '#4ade80' : '#eef0f6', fontSize:'14px', fontWeight:'600', margin:'0 0 2px'}}>
-                            {b.tribuna && <span style={{color:'#93c5fd'}}>Tribuna {b.tribuna}</span>}
+                      )}
+                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}}>
+                        <div style={{flex:1,minWidth:0}}>
+                          <p style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700',margin:'0 0 3px'}}>
+                            {b.tribuna ? `Tribuna ${b.tribuna}` : 'General'}
                             {b.fila ? ` · Fila ${b.fila}` : ''}
                             {b.silla ? ` · Silla ${b.silla}` : ''}
                           </p>
-                          <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>
-                            {esAdminB ? <span style={{color:'#6b93ff',fontWeight:'600'}}>✓ Verificado · </span> : ''}
-                            {calcularTotal(b.precio, moneda, esAdminB)}
-                          </p>
+                          <p style={{color:enCarrito?'#4ade80':'#3de37a',fontSize:'18px',fontWeight:'800',margin:0,letterSpacing:'-0.5px'}}>{precioFinal}</p>
                         </div>
+                        <button
+                          onClick={() => enCarrito ? setCarrito(carrito.filter(ci=>ci.id!==b.id)) : setCarrito([...carrito, b])}
+                          style={{background:enCarrito?'transparent':'#4f7eff',border:enCarrito?'1px solid rgba(74,222,128,0.4)':'none',borderRadius:'10px',color:enCarrito?'#4ade80':'#fff',fontSize:'12px',fontWeight:'700',padding:'8px 14px',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0,transition:'all 0.15s'}}
+                        >
+                          {enCarrito ? '✓ En carrito' : 'Añadir al carrito'}
+                        </button>
                       </div>
-                      <span style={{color: enCarrito ? '#4ade80' : '#4f7eff', fontSize:'13px', fontWeight:'700', flexShrink:0}}>{enCarrito ? '✓' : '+'}</span>
                     </div>
                   )
                 })}
+
+                {/* BOTÓN VER CARRITO */}
                 {carrito.length > 0 && (
                   <button
                     onClick={()=>setPaginaActual('carrito')}
-                    style={{position:'sticky',bottom:'20px',width:'100%',background:'#4f7eff',border:'none',borderRadius:'14px',color:'#fff',fontSize:'15px',fontWeight:'700',cursor:'pointer',padding:'16px',marginTop:'12px',boxShadow:'0 4px 20px rgba(79,126,255,0.4)'}}
+                    style={{position:'sticky',bottom:'20px',width:'100%',background:'#4f7eff',border:'none',borderRadius:'14px',color:'#fff',fontSize:'15px',fontWeight:'700',cursor:'pointer',padding:'16px',marginTop:'12px',boxShadow:'0 4px 24px rgba(79,126,255,0.45)'}}
                   >
-                    Ver carrito ({carrito.length} entrada{carrito.length !== 1 ? 's' : ''}) →
+                    Ver carrito ({carrito.length} entrada{carrito.length!==1?'s':''}) →
                   </button>
                 )}
               </div>
