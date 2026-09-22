@@ -12,13 +12,15 @@ const PLATAFORMAS = {
     instrVendedor: 'Abre TuBoletaPass → Mis entradas → selecciona la boleta → Enviar Entrada → ingresa boletas@boleteriaco.com.',
     instrComprador: 'Descarga TuBoletaPass en App Store o Google Play. Regístrate con tu documento y correo. Boletería CO te transferirá la boleta; aparecerá en "Mis entradas".',
     tipoEntrega: 'email',
-    requisitoReceptor: 'El destinatario debe tener cuenta activa y registrada en Tuboleta Pass para recibir la entrada.',
+    requisitoReceptor: 'La persona que recibe la entrada debe tener una cuenta activa y registrada previamente en la App Tuboleta Pass.',
+    notaVendedor: 'El destinatario recibirá un correo con instrucciones para aceptar la entrada en su cuenta de Tuboleta Pass. Si aún no ha aceptado la boleta, puedes cancelar la transferencia desde el menú principal en la opción "Pendiente".',
+    emailAdmin: 'boletas@boleteriaco.com',
     pasosVendedor: [
       'Abre la aplicación Tuboleta Pass en tu celular.',
-      'Entra a "Mis entradas" y selecciona el evento.',
+      'Entra a la sección "Mis entradas" y selecciona el evento deseado.',
       'Haz clic en la boleta que deseas transferir.',
-      'Toca "Enviar Entrada" en la parte inferior.',
-      'Escribe boletas@boleteriaco.com en el campo de correo.',
+      'Toca el botón "Enviar Entrada" ubicado en la parte inferior.',
+      'Escribe el correo electrónico: boletas@boleteriaco.com.',
       'Confirma la acción para finalizar el envío.',
     ],
     pasosComprador: [
@@ -34,13 +36,14 @@ const PLATAFORMAS = {
     instrVendedor: 'Abre Quentro → Mis Entradas → selecciona la entrada → icono de flecha → ingresa boletas@boleteriaco.com.',
     instrComprador: 'Descarga Quentro en App Store o Google Play. Regístrate con tu correo y número de documento. Boletería CO te transferirá la entrada; recibirás una notificación en la app.',
     tipoEntrega: 'email',
-    requisitoReceptor: 'El destinatario debe tener descargada la app y una cuenta creada en Quentro.',
+    requisitoReceptor: 'La persona que recibe la entrada debe tener una cuenta activa y registrada previamente en la App Quentro.',
+    emailAdmin: 'boletas@boleteriaco.com',
     pasosVendedor: [
-      'Abre Quentro e inicia sesión con tu cuenta.',
-      'Ve a "Mis Entradas" y presiona sobre el ticket a transferir.',
-      'Toca el icono de flecha (o "Transferir") debajo del código QR.',
-      'Selecciona "Ingresar correo electrónico" e ingresa boletas@boleteriaco.com.',
-      'Presiona Transferir para completar el proceso.',
+      'Abre la aplicación: Inicia sesión en Quentro con tu cuenta registrada.',
+      'Selecciona la entrada: Entra a "Mis Entradas" y presiona sobre el ticket específico.',
+      'Toca la flecha: Haz clic en el icono de la flecha (o botón "transferir" debajo del código QR) en la esquina superior derecha.',
+      'Elige el método: Selecciona "Ingresar correo electrónico" e ingresa boletas@boleteriaco.com.',
+      'Confirma el envío: Presiona transferir para completar el proceso.',
     ],
     pasosComprador: [
       'Descarga Quentro en App Store o Google Play.',
@@ -55,13 +58,13 @@ const PLATAFORMAS = {
     instrVendedor: 'Abre W Arena → perfil → entradas → Transferir → ingresa el documento de identidad registrado en la cuenta de boletas@boleteriaco.com.',
     instrComprador: 'Descarga W Arena en App Store o Google Play. Regístrate con tu documento de identidad. Boletería CO te cederá la entrada a tu documento registrado en la app.',
     tipoEntrega: 'documento',
-    requisitoReceptor: 'El destinatario debe tener cuenta activa en W Arena con su documento de identidad registrado.',
+    requisitoReceptor: 'La persona que recibe la entrada debe tener una cuenta activa y registrada previamente en la App W Arena con su documento de identidad.',
     pasosVendedor: [
-      'Descarga e ingresa a la aplicación oficial de W Arena.',
-      'Inicia sesión con la cuenta con la que compraste la boleta.',
-      'Ve al perfil y busca tus entradas.',
+      'Descarga e ingresa a la aplicación oficial de W Arena en tu celular.',
+      'Inicia sesión con los datos de la cuenta con la que realizaste la compra de la boletería o abono.',
+      'Busca el evento o la sección de tus entradas almacenadas en el perfil.',
       'Selecciona la opción de transferir entradas.',
-      'Ingresa el documento de identidad de la cuenta boletas@boleteriaco.com.',
+      'Ingresa el documento de identidad registrado en la cuenta de Boletería CO para completar el proceso.',
     ],
     pasosComprador: [
       'Descarga W Arena en App Store o Google Play.',
@@ -76,13 +79,14 @@ const PLATAFORMAS = {
     instrVendedor: 'Abre DIM Plus → Mis boletas → Ver boleta → Ceder boleta → llena los datos de la cuenta boletas@boleteriaco.com.',
     instrComprador: 'Descarga DIM Plus en App Store o Google Play. Regístrate con tus datos exactos (nombre y documento). Boletería CO te cederá la boleta a tus datos registrados.',
     tipoEntrega: 'documento',
-    requisitoReceptor: 'El receptor debe tener cuenta activa en DIM Plus con sus datos personales exactos registrados. Una boleta puede cederse máximo 3 veces. No se permiten capturas del QR ni descargas en PDF — el código es dinámico.',
+    requisitoReceptor: 'La persona que recibe la entrada debe tener una cuenta activa y registrada previamente en la App DIM Plus.',
+    notaVendedor: 'Condiciones importantes: máximo 3 cesiones por boleta · la cuenta del receptor debe estar activa y registrada previamente · no se permiten descargas en PDF, capturas ni imágenes QR (código dinámico).',
     pasosVendedor: [
-      'Entra a la App DIM Plus e inicia sesión.',
-      'Ve a "Mis boletas" y selecciona la entrada a transferir.',
-      'Haz clic en "Ver boleta".',
-      'Presiona "Ceder boleta".',
-      'Llena los datos personales de la cuenta boletas@boleteriaco.com exactamente como están registrados.',
+      'Entra a la App DIM Plus e inicia sesión con tu cuenta.',
+      'Dirígete a la sección "Mis boletas".',
+      'Selecciona la entrada que deseas transferir y haz clic en "Ver boleta".',
+      'Presiona el botón "Ceder boleta".',
+      'Llena los datos personales del receptor exactamente como los tiene registrados en su cuenta de la aplicación.',
     ],
     pasosComprador: [
       'Descarga DIM Plus en App Store o Google Play.',
@@ -1787,6 +1791,11 @@ function App() {
                                           ) : (
                                             <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 8px',lineHeight:1.6}}>{plat.instrVendedor}</p>
                                           )}
+                                          {plat.notaVendedor && (
+                                            <div style={{background:'rgba(79,126,255,0.06)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'6px',padding:'8px 10px',marginBottom:'8px'}}>
+                                              <p style={{color:'#6b93ff',fontSize:'11px',margin:'0',lineHeight:1.5}}>ℹ️ {plat.notaVendedor}</p>
+                                            </div>
+                                          )}
                                           {plat.requisitoReceptor && (
                                             <div style={{background:'rgba(245,158,11,0.08)',border:'1px solid rgba(245,158,11,0.25)',borderRadius:'6px',padding:'8px 10px'}}>
                                               <p style={{color:'#f59e0b',fontSize:'11px',margin:'0',lineHeight:1.5}}>⚠️ Requisito: {plat.requisitoReceptor}</p>
@@ -2804,6 +2813,12 @@ function App() {
                                 <p style={{color:'#8892a4',fontSize:'12px',lineHeight:'1.5',margin:0}}>{paso}</p>
                               </div>
                             ))}
+                            {PLATAFORMAS[platBannerSeleccionada].requisitoReceptor && (
+                              <div style={{marginTop:'10px',paddingTop:'10px',borderTop:`1px solid ${PLATAFORMAS[platBannerSeleccionada].color}33`,display:'flex',gap:'8px',alignItems:'flex-start'}}>
+                                <span style={{fontSize:'13px',flexShrink:0}}>⚠️</span>
+                                <p style={{color:'#c9a227',fontSize:'12px',lineHeight:'1.5',margin:0,fontStyle:'italic'}}>{PLATAFORMAS[platBannerSeleccionada].requisitoReceptor}</p>
+                              </div>
+                            )}
                           </div>
                         )}
                         {!platBannerSeleccionada && (
