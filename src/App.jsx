@@ -2313,6 +2313,8 @@ function App() {
         {(()=>{
           const boletasFiltradas = boletas.filter(b => {
             if (b.estado !== 'publicada') return false
+            if (filtros.ciudad && (b.eventos?.ciudad || '').toLowerCase() !== filtros.ciudad.toLowerCase()) return false
+            if (filtros.deporte && (b.eventos?.deporte || '').toLowerCase() !== filtros.deporte.toLowerCase()) return false
             if (busquedaPublica.trim()) {
               const q = busquedaPublica.toLowerCase()
               const nombre = (b.eventos?.nombre || '').toLowerCase()
