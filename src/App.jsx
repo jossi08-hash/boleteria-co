@@ -1925,7 +1925,7 @@ function App() {
                 <p style={{...s.detalleEvento, fontWeight:'600', color:'#93c5fd', marginBottom:'8px'}}>🏟 Tribuna {grupo.tribuna}</p>
                 <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'12px'}}>
                   {grupo.esAdmin
-                    ? <span style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px',letterSpacing:'0.3px'}}>✓ verificado · Boletería CO</span>
+                    ? <span style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px',letterSpacing:'0.3px'}}>✓ Verificado · Boletería CO</span>
                     : <span style={{color:'#4e5a6e',fontSize:'11px'}}>Vendedor: {grupo.vendedorNombre || 'Particular'}</span>
                   }
                 </div>
