@@ -136,10 +136,11 @@ function EscudoSVG({nombre, size=44}) {
   )
 }
 function MapaElCampin({avail, selected, onSelect}) {
-  // avail: { 'Nombre Tribuna': [boletas], ... }  — usa los nombres exactos de la DB
-  // selected: string tribuna seleccionada | null
-  // onSelect: fn(tribunaName)
-  const CX=240, CY=180
+  // avail: { 'Nombre Tribuna': [boletas], ... }
+  // Pitch horizontal (landscape). Goals a izq/der → Norte izq, Sur der.
+  // Occidental=arco SUPERIOR (amplio, 120°, 4 anillos), Oriental=arco INFERIOR (amplio, 120°, 3 anillos)
+  // Norte=D-shape IZQUIERDA (60°), Sur=D-shape DERECHA (60°)
+  const CX=210, CY=195
   const r2d = d => d*Math.PI/180
   const ptx = (rx,ry,d) => CX+rx*Math.cos(r2d(d))
   const pty = (rx,ry,d) => CY+ry*Math.sin(r2d(d))
@@ -152,55 +153,54 @@ function MapaElCampin({avail, selected, onSelect}) {
     const span=((e-s)%360+360)%360, mid=s+span/2
     return [f(CX+(oRx+iRx)/2*Math.cos(r2d(mid))), f(CY+(oRy+iRy)/2*Math.sin(r2d(mid)))]
   }
-  // Ángulos: Norte=arriba(210→330), Sur=abajo(30→150), Occ=izq(150→210), Ori=der(330→30)
-  // Anillos de adentro (General=cerca cancha) hacia afuera (Pref/Plata=lejos)
   const SECS=[
-    {id:'Norte',                   name:'Norte',       oRx:199,oRy:145,iRx:112,iRy:67, s:210,e:330},
-    {id:'Sur',                     name:'Sur',         oRx:199,oRy:145,iRx:112,iRy:67, s:30, e:150},
-    // Occidental: 4 anillos de adentro (General) a afuera (Preferencial)
-    {id:'Occidental General',      name:'Occ.Gen',     oRx:134,oRy:87, iRx:112,iRy:67, s:150,e:210},
-    {id:'Occidental Platea Baja',  name:'Occ.Pl.B',    oRx:156,oRy:107,iRx:134,iRy:87, s:150,e:210},
-    {id:'Occidental Platea Alta',  name:'Occ.Pl.A',    oRx:178,oRy:127,iRx:156,iRy:107,s:150,e:210},
-    {id:'Occidental Preferencial', name:'Occ.Pref',    oRx:199,oRy:145,iRx:178,iRy:127,s:150,e:210},
-    // Oriental: 3 anillos de adentro (General) a afuera (Platea)
-    {id:'Oriental General',        name:'Ori.Gen',     oRx:141,oRy:93, iRx:112,iRy:67, s:330,e:30},
-    {id:'Oriental Preferencial',   name:'Ori.Pref',    oRx:170,oRy:119,iRx:141,iRy:93, s:330,e:30},
-    {id:'Oriental Platea',         name:'Ori.Plata',   oRx:199,oRy:145,iRx:170,iRy:119,s:330,e:30},
+    // Fondos (detrás de los arcos): arcos pequeños izq/der
+    {id:'Norte', name:'Norte', oRx:170,oRy:110,iRx:95,iRy:50, s:150,e:210},
+    {id:'Sur',   name:'Sur',   oRx:170,oRy:110,iRx:95,iRy:50, s:330,e:30 },
+    // Occidental (arriba, 210°→330°): 4 anillos de adentro a afuera
+    {id:'Occidental General',      name:'Occ.Gen',  oRx:114,oRy:65, iRx:95, iRy:50, s:210,e:330},
+    {id:'Occidental Platea Baja',  name:'Occ.Pl.B', oRx:133,oRy:80, iRx:114,iRy:65, s:210,e:330},
+    {id:'Occidental Platea Alta',  name:'Occ.Pl.A', oRx:152,oRy:95, iRx:133,iRy:80, s:210,e:330},
+    {id:'Occidental Preferencial', name:'Occ.Pref', oRx:170,oRy:110,iRx:152,iRy:95, s:210,e:330},
+    // Oriental (abajo, 30°→150°): 3 anillos de adentro a afuera
+    {id:'Oriental General',        name:'Ori.Gen',  oRx:114,oRy:65, iRx:95, iRy:50, s:30, e:150},
+    {id:'Oriental Preferencial',   name:'Ori.Pref', oRx:137,oRy:84, iRx:114,iRy:65, s:30, e:150},
+    {id:'Oriental Platea',         name:'Ori.Plata',oRx:170,oRy:110,iRx:137,iRy:84, s:30, e:150},
   ]
-  const fw=220, fh=120, fx=CX-fw/2, fy=CY-fh/2
+  const fw=190, fh=100, fx=CX-95, fy=CY-50
   const stripes = Array.from({length:9},(_,i)=>({x:f(fx+i*(fw/9)),fill:i%2===0?'#1e5c28':'#226630'}))
   return (
-    <svg viewBox="0 0 480 360" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'auto',display:'block',borderRadius:'8px'}}>
+    <svg viewBox="0 0 420 380" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'auto',display:'block',borderRadius:'8px'}}>
       <defs><clipPath id="fcc"><rect x={fx} y={fy} width={fw} height={fh} rx="8"/></clipPath></defs>
-      <rect width="480" height="360" fill="#06101c" rx="10"/>
+      <rect width="420" height="380" fill="#06101c" rx="10"/>
       {SECS.map(sec=>{
         const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
         return (
-          <path
-            key={sec.id} d={ringPath(sec)}
-            fill={isSel?'rgba(79,126,255,0.45)':isAvail?'rgba(61,219,122,0.22)':'rgba(255,255,255,0.04)'}
-            stroke={isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.5)':'rgba(255,255,255,0.08)'}
+          <path key={sec.id} d={ringPath(sec)}
+            fill={isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'}
+            stroke={isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'}
             strokeWidth={isSel?2:1}
             style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}
             onClick={()=>isAvail&&onSelect(sec.id)}
           />
         )
       })}
-      <ellipse cx={CX} cy={CY} rx="108" ry="63" fill="#0a1827"/>
+      <ellipse cx={CX} cy={CY} rx="91" ry="46" fill="#0a1827"/>
       {stripes.map((s,i)=><rect key={i} x={s.x} y={fy} width={f(fw/9)} height={fh} fill={s.fill} clipPath="url(#fcc)"/>)}
       <g clipPath="url(#fcc)">
         <rect x={f(fx+1.5)} y={f(fy+1.5)} width={f(fw-3)} height={f(fh-3)} rx="6" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
         <line x1={CX} y1={f(fy+1.5)} x2={CX} y2={f(fy+fh-1.5)} stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
-        <circle cx={CX} cy={CY} r="17" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
+        <circle cx={CX} cy={CY} r="15" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
         <circle cx={CX} cy={CY} r="2" fill="rgba(255,255,255,.4)"/>
-        <rect x={f(fx+1.5)} y={f(CY-20)} width="34" height="40" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
-        <rect x={f(fx+fw-35.5)} y={f(CY-20)} width="34" height="40" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
+        <rect x={f(fx+1.5)} y={f(CY-18)} width="28" height="36" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
+        <rect x={f(fx+fw-29.5)} y={f(CY-18)} width="28" height="36" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
       </g>
       {SECS.filter(sec=>(avail[sec.id]||[]).length>0||selected===sec.id).map(sec=>{
         const [lx,ly]=midPt(sec)
         return (
           <text key={sec.id+'l'} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
-            fontSize="8" fontWeight="700" fill={selected===sec.id?'#fff':'rgba(255,255,255,0.85)'}
+            fontSize="8.5" fontWeight="700"
+            fill={selected===sec.id?'#fff':'rgba(255,255,255,0.9)'}
             style={{pointerEvents:'none'}}>{sec.name}</text>
         )
       })}
