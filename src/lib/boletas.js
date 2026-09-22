@@ -4,8 +4,8 @@ export async function obtenerBoletas() {
   const { data, error } = await supabase
     .from('boletas')
     .select(`
-      id, tribuna, fila, silla, cantidad, precio, estado, vendedor_id, publicada_por_admin,
-      eventos ( nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
+      id, evento_id, tribuna, fila, silla, cantidad, precio, estado, vendedor_id, publicada_por_admin,
+      eventos ( id, nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
       usuarios ( nombre, correo, es_admin )
     `)
     .eq('estado', 'publicada')

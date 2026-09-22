@@ -1900,16 +1900,17 @@ function App() {
           // Agrupar por (evento_id, tribuna)
           const grupos = {}
           boletasFiltradas.forEach(b => {
-            const key = `${b.evento_id || (b.eventos && b.eventos.id) || b.id}-${b.tribuna}`
+            const key = `${b.evento_id || (b.eventos && b.eventos.id) || b.id}__${(b.tribuna || '').trim().toLowerCase()}`
             if (!grupos[key]) grupos[key] = { evento: b.eventos, tribuna: b.tribuna, boletas: [], esAdmin: b.publicada_por_admin === true }
             grupos[key].boletas.push(b)
           })
           return Object.entries(grupos).map(([key, grupo]) => {
-            const disponibles = grupo.boletas.filter(b => b.estado === 'disponible')
+            const disponibles = grupo.boletas.filter(b => b.estado === 'publicada')
             const precios = disponibles.map(b => Number(b.precio)).filter(p => p > 0)
             const precioMin = precios.length > 0 ? Math.min(...precios) : 0
             const moneda = grupo.evento ? grupo.evento.moneda : 'COP'
             const expandida = tribunaExpandida === key
+            const enCarritoDeGrupo = disponibles.filter(b => carrito.some(ci => ci.id === b.id))
             return (
               <div key={key} style={{...s.tarjetaBoleta, borderTop: '2px solid #4f7eff', background: 'linear-gradient(135deg, #0f1a2e 0%, #0f1623 100%)'}}>
                 <h3 style={s.nombreEvento}>{grupo.evento ? grupo.evento.nombre : ''}</h3>
@@ -1929,36 +1930,60 @@ function App() {
                     }
                     <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{disponibles.length} asiento{disponibles.length !== 1 ? 's' : ''} disponible{disponibles.length !== 1 ? 's' : ''}</p>
                   </div>
-                  {disponibles.length > 0 && (
+                  {disponibles.length === 1 && (
+                    <button
+                      onClick={() => {
+                        const b = disponibles[0]
+                        const enC = carrito.some(ci => ci.id === b.id)
+                        enC ? setCarrito(carrito.filter(ci => ci.id !== b.id)) : setCarrito([...carrito, b])
+                      }}
+                      style={{background: carrito.some(ci => ci.id === disponibles[0].id) ? '#0f2d1e' : '#4f7eff', border: carrito.some(ci => ci.id === disponibles[0].id) ? '1px solid #166534' : 'none', borderRadius:'10px', color: carrito.some(ci => ci.id === disponibles[0].id) ? '#4ade80' : '#fff', fontSize:'13px', fontWeight:'700', cursor:'pointer', padding:'10px 18px', flexShrink:0}}
+                    >
+                      {carrito.some(ci => ci.id === disponibles[0].id) ? '✓ En carrito' : 'Añadir al carrito'}
+                    </button>
+                  )}
+                  {disponibles.length > 1 && (
                     <button
                       onClick={() => setTribunaExpandida(expandida ? null : key)}
-                      style={{background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',fontSize:'13px',fontWeight:'700',cursor:'pointer',padding:'10px 18px',flexShrink:0}}
+                      style={{background: enCarritoDeGrupo.length > 0 ? '#0a2a1a' : '#4f7eff', border: enCarritoDeGrupo.length > 0 ? '1px solid #166534' : 'none', borderRadius:'10px', color: enCarritoDeGrupo.length > 0 ? '#4ade80' : '#fff', fontSize:'13px', fontWeight:'700', cursor:'pointer', padding:'10px 18px', flexShrink:0}}
                     >
-                      {expandida ? 'Ocultar' : `Ver ${disponibles.length} asiento${disponibles.length !== 1 ? 's' : ''}`}
+                      {expandida ? 'Cerrar' : enCarritoDeGrupo.length > 0 ? `${enCarritoDeGrupo.length} en carrito · Ver` : `Ver ${disponibles.length} asientos`}
                     </button>
                   )}
                 </div>
-                {expandida && (
+                {expandida && disponibles.length > 1 && (
                   <div style={{marginTop:'12px',borderTop:'1px solid #1e2a3a',paddingTop:'12px',display:'flex',flexDirection:'column',gap:'8px'}}>
                     {disponibles.map(b => {
                       const enCarrito = carrito.some(ci => ci.id === b.id)
                       return (
-                        <div key={b.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:'rgba(255,255,255,0.03)',borderRadius:'8px',padding:'10px 12px',gap:'10px'}}>
-                          <div style={{flex:1,minWidth:0}}>
-                            <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'600',margin:'0 0 2px'}}>
-                              {b.fila ? `Fila ${b.fila}` : ''}{b.fila && b.silla ? ' · ' : ''}{b.silla ? `Silla ${b.silla}` : ''}
-                            </p>
-                            <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{calcularTotal(b.precio, moneda, b.publicada_por_admin === true)}</p>
+                        <div
+                          key={b.id}
+                          onClick={() => enCarrito ? setCarrito(carrito.filter(ci => ci.id !== b.id)) : setCarrito([...carrito, b])}
+                          style={{display:'flex',justifyContent:'space-between',alignItems:'center',background: enCarrito ? 'rgba(79,222,128,0.07)' : 'rgba(255,255,255,0.03)',border: enCarrito ? '1px solid #166534' : '1px solid transparent',borderRadius:'10px',padding:'12px 14px',gap:'10px',cursor:'pointer',transition:'all 0.15s'}}
+                        >
+                          <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1,minWidth:0}}>
+                            <div style={{width:'20px',height:'20px',borderRadius:'50%',border: enCarrito ? 'none' : '2px solid #2a3a4a',background: enCarrito ? '#4ade80' : 'transparent',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                              {enCarrito && <svg width='11' height='11' viewBox='0 0 12 12' fill='none'><path d='M2 6l3 3 5-5' stroke='#0a1a0a' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/></svg>}
+                            </div>
+                            <div>
+                              <p style={{color: enCarrito ? '#4ade80' : '#eef0f6',fontSize:'13px',fontWeight:'600',margin:'0 0 1px'}}>
+                                {b.fila ? `Fila ${b.fila}` : ''}{b.fila && b.silla ? ' · ' : ''}{b.silla ? `Silla ${b.silla}` : ''}
+                              </p>
+                              <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{calcularTotal(b.precio, moneda, b.publicada_por_admin === true)}</p>
+                            </div>
                           </div>
-                          <button
-                            onClick={() => enCarrito ? setCarrito(carrito.filter(ci => ci.id !== b.id)) : setCarrito([...carrito, b])}
-                            style={{...s.botonComprar, background: enCarrito ? '#0f2d1e' : '#4f7eff', color: enCarrito ? '#4ade80' : '#fff', border: enCarrito ? '1px solid #166534' : 'none', flexShrink:0}}
-                          >
-                            {enCarrito ? '✓ En carrito' : '+ Añadir'}
-                          </button>
+                          <span style={{fontSize:'12px',fontWeight:'700',color: enCarrito ? '#4ade80' : '#4f7eff',flexShrink:0}}>{enCarrito ? '✓ Seleccionado' : '+ Seleccionar'}</span>
                         </div>
                       )
                     })}
+                    {enCarritoDeGrupo.length > 0 && (
+                      <button
+                        onClick={() => setPaginaActual('carrito')}
+                        style={{marginTop:'4px',background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',fontSize:'13px',fontWeight:'700',cursor:'pointer',padding:'12px',width:'100%'}}
+                      >
+                        {enCarritoDeGrupo.length === 1 ? 'Ver mi asiento en el carrito →' : `Ver ${enCarritoDeGrupo.length} asientos en el carrito →`}
+                      </button>
+                    )}
                   </div>
                 )}
                 <div style={{marginTop:'10px',borderTop:'1px solid #1e2a3a',paddingTop:'10px'}}>
