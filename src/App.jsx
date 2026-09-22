@@ -2467,18 +2467,6 @@ function App() {
                     {comprando === 'carrito' ? '⏳ Procesando...' : `💳 Pagar ${carrito.length > 1 ? carrito.length + ' boletas' : ''}`}
                   </button>
                   <p style={{color:'#4e5a6e',fontSize:'12px',textAlign:'center',marginTop:'12px'}}>Pago seguro vía Wompi · Un solo cargo para todo el carrito</p>
-                  <div style={{display:'flex',alignItems:'center',gap:'8px',margin:'12px 0 4px'}}>
-                    <div style={{flex:1,height:'1px',background:'#1e2a3a'}}/>
-                    <span style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'600'}}>o</span>
-                    <div style={{flex:1,height:'1px',background:'#1e2a3a'}}/>
-                  </div>
-                  <button
-                    onClick={() => { if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return } setDocumentoInput(''); setCedModal({ tipo: 'carrito' }) }}
-                    disabled={boldCargando}
-                    style={{...s.botonSubmit,fontSize:'14px',padding:'13px',background:boldCargando?'#1a2a1a':'#064e3b',border:'1px solid #065f46',cursor:boldCargando?'not-allowed':'pointer'}}
-                  >
-                    {boldCargando ? '⏳ Generando QR...' : '📱 Pagar con Bre-B'}
-                  </button>
                 </>
               )}
             </div>
