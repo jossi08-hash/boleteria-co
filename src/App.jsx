@@ -214,7 +214,8 @@ function MapaElCampin({avail, selected, onSelect}) {
 }
 
 function MapaAtanasio({avail, selected, onSelect}) {
-  const CX=190, CY=210
+  // Horizontal: Norte=left, Sur=right, Occidental=top, Oriental=bottom
+  const CX=210, CY=195
   const r2d = d => d*Math.PI/180
   const ptx = (rx,ry,d) => CX+rx*Math.cos(r2d(d))
   const pty = (rx,ry,d) => CY+ry*Math.sin(r2d(d))
@@ -228,56 +229,58 @@ function MapaAtanasio({avail, selected, onSelect}) {
     return [f(CX+(oRx+iRx)/2*Math.cos(r2d(mid))), f(CY+(oRy+iRy)/2*Math.sin(r2d(mid)))]
   }
   const SECS=[
-    {id:'Norte',           name:'Norte',    oRx:110,oRy:170,iRx:50,iRy:95,  s:240,e:300},
-    {id:'Sur',             name:'Sur',      oRx:110,oRy:170,iRx:50,iRy:95,  s:60, e:120},
-    {id:'Occidental Baja', name:'Occ.Baja', oRx:65, oRy:115,iRx:50,iRy:95,  s:120,e:240},
-    {id:'Occidental Alta', name:'Occ.Alta', oRx:90, oRy:145,iRx:65,iRy:115, s:120,e:240},
-    {id:'Platea',          name:'Platea',   oRx:110,oRy:170,iRx:90,iRy:145, s:120,e:240},
-    {id:'Oriental Baja',   name:'Ori.Baja', oRx:65, oRy:115,iRx:50,iRy:95,  s:300,e:60},
-    {id:'Oriental Alta',   name:'Ori.Alta', oRx:110,oRy:170,iRx:65,iRy:115, s:300,e:60},
+    {id:'Norte',           lbl:['Norte'],        oRx:170,oRy:110,iRx:95, iRy:50, s:150,e:210},
+    {id:'Sur',             lbl:['Sur'],           oRx:170,oRy:110,iRx:95, iRy:50, s:330,e:30 },
+    {id:'Occidental Baja', lbl:['Occ.','Baja'],  oRx:115,oRy:67, iRx:95, iRy:50, s:210,e:330},
+    {id:'Occidental Alta', lbl:['Occ.','Alta'],  oRx:143,oRy:88, iRx:115,iRy:67, s:210,e:330},
+    {id:'Platea',          lbl:['Platea'],        oRx:170,oRy:110,iRx:143,iRy:88, s:210,e:330},
+    {id:'Oriental Baja',   lbl:['Ori.','Baja'],  oRx:130,oRy:78, iRx:95, iRy:50, s:30, e:150},
+    {id:'Oriental Alta',   lbl:['Ori.','Alta'],  oRx:170,oRy:110,iRx:130,iRy:78, s:30, e:150},
   ]
-  const fw=100, fh=190, fx=CX-50, fy=CY-95
+  const fw=190, fh=100, fx=CX-95, fy=CY-50
   return (
-    <svg viewBox="0 0 380 420" style={{width:'100%',maxWidth:'380px',display:'block',margin:'0 auto'}} aria-label="Estadio Atanasio Girardot">
+    <svg viewBox="0 0 420 390" style={{width:'100%',maxWidth:'460px',display:'block',margin:'0 auto'}} aria-label="Estadio Atanasio Girardot">
       <defs>
-        <clipPath id="atc"><ellipse cx={CX} cy={CY} rx={110} ry={170}/></clipPath>
+        <clipPath id="atc"><ellipse cx={CX} cy={CY} rx={170} ry={110}/></clipPath>
       </defs>
-      <ellipse cx={CX} cy={CY} rx={110} ry={170} fill="#0f172a" opacity="0.5"/>
+      <ellipse cx={CX} cy={CY} rx={170} ry={110} fill="#0f172a" opacity="0.5"/>
       {SECS.map(sec=>{
-        const isAvail = avail?.[sec.id]>0
-        const isSel = selected===sec.id
-        const fill = isSel ? '#3b82f6' : isAvail ? '#22c55e' : '#334155'
-        const stroke = isSel ? '#93c5fd' : isAvail ? '#4ade80' : '#475569'
-        const [lx,ly] = midPt(sec)
+        const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
+        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
+        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
+        const [lx,ly]=midPt(sec)
         return (
-          <g key={sec.id} onClick={()=>isAvail && onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default'}}>
-            <path d={ringPath(sec)} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.85:0.4}/>
-            <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fontSize="7" fontWeight="700"
-              fill={isSel?'#fff':isAvail?'#fff':'rgba(255,255,255,0.4)'} style={{pointerEvents:'none',letterSpacing:'0.3px'}}>
-              {sec.name}
+          <g key={sec.id} onClick={()=>isAvail&&onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}>
+            <path d={ringPath(sec)} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.9:0.5}/>
+            <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
+              fontSize={sec.lbl.length>1?'7':'9'} fontWeight="700"
+              fill={isSel?'#fff':isAvail?'#4ade80':'rgba(255,255,255,0.3)'}
+              style={{pointerEvents:'none',letterSpacing:'0.2px'}}>
+              {sec.lbl.length===1
+                ? sec.lbl[0]
+                : <><tspan x={lx} dy="-0.5em">{sec.lbl[0]}</tspan><tspan x={lx} dy="1.1em">{sec.lbl[1]}</tspan></>
+              }
             </text>
           </g>
         )
       })}
       <g clipPath="url(#atc)">
         {Array.from({length:10},(_,i)=>(
-          <rect key={i} x={fx} y={fy+i*19} width={fw} height={9.5} fill={i%2===0?'#166534':'#15803d'} opacity="0.9"/>
+          <rect key={i} x={fx} y={fy+i*10} width={fw} height={5} fill={i%2===0?'#166534':'#15803d'} opacity="0.9"/>
         ))}
         <rect x={fx} y={fy} width={fw} height={fh} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <line x1={fx} y1={CY} x2={fx+fw} y2={CY} stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <line x1={CX} y1={fy} x2={CX} y2={fy+fh} stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
         <circle cx={CX} cy={CY} r={22} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
         <circle cx={CX} cy={CY} r={2} fill="#4ade80" opacity="0.5"/>
-        <rect x={fx+20} y={fy} width={60} height={28} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <rect x={fx+20} y={fy+fh-28} width={60} height={28} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <rect x={fx+32} y={fy} width={36} height={11} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <rect x={fx+32} y={fy+fh-11} width={36} height={11} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <circle cx={CX} cy={fy+40} r={1.5} fill="#4ade80" opacity="0.5"/>
-        <circle cx={CX} cy={fy+fh-40} r={1.5} fill="#4ade80" opacity="0.5"/>
+        <rect x={fx} y={CY-18} width={28} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <rect x={fx+fw-28} y={CY-18} width={28} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={fx+38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
+        <circle cx={fx+fw-38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
       </g>
-      <text x="190" y="18" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>NORTE</text>
-      <text x="190" y="402" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>SUR</text>
-      <text x="14" y="210" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,14,210)">OCCIDENTAL</text>
-      <text x="366" y="210" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,366,210)">ORIENTAL</text>
+      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
+      <text x="210" y="378" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
+      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
+      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
     </svg>
   )
 }
@@ -300,15 +303,14 @@ function MapaEstadioTecho({avail, selected, onSelect}) {
         <clipPath id="tec"><rect x={fx} y={fy} width={fw} height={fh}/></clipPath>
       </defs>
       {SECS.map((sec,i)=>{
-        const isAvail = avail?.[sec.id]>0
-        const isSel = selected===sec.id
-        const fill = isSel ? '#3b82f6' : isAvail ? '#22c55e' : '#334155'
-        const stroke = isSel ? '#93c5fd' : isAvail ? '#4ade80' : '#475569'
+        const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
+        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
+        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
         return (
           <g key={sec.id} onClick={()=>isAvail && onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default'}}>
             <path d={sec.d} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.85:0.4}/>
             <text x={sec.lx} y={sec.ly} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fontWeight="700"
-              fill={isSel?'#fff':isAvail?'#fff':'rgba(255,255,255,0.4)'} style={{pointerEvents:'none',letterSpacing:'0.3px'}}>
+              fill={isSel?'#fff':isAvail?'#4ade80':'rgba(255,255,255,0.3)'} style={{pointerEvents:'none',letterSpacing:'0.3px'}}>
               {sec.name}
             </text>
           </g>
