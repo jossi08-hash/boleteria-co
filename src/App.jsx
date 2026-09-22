@@ -205,8 +205,8 @@ function MapaElCampin({avail, selected, onSelect}) {
         )
       })}
       {/* Compass markers */}
-      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
-      <text x="210" y="372" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
+      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
+      <text x="210" y="372" textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
       <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
       <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
     </svg>
@@ -239,9 +239,9 @@ function MapaAtanasio({avail, selected, onSelect}) {
   ]
   const fw=190, fh=100, fx=CX-95, fy=CY-50
   return (
-    <svg viewBox="0 0 420 390" style={{width:'100%',maxWidth:'460px',display:'block',margin:'0 auto'}} aria-label="Estadio Atanasio Girardot">
+    <svg viewBox="0 0 420 390" style={{width:'100%',maxWidth:'540px',display:'block',margin:'0 auto'}} aria-label="Estadio Atanasio Girardot">
       <defs>
-        <clipPath id="atc"><ellipse cx={CX} cy={CY} rx={170} ry={110}/></clipPath>
+        <clipPath id="atc"><ellipse cx={CX} cy={CY} rx={95} ry={50}/></clipPath>
       </defs>
       <ellipse cx={CX} cy={CY} rx={170} ry={110} fill="#0f172a" opacity="0.5"/>
       {SECS.map(sec=>{
@@ -253,7 +253,7 @@ function MapaAtanasio({avail, selected, onSelect}) {
           <g key={sec.id} onClick={()=>isAvail&&onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}>
             <path d={ringPath(sec)} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.9:0.5}/>
             <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
-              fontSize={sec.lbl.length>1?'7':'9'} fontWeight="700"
+              fontSize={sec.lbl.length>1?'8':'11'} fontWeight="700"
               fill={isSel?'#fff':isAvail?'#4ade80':'rgba(255,255,255,0.3)'}
               style={{pointerEvents:'none',letterSpacing:'0.2px'}}>
               {sec.lbl.length===1
