@@ -1766,7 +1766,6 @@ function App() {
               </p>
             )}
             <label style={s.label}>Tribuna</label>
-            <p style={{color:'#f87171',fontSize:'10px',margin:'-8px 0 6px'}}>DEBUG: {form.tribunasEvento.length} tribunas | eventoId: {form.eventoId ? 'ok' : 'vacio'}</p>
             {form.tribunasEvento.length > 0
               ? <select name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input}>
                   <option value="">Selecciona tribuna</option>
@@ -1780,9 +1779,7 @@ function App() {
             <input name="silla" value={form.silla} onChange={manejarCambio} required style={s.input} />
             <label style={s.label}>Precio</label>
             <input name="precio" type="number" value={form.precio} onChange={manejarCambio} required style={s.input} />
-            {(() => {
-              const trbs = form.tribunasEvento || []
-              return silasExtra.map((s2, i) => (
+            {silasExtra.map((s2, i) => (
               <div key={i} style={{background:'rgba(79,126,255,0.04)',border:'1px solid rgba(79,126,255,0.15)',borderRadius:'10px',padding:'12px',marginBottom:'12px'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
                   <span style={{color:'#6b93ff',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.4px'}}>Silla {i+2}</span>
@@ -1791,11 +1788,10 @@ function App() {
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
                   <div>
                     <label style={{...s.label,marginBottom:'4px'}}>Tribuna</label>
-                    <p style={{color:'#f87171',fontSize:'9px',margin:'-4px 0 4px'}}>trbs:{trbs.length}</p>
-                    {trbs.length > 0
+                    {form.tribunasEvento.length > 0
                       ? <select value={s2.tribuna} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:e.target.value}:x))} required style={{...s.input,marginBottom:0}}>
                           <option value="">Selecciona tribuna</option>
-                          {trbs.map(t => <option key={t} value={t}>{t}</option>)}
+                          {form.tribunasEvento.map(t => <option key={t} value={t}>{t}</option>)}
                         </select>
                       : <input value={s2.tribuna} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:e.target.value}:x))} required style={{...s.input,marginBottom:0}} />
                     }
@@ -1810,8 +1806,7 @@ function App() {
                   </div>
                 </div>
               </div>
-            ))
-            })()}
+            ))}
             <button type="button" onClick={()=>setSilasExtra([...silasExtra,{tribuna:form.tribuna||'',fila:'',silla:''}])} style={{background:'transparent',border:'1px dashed #1e2a3a',borderRadius:'8px',padding:'8px',fontSize:'12px',color:'#4e5a6e',cursor:'pointer',width:'100%',marginBottom:'16px'}}>+ Añadir otra silla</button>
             <button type="submit" style={s.botonSubmit}>Publicar {silasExtra.length > 0 ? silasExtra.length+1+' boletas' : 'boleta'}</button>
             {mensaje && <p style={s.mensaje}>{mensaje}</p>}
