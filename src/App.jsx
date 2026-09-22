@@ -2960,7 +2960,42 @@ function App() {
                   >
                     {comprando === 'carrito' ? '⏳ Procesando...' : `💳 Pagar ${carrito.length > 1 ? carrito.length + ' boletas' : ''}`}
                   </button>
-                  <p style={{color:'#4e5a6e',fontSize:'12px',textAlign:'center',marginTop:'12px'}}>Pago seguro vía Wompi · Un solo cargo para todo el carrito</p>
+                  <div style={{marginTop:'16px',borderTop:'1px solid #111d2b',paddingTop:'14px'}}>
+                    <p style={{color:'#4e5a6e',fontSize:'10px',textAlign:'center',margin:'0 0 10px',letterSpacing:'0.5px',textTransform:'uppercase',fontWeight:'600'}}>Pagos procesados por Wompi</p>
+                    <div style={{display:'flex',flexWrap:'wrap',gap:'6px',justifyContent:'center',alignItems:'center'}}>
+                      {/* Mastercard */}
+                      <svg width="36" height="22" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg" style={{borderRadius:'4px',background:'#0f1623',border:'1px solid #1e2a3a'}}>
+                        <circle cx="13" cy="11" r="7" fill="#EB001B"/>
+                        <circle cx="23" cy="11" r="7" fill="#F79E1B"/>
+                        <path d="M18 4.8A7 7 0 0 1 23 11a7 7 0 0 1-5 6.2A7 7 0 0 1 13 11a7 7 0 0 1 5-6.2z" fill="#FF5F00"/>
+                      </svg>
+                      {/* Visa */}
+                      <div style={{background:'#1A1F71',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center',border:'1px solid #1e2a3a'}}>
+                        <span style={{color:'white',fontSize:'12px',fontWeight:'900',fontStyle:'italic',letterSpacing:'-0.5px'}}>VISA</span>
+                      </div>
+                      {/* Amex */}
+                      <div style={{background:'#016FD0',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center',border:'1px solid #016FD0'}}>
+                        <span style={{color:'white',fontSize:'10px',fontWeight:'800',letterSpacing:'0.5px'}}>AMEX</span>
+                      </div>
+                      {/* Nequi */}
+                      <div style={{background:'#0f1623',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center',border:'1px solid #1e2a3a'}}>
+                        <span style={{color:'#FF0080',fontSize:'11px',fontWeight:'900',letterSpacing:'-0.3px'}}>Nequi</span>
+                      </div>
+                      {/* PSE */}
+                      <div style={{background:'#003DA5',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center'}}>
+                        <span style={{color:'white',fontSize:'10px',fontWeight:'800',letterSpacing:'1px'}}>PSE</span>
+                      </div>
+                      {/* Bancolombia */}
+                      <div style={{background:'#FDDA24',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center'}}>
+                        <span style={{color:'#111',fontSize:'9px',fontWeight:'800',letterSpacing:'-0.2px'}}>Bancolombia</span>
+                      </div>
+                      {/* Daviplata */}
+                      <div style={{background:'#E40046',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center'}}>
+                        <span style={{color:'white',fontSize:'9px',fontWeight:'800'}}>Daviplata</span>
+                      </div>
+                    </div>
+                    <p style={{color:'#4e5a6e',fontSize:'11px',textAlign:'center',marginTop:'10px',margin:'10px 0 0'}}>🔒 Un solo cargo para todo el carrito</p>
+                  </div>
                 </>
               )}
             </div>
