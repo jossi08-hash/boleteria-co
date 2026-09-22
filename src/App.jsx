@@ -282,6 +282,63 @@ function MapaAtanasio({avail, selected, onSelect}) {
   )
 }
 
+function MapaEstadioTecho({avail, selected, onSelect}) {
+  /* Rectangular asymmetric stadium — polygon-based (not arc-based) */
+  const SECS=[
+    {id:'Norte',                name:'Norte',     d:'M170,42 L365,42 L365,115 L170,115Z',         lx:267, ly:78 },
+    {id:'Oriental Norte',       name:'Ori.Norte', d:'M365,42 L445,62 L445,178 L365,115Z',         lx:407, ly:115},
+    {id:'Oriental',             name:'Oriental',  d:'M365,115 L445,178 L445,412 L365,412Z',       lx:406, ly:295},
+    {id:'Occidental Norte',     name:'Occ.Norte', d:'M42,12 L170,12 L170,258 L42,292Z',          lx:80,  ly:152},
+    {id:'Occidental Norte VIP', name:'VIP',       d:'M112,58 L170,58 L170,212 L112,212Z',        lx:139, ly:135},
+    {id:'Occidental Sur',       name:'Occ.Sur',   d:'M42,292 L170,258 L170,412 L42,448Z',        lx:98,  ly:367},
+  ]
+  /* Field bounds */
+  const fx=170,fy=115,fw=195,fh=297
+  return (
+    <svg viewBox="0 0 490 505" style={{width:'100%',maxWidth:'490px',display:'block',margin:'0 auto'}} aria-label="Estadio de Techo">
+      <defs>
+        <clipPath id="tec"><rect x={fx} y={fy} width={fw} height={fh}/></clipPath>
+      </defs>
+      {SECS.map((sec,i)=>{
+        const isAvail = avail?.[sec.id]>0
+        const isSel = selected===sec.id
+        const fill = isSel ? '#3b82f6' : isAvail ? '#22c55e' : '#334155'
+        const stroke = isSel ? '#93c5fd' : isAvail ? '#4ade80' : '#475569'
+        return (
+          <g key={sec.id} onClick={()=>isAvail && onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default'}}>
+            <path d={sec.d} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.85:0.4}/>
+            <text x={sec.lx} y={sec.ly} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fontWeight="700"
+              fill={isSel?'#fff':isAvail?'#fff':'rgba(255,255,255,0.4)'} style={{pointerEvents:'none',letterSpacing:'0.3px'}}>
+              {sec.name}
+            </text>
+          </g>
+        )
+      })}
+      {/* Field */}
+      <g clipPath="url(#tec)">
+        {Array.from({length:10},(_,i)=>(
+          <rect key={i} x={fx} y={fy+i*(fh/10)} width={fw} height={fh/20} fill={i%2===0?'#166534':'#15803d'} opacity="0.9"/>
+        ))}
+        <rect x={fx} y={fy} width={fw} height={fh} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <line x1={fx} y1={fy+fh/2} x2={fx+fw} y2={fy+fh/2} stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={fx+fw/2} cy={fy+fh/2} r={28} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={fx+fw/2} cy={fy+fh/2} r={2} fill="#4ade80" opacity="0.5"/>
+        <rect x={fx+47} y={fy} width={101} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <rect x={fx+47} y={fy+fh-36} width={101} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <rect x={fx+66} y={fy} width={63} height={15} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <rect x={fx+66} y={fy+fh-15} width={63} height={15} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={fx+fw/2} cy={fy+50} r={2} fill="#4ade80" opacity="0.5"/>
+        <circle cx={fx+fw/2} cy={fy+fh-50} r={2} fill="#4ade80" opacity="0.5"/>
+      </g>
+      {/* Compass */}
+      <text x="267" y="18" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>NORTE</text>
+      <text x="267" y="490" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>SUR</text>
+      <text x="16" y="262" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,16,262)">OCCIDENTAL</text>
+      <text x="474" y="262" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,474,262)">ORIENTAL</text>
+    </svg>
+  )
+}
+
 function SillaExtraRow({ silla, indice, tribunas, onChangeTribuna, onChangeFila, onChangeSilla, onRemove, inputStyle, labelStyle }) {
   const hasTribunas = Array.isArray(tribunas) && tribunas.length > 0
   return (
@@ -2369,6 +2426,7 @@ function App() {
           const boletasSeccion = seccionActual ? (porTribuna[seccionActual] || []) : disponibles
           const esElCampin = (info?.estadio||'').toLowerCase().replace(/[íi]/g,'i').includes('campin')
           const esAtanasio = (info?.estadio||'').toLowerCase().includes('atanasio') || (info?.estadio||'').toLowerCase().includes('girardot')
+          const esTecho = (info?.estadio||'').toLowerCase().includes('techo')
           return (
             <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
               {/* NAV */}
@@ -2398,7 +2456,7 @@ function App() {
                 </div>
 
                 {/* MAPA */}
-                {(esElCampin || esAtanasio) ? (
+                {(esElCampin || esAtanasio || esTecho) ? (
                   <div style={{marginBottom:'20px'}}>
                     <p style={{color:'#4e5a6e',fontSize:'10px',fontWeight:'700',textAlign:'center',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'1px'}}>
                       🗺️ Toca una tribuna para ver las boletas
@@ -2409,8 +2467,14 @@ function App() {
                         selected={seccionActual}
                         onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
                       />
-                    ) : (
+                    ) : esAtanasio ? (
                       <MapaAtanasio
+                        avail={porTribuna}
+                        selected={seccionActual}
+                        onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
+                      />
+                    ) : (
+                      <MapaEstadioTecho
                         avail={porTribuna}
                         selected={seccionActual}
                         onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
@@ -2434,7 +2498,7 @@ function App() {
                 )}
 
                 {/* TRIBUNA PILLS (non-Campín) */}
-                {!esElCampin && !esAtanasio && tribunas.length > 1 && (
+                {!esElCampin && !esAtanasio && !esTecho && tribunas.length > 1 && (
                   <div style={{display:'flex',gap:'8px',overflowX:'auto',paddingBottom:'4px',marginBottom:'16px'}}>
                     {tribunas.map(t => (
                       <button key={t} onClick={()=>setSeccionMapa(seccionMapa===t?null:t)}
