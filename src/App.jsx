@@ -1897,11 +1897,12 @@ function App() {
             </div>
           )
           if (!cargando && boletasFiltradas.length === 0) return <p style={s.vacio}>No hay boletas que coincidan con los filtros.</p>
-          // Agrupar por (evento_id, tribuna)
+          // Agrupar por (evento_id, tribuna, vendedor_id)
           const grupos = {}
           boletasFiltradas.forEach(b => {
-            const key = `${b.evento_id || (b.eventos && b.eventos.id) || b.id}__${(b.tribuna || '').trim().toLowerCase()}`
-            if (!grupos[key]) grupos[key] = { evento: b.eventos, tribuna: b.tribuna, boletas: [], esAdmin: b.publicada_por_admin === true }
+            const vid = b.vendedor_id || 'unknown'
+            const key = `${b.evento_id || (b.eventos && b.eventos.id) || b.id}__${(b.tribuna || '').trim().toLowerCase()}__${vid}`
+            if (!grupos[key]) grupos[key] = { evento: b.eventos, tribuna: b.tribuna, boletas: [], esAdmin: b.publicada_por_admin === true, vendedorNombre: b.usuarios?.nombre || '' }
             grupos[key].boletas.push(b)
           })
           return Object.entries(grupos).map(([key, grupo]) => {
@@ -1921,7 +1922,13 @@ function App() {
                     {grupo.evento.hora ? ` · ${grupo.evento.hora.slice(0,5).replace(/^0/,'').replace(':','h')}` : ''}
                   </p>
                 )}
-                <p style={{...s.detalleEvento, fontWeight:'600', color:'#93c5fd', marginBottom:'12px'}}>🏟 Tribuna {grupo.tribuna}</p>
+                <p style={{...s.detalleEvento, fontWeight:'600', color:'#93c5fd', marginBottom:'8px'}}>🏟 Tribuna {grupo.tribuna}</p>
+                <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'12px'}}>
+                  {grupo.esAdmin
+                    ? <span style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px',letterSpacing:'0.3px'}}>✓ verificado · Boletería CO</span>
+                    : <span style={{color:'#4e5a6e',fontSize:'11px'}}>Vendedor: {grupo.vendedorNombre || 'Particular'}</span>
+                  }
+                </div>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'12px'}}>
                   <div>
                     {disponibles.length > 0
