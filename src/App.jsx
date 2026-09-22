@@ -167,6 +167,7 @@ function App() {
   const [confirmarEliminarEvento, setConfirmarEliminarEvento] = useState(null)
   const [confirmarEliminarBoleta, setConfirmarEliminarBoleta] = useState(null)
   const [boletaEditando, setBoletaEditando] = useState(null)
+  const [busquedaBoleta, setBusquedaBoleta] = useState('')
   const [formEditarBoleta, setFormEditarBoleta] = useState({ tribuna: '', fila: '', silla: '', precio: '' })
   const [eventoEditando, setEventoEditando] = useState(null)
   const [formEditar, setFormEditar] = useState({})
@@ -1458,8 +1459,19 @@ function App() {
             )}
             {boletasAdmin.length > 0 && (
               <div style={{marginBottom:'20px'}}>
-                <p style={{...s.tituloAdmin, marginBottom:'12px'}}>Gestionar boletas ({boletasAdmin.length})</p>
-                {boletasAdmin.map(b => (
+                <p style={{...s.tituloAdmin, marginBottom:'8px'}}>Gestionar boletas ({boletasAdmin.length})</p>
+                <input
+                  type="text"
+                  placeholder="Buscar por evento o equipo..."
+                  value={busquedaBoleta}
+                  onChange={e => setBusquedaBoleta(e.target.value)}
+                  style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'8px',padding:'8px 12px',color:'#eef0f6',fontSize:'13px',marginBottom:'12px',outline:'none'}}
+                />
+                {boletasAdmin.filter(b => {
+                  if (!busquedaBoleta.trim()) return true
+                  const q = busquedaBoleta.toLowerCase()
+                  return (b.eventos?.nombre || '').toLowerCase().includes(q)
+                }).map(b => (
                   <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'12px 14px',marginBottom:'8px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
                       <div>
