@@ -289,6 +289,81 @@ function MapaAtanasio({avail, selected, onSelect}) {
   )
 }
 
+function MapaPascualGuerrero({avail, selected, onSelect}) {
+  // Horizontal oval: Norte=left cap, Sur=right cap, Oriental=TOP (2 rings), Occidental=BOTTOM (3 rings)
+  const CX=210, CY=195
+  const r2d = d => d*Math.PI/180
+  const ptx = (rx,ry,d) => CX+rx*Math.cos(r2d(d))
+  const pty = (rx,ry,d) => CY+ry*Math.sin(r2d(d))
+  const f = n => +n.toFixed(2)
+  function ringPath({oRx,oRy,iRx,iRy,s,e}) {
+    const span=((e-s)%360+360)%360, lg=span>180?1:0
+    return `M${f(ptx(oRx,oRy,s))} ${f(pty(oRx,oRy,s))} A${oRx} ${oRy} 0 ${lg} 1 ${f(ptx(oRx,oRy,e))} ${f(pty(oRx,oRy,e))} L${f(ptx(iRx,iRy,e))} ${f(pty(iRx,iRy,e))} A${iRx} ${iRy} 0 ${lg} 0 ${f(ptx(iRx,iRy,s))} ${f(pty(iRx,iRy,s))}Z`
+  }
+  function midPt({oRx,oRy,iRx,iRy,s,e}) {
+    const span=((e-s)%360+360)%360, mid=s+span/2
+    return [f(CX+(oRx+iRx)/2*Math.cos(r2d(mid))), f(CY+(oRy+iRy)/2*Math.sin(r2d(mid)))]
+  }
+  const SECS=[
+    // End caps
+    {id:'Norte',                   lbl:['Norte'],        oRx:170,oRy:110,iRx:95,iRy:50, s:150,e:210},
+    {id:'Sur',                     lbl:['Sur'],          oRx:170,oRy:110,iRx:95,iRy:50, s:330,e:30 },
+    // Oriental (top, 30°→150°) — 2 rings inner→outer
+    {id:'Oriental Baja',           lbl:['Ori.','Baja'],  oRx:132,oRy:80, iRx:95,iRy:50, s:30, e:150},
+    {id:'Oriental Alta',           lbl:['Ori.','Alta'],  oRx:170,oRy:110,iRx:132,iRy:80,s:30, e:150},
+    // Occidental (bottom, 210°→330°) — 3 rings inner→outer
+    {id:'Occidental 1.er Piso',    lbl:['Occ.','1.er P'],oRx:113,oRy:65, iRx:95,iRy:50, s:210,e:330},
+    {id:'Occidental 2.º Piso',     lbl:['Occ.','2.º P'], oRx:132,oRy:80, iRx:113,iRy:65,s:210,e:330},
+    {id:'Occidental 3.er Piso',    lbl:['Occ.','3.er P'],oRx:170,oRy:110,iRx:132,iRy:80,s:210,e:330},
+  ]
+  const fw=190, fh=100, fx=CX-95, fy=CY-50
+  return (
+    <svg viewBox="0 0 420 390" style={{width:'100%',maxWidth:'540px',display:'block',margin:'0 auto'}} aria-label="Estadio Pascual Guerrero">
+      <defs>
+        <clipPath id="pgc"><ellipse cx={CX} cy={CY} rx={95} ry={50}/></clipPath>
+      </defs>
+      <rect width="420" height="390" fill="#06101c" rx="10"/>
+      {SECS.map(sec=>{
+        const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
+        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
+        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
+        const [lx,ly]=midPt(sec)
+        return (
+          <g key={sec.id} onClick={()=>isAvail&&onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}>
+            <path d={ringPath(sec)} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.9:0.5}/>
+            <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
+              fontSize={sec.lbl.length>1?'8':'11'} fontWeight="700"
+              fill={isSel?'#fff':isAvail?'#4ade80':'rgba(255,255,255,0.3)'}
+              style={{pointerEvents:'none',letterSpacing:'0.2px'}}>
+              {sec.lbl.length===1
+                ? sec.lbl[0]
+                : <><tspan x={lx} dy="-0.5em">{sec.lbl[0]}</tspan><tspan x={lx} dy="1.1em">{sec.lbl[1]}</tspan></>
+              }
+            </text>
+          </g>
+        )
+      })}
+      <g clipPath="url(#pgc)">
+        {Array.from({length:10},(_,i)=>(
+          <rect key={i} x={fx} y={fy+i*10} width={fw} height={5} fill={i%2===0?'#166534':'#15803d'} opacity="0.9"/>
+        ))}
+        <rect x={fx} y={fy} width={fw} height={fh} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <line x1={CX} y1={fy} x2={CX} y2={fy+fh} stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={CX} cy={CY} r={22} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={CX} cy={CY} r={2} fill="#4ade80" opacity="0.5"/>
+        <rect x={fx} y={CY-18} width={28} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <rect x={fx+fw-28} y={CY-18} width={28} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={fx+38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
+        <circle cx={fx+fw-38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
+      </g>
+      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
+      <text x="210" y="378" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
+      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
+      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
+    </svg>
+  )
+}
+
 function MapaEstadioTecho({avail, selected, onSelect}) {
   /* Rectangular asymmetric stadium — polygon-based (not arc-based) */
   const SECS=[
@@ -2761,6 +2836,7 @@ function App() {
           const esElCampin = (info?.estadio||'').toLowerCase().replace(/[íi]/g,'i').includes('campin')
           const esAtanasio = (info?.estadio||'').toLowerCase().includes('atanasio') || (info?.estadio||'').toLowerCase().includes('girardot')
           const esTecho = (info?.estadio||'').toLowerCase().includes('techo')
+          const esPascual = (info?.estadio||'').toLowerCase().includes('pascual')
           return (
             <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
               {/* NAV */}
@@ -2789,7 +2865,7 @@ function App() {
                 </div>
 
                 {/* MAPA */}
-                {(esElCampin || esAtanasio || esTecho) ? (
+                {(esElCampin || esAtanasio || esTecho || esPascual) ? (
                   <div style={{marginBottom:'20px'}}>
                     <p style={{color:'#4e5a6e',fontSize:'10px',fontWeight:'700',textAlign:'center',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'1px'}}>
                       🗺️ Toca una tribuna para ver las boletas
@@ -2802,6 +2878,12 @@ function App() {
                       />
                     ) : esAtanasio ? (
                       <MapaAtanasio
+                        avail={porTribuna}
+                        selected={seccionActual}
+                        onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
+                      />
+                    ) : esPascual ? (
+                      <MapaPascualGuerrero
                         avail={porTribuna}
                         selected={seccionActual}
                         onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
@@ -2890,7 +2972,7 @@ function App() {
                 </div>
 
                 {/* TRIBUNA PILLS (non-Campín) */}
-                {!esElCampin && !esAtanasio && !esTecho && tribunas.length > 1 && (
+                {!esElCampin && !esAtanasio && !esTecho && !esPascual && tribunas.length > 1 && (
                   <div style={{display:'flex',gap:'8px',overflowX:'auto',paddingBottom:'4px',marginBottom:'16px'}}>
                     {tribunas.map(t => (
                       <button key={t} onClick={()=>setSeccionMapa(seccionMapa===t?null:t)}
