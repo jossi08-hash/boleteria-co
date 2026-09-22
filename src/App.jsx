@@ -205,10 +205,138 @@ function MapaElCampin({avail, selected, onSelect}) {
         )
       })}
       {/* Compass markers */}
-      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
-      <text x="210" y="372" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
+      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
+      <text x="210" y="372" textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
       <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
       <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
+    </svg>
+  )
+}
+
+function MapaAtanasio({avail, selected, onSelect}) {
+  // Horizontal: Norte=left, Sur=right, Occidental=top, Oriental=bottom
+  const CX=210, CY=195
+  const r2d = d => d*Math.PI/180
+  const ptx = (rx,ry,d) => CX+rx*Math.cos(r2d(d))
+  const pty = (rx,ry,d) => CY+ry*Math.sin(r2d(d))
+  const f = n => +n.toFixed(2)
+  function ringPath({oRx,oRy,iRx,iRy,s,e}) {
+    const span=((e-s)%360+360)%360, lg=span>180?1:0
+    return `M${f(ptx(oRx,oRy,s))} ${f(pty(oRx,oRy,s))} A${oRx} ${oRy} 0 ${lg} 1 ${f(ptx(oRx,oRy,e))} ${f(pty(oRx,oRy,e))} L${f(ptx(iRx,iRy,e))} ${f(pty(iRx,iRy,e))} A${iRx} ${iRy} 0 ${lg} 0 ${f(ptx(iRx,iRy,s))} ${f(pty(iRx,iRy,s))}Z`
+  }
+  function midPt({oRx,oRy,iRx,iRy,s,e}) {
+    const span=((e-s)%360+360)%360, mid=s+span/2
+    return [f(CX+(oRx+iRx)/2*Math.cos(r2d(mid))), f(CY+(oRy+iRy)/2*Math.sin(r2d(mid)))]
+  }
+  const SECS=[
+    {id:'Norte',           lbl:['Norte'],        oRx:170,oRy:110,iRx:95, iRy:50, s:150,e:210},
+    {id:'Sur',             lbl:['Sur'],           oRx:170,oRy:110,iRx:95, iRy:50, s:330,e:30 },
+    {id:'Occidental Baja', lbl:['Occ.','Baja'],  oRx:115,oRy:67, iRx:95, iRy:50, s:210,e:330},
+    {id:'Occidental Alta', lbl:['Occ.','Alta'],  oRx:143,oRy:88, iRx:115,iRy:67, s:210,e:330},
+    {id:'Platea',          lbl:['Platea'],        oRx:170,oRy:110,iRx:143,iRy:88, s:210,e:330},
+    {id:'Oriental Baja',   lbl:['Ori.','Baja'],  oRx:130,oRy:78, iRx:95, iRy:50, s:30, e:150},
+    {id:'Oriental Alta',   lbl:['Ori.','Alta'],  oRx:170,oRy:110,iRx:130,iRy:78, s:30, e:150},
+  ]
+  const fw=190, fh=100, fx=CX-95, fy=CY-50
+  return (
+    <svg viewBox="0 0 420 390" style={{width:'100%',maxWidth:'540px',display:'block',margin:'0 auto'}} aria-label="Estadio Atanasio Girardot">
+      <defs>
+        <clipPath id="atc"><ellipse cx={CX} cy={CY} rx={95} ry={50}/></clipPath>
+      </defs>
+      <ellipse cx={CX} cy={CY} rx={170} ry={110} fill="#0f172a" opacity="0.5"/>
+      {SECS.map(sec=>{
+        const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
+        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
+        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
+        const [lx,ly]=midPt(sec)
+        return (
+          <g key={sec.id} onClick={()=>isAvail&&onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}>
+            <path d={ringPath(sec)} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.9:0.5}/>
+            <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
+              fontSize={sec.lbl.length>1?'8':'11'} fontWeight="700"
+              fill={isSel?'#fff':isAvail?'#4ade80':'rgba(255,255,255,0.3)'}
+              style={{pointerEvents:'none',letterSpacing:'0.2px'}}>
+              {sec.lbl.length===1
+                ? sec.lbl[0]
+                : <><tspan x={lx} dy="-0.5em">{sec.lbl[0]}</tspan><tspan x={lx} dy="1.1em">{sec.lbl[1]}</tspan></>
+              }
+            </text>
+          </g>
+        )
+      })}
+      <g clipPath="url(#atc)">
+        {Array.from({length:10},(_,i)=>(
+          <rect key={i} x={fx} y={fy+i*10} width={fw} height={5} fill={i%2===0?'#166534':'#15803d'} opacity="0.9"/>
+        ))}
+        <rect x={fx} y={fy} width={fw} height={fh} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <line x1={CX} y1={fy} x2={CX} y2={fy+fh} stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={CX} cy={CY} r={22} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={CX} cy={CY} r={2} fill="#4ade80" opacity="0.5"/>
+        <rect x={fx} y={CY-18} width={28} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <rect x={fx+fw-28} y={CY-18} width={28} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={fx+38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
+        <circle cx={fx+fw-38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
+      </g>
+      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
+      <text x="210" y="378" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
+      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
+      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
+    </svg>
+  )
+}
+
+function MapaEstadioTecho({avail, selected, onSelect}) {
+  /* Rectangular asymmetric stadium — polygon-based (not arc-based) */
+  const SECS=[
+    {id:'Norte',                name:'Norte',     d:'M170,42 L365,42 L365,115 L170,115Z',         lx:267, ly:78 },
+    {id:'Oriental Norte',       name:'Ori.Norte', d:'M365,42 L445,62 L445,178 L365,115Z',         lx:407, ly:115},
+    {id:'Oriental',             name:'Oriental',  d:'M365,115 L445,178 L445,412 L365,412Z',       lx:406, ly:295},
+    {id:'Occidental Norte',     name:'Occ.Norte', d:'M42,12 L170,12 L170,258 L42,292Z',          lx:80,  ly:152},
+    {id:'Occidental Norte VIP', name:'VIP',       d:'M112,58 L170,58 L170,212 L112,212Z',        lx:139, ly:135},
+    {id:'Occidental Sur',       name:'Occ.Sur',   d:'M42,292 L170,258 L170,412 L42,448Z',        lx:98,  ly:367},
+  ]
+  /* Field bounds */
+  const fx=170,fy=115,fw=195,fh=297
+  return (
+    <svg viewBox="0 0 490 505" style={{width:'100%',maxWidth:'490px',display:'block',margin:'0 auto'}} aria-label="Estadio de Techo">
+      <defs>
+        <clipPath id="tec"><rect x={fx} y={fy} width={fw} height={fh}/></clipPath>
+      </defs>
+      {SECS.map((sec,i)=>{
+        const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
+        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
+        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
+        return (
+          <g key={sec.id} onClick={()=>isAvail && onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default'}}>
+            <path d={sec.d} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.85:0.4}/>
+            <text x={sec.lx} y={sec.ly} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fontWeight="700"
+              fill={isSel?'#fff':isAvail?'#4ade80':'rgba(255,255,255,0.3)'} style={{pointerEvents:'none',letterSpacing:'0.3px'}}>
+              {sec.name}
+            </text>
+          </g>
+        )
+      })}
+      {/* Field */}
+      <g clipPath="url(#tec)">
+        {Array.from({length:10},(_,i)=>(
+          <rect key={i} x={fx} y={fy+i*(fh/10)} width={fw} height={fh/20} fill={i%2===0?'#166534':'#15803d'} opacity="0.9"/>
+        ))}
+        <rect x={fx} y={fy} width={fw} height={fh} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <line x1={fx} y1={fy+fh/2} x2={fx+fw} y2={fy+fh/2} stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={fx+fw/2} cy={fy+fh/2} r={28} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={fx+fw/2} cy={fy+fh/2} r={2} fill="#4ade80" opacity="0.5"/>
+        <rect x={fx+47} y={fy} width={101} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <rect x={fx+47} y={fy+fh-36} width={101} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <rect x={fx+66} y={fy} width={63} height={15} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <rect x={fx+66} y={fy+fh-15} width={63} height={15} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
+        <circle cx={fx+fw/2} cy={fy+50} r={2} fill="#4ade80" opacity="0.5"/>
+        <circle cx={fx+fw/2} cy={fy+fh-50} r={2} fill="#4ade80" opacity="0.5"/>
+      </g>
+      {/* Compass */}
+      <text x="267" y="18" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>NORTE</text>
+      <text x="267" y="490" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>SUR</text>
+      <text x="16" y="262" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,16,262)">OCCIDENTAL</text>
+      <text x="474" y="262" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,474,262)">ORIENTAL</text>
     </svg>
   )
 }
@@ -255,6 +383,7 @@ function App() {
   const [cargando, setCargando] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [mostrarAdmin, setMostrarAdmin] = useState(false)
+  const [mostrarMenu, setMostrarMenu] = useState(false)
   const [eventos, setEventos] = useState([])
   const [mensaje, setMensaje] = useState('')
   const [comprando, setComprando] = useState(null)
@@ -326,6 +455,7 @@ function App() {
   useEffect(() => {
     cargarBoletas()
     cargarEventos()
+    cargarEstadios()
     obtenerUsuarioActual().then(u => setUsuario(u))
 
     const urlParams = new URLSearchParams(window.location.search)
@@ -334,9 +464,10 @@ function App() {
     }
 
     // Escuchar cambios de autenticación: confirmación de email y recuperación de contraseña
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
-        setUsuario(session.user)
+        const { data: perfil } = await supabase.from('usuarios').select('es_admin').eq('id', session.user.id).single()
+        setUsuario({ ...session.user, es_admin: perfil?.es_admin || false })
         setVistaAuth(null)
         setMensajeAuth('')
       }
@@ -643,7 +774,10 @@ function App() {
       const sugerida = ev ? sugerirPlataforma(ev.nombre) : ''
       if (sugerida) updated.plataforma = sugerida
       updated.tribuna = ''
-      setTribunasEvento(ev ? (ev.tribunas || []) : [])
+      const estNombre = ev ? (ev.estadio || '') : ''
+      const estObj = estadios.find(e => e.nombre.toLowerCase() === estNombre.toLowerCase())
+      const tribs = (estObj && estObj.tribunas && estObj.tribunas.length > 0) ? estObj.tribunas : (ev ? (ev.tribunas || []) : [])
+      setTribunasEvento(tribs)
     }
     setForm(updated)
   }
@@ -1194,7 +1328,7 @@ function App() {
     const n = pagoInfo?.carritoCount || 1
     const ref = pagoInfo?.referencia || ''
     return (
-      <div style={{minHeight:'100vh',background:'#080b12',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui,sans-serif',padding:'20px'}}>
+      <div style={{minHeight:'100vh',background:'#080b12',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Inter',system-ui,sans-serif",padding:'20px'}}>
         <div style={{maxWidth:'480px',width:'100%'}}>
           {/* Header */}
           <div style={{background:'#0f2d1e',border:'1px solid #166534',borderRadius:'20px',padding:'36px 32px',textAlign:'center',marginBottom:'16px'}}>
@@ -1259,7 +1393,7 @@ function App() {
 
   if (pagoStatus === 'fallido') {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter',system-ui,sans-serif" }}>
         <div style={{ background: '#1c0a0a', border: '1px solid #991b1b', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
           <div style={{ fontSize: '60px', marginBottom: '16px' }}>❌</div>
           <h2 style={{ color: '#f87171', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>Pago no completado</h2>
@@ -1277,7 +1411,7 @@ function App() {
 
   if (pagoStatus === 'pendiente') {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter',system-ui,sans-serif" }}>
         <div style={{ background: '#1a150a', border: '1px solid #854d0e', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
           <div style={{ fontSize: '60px', marginBottom: '16px' }}>⏳</div>
           <h2 style={{ color: '#facc15', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>Pago en proceso</h2>
@@ -1333,26 +1467,110 @@ function App() {
         <div style={s.navInner}>
           <h1 style={s.logo}><span style={{fontSize:'20px'}}>🎟</span> Boletería <span style={s.logoPunto}>CO</span></h1>
           <div style={s.authBar}>
-            {usuario ? (
-              <>
-                {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
-                {!esMobile && <span style={s.usuarioNombre}>{usuario.email}</span>}
-                <button style={s.botonSec} onClick={irAMisBoletas}>{esMobile ? '🎟' : 'Mis boletas'}</button>
-                <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
-                  🛒
-                  {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
-                </button>
-                <button style={s.botonSec} onClick={manejarCerrarSesion}>{esMobile ? '←' : 'Salir'}</button>
-              </>
+            {esMobile ? (
+              /* ── MOBILE: hamburger ── */
+              <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',fontSize:'18px',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+              </button>
             ) : (
-              <>
-                <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
-                <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
-              </>
+              /* ── DESKTOP: botones ── */
+              usuario ? (
+                <>
+                  {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
+                  <span style={s.usuarioNombre}>{usuario.email}</span>
+                  <button style={s.botonSec} onClick={irAMisBoletas}>Mis boletas</button>
+                  <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+                    🛒
+                    {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                  </button>
+                  <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
+                </>
+              ) : (
+                <>
+                  <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
+                  <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
+                </>
+              )
             )}
           </div>
         </div>
       </nav>
+      {/* ── MENÚ MÓVIL ── */}
+      {mostrarMenu && (
+        <>
+          {/* Overlay */}
+          <div onClick={()=>setMostrarMenu(false)} style={{position:'fixed',inset:0,zIndex:998,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(2px)'}}/>
+          {/* Panel */}
+          <div style={{position:'fixed',top:0,right:0,bottom:0,width:'78%',maxWidth:'300px',zIndex:999,background:'#0d1117',borderLeft:'1px solid #1e2a3a',display:'flex',flexDirection:'column',overflowY:'auto'}}>
+            {/* Header */}
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'18px 20px',borderBottom:'1px solid #1e2a3a'}}>
+              <h2 style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🎟 Boletería <span style={{color:'#4f7eff'}}>CO</span></h2>
+              <button onClick={()=>setMostrarMenu(false)} style={{background:'transparent',border:'none',color:'#6b7a94',cursor:'pointer',fontSize:'20px',lineHeight:1,padding:'2px 6px'}}>✕</button>
+            </div>
+            {/* Usuario */}
+            {usuario && (
+              <div style={{padding:'14px 20px',borderBottom:'1px solid #1e2a3a',background:'rgba(79,126,255,0.05)'}}>
+                <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.8px',margin:'0 0 3px'}}>Sesión activa</p>
+                <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'600',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{usuario.email}</p>
+              </div>
+            )}
+            {/* Opciones */}
+            <nav style={{flex:1,padding:'8px 0'}}>
+              {/* Inicio */}
+              <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null);setMostrarMenu(false)}}
+                style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🏠</span> Inicio
+              </button>
+              {/* Vender */}
+              {usuario && (
+                <button onClick={()=>{setMostrarFormulario(true);setPaginaActual('inicio');setMostrarMenu(false)}}
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                  <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>➕</span> Vender boleta
+                </button>
+              )}
+              {/* Mis boletas */}
+              {usuario && (
+                <button onClick={()=>{irAMisBoletas();setMostrarMenu(false)}}
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                  <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🎟</span> Mis boletas
+                </button>
+              )}
+              {/* Carrito */}
+              {usuario && (
+                <button onClick={()=>{setPaginaActual('carrito');setMostrarMenu(false)}}
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
+                  <span style={{display:'flex',alignItems:'center',gap:'12px'}}><span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🛒</span> Carrito</span>
+                  {carrito.length > 0 && <span style={{background:'#4f7eff',color:'#fff',borderRadius:'20px',padding:'2px 9px',fontSize:'11px',fontWeight:'800'}}>{carrito.length}</span>}
+                </button>
+              )}
+              {/* Admin */}
+              {esAdmin && (
+                <button onClick={()=>{setMostrarAdmin(true);setPaginaActual('inicio');setMostrarMenu(false)}}
+                  style={{width:'100%',background:'rgba(160,82,255,0.06)',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#c084fc',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
+                  <span style={{display:'flex',alignItems:'center',gap:'12px'}}><span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>⚙️</span> Admin</span>
+                  {boletasPendientes.length > 0 && <span style={{background:'rgba(160,82,255,0.25)',color:'#c084fc',borderRadius:'20px',padding:'2px 9px',fontSize:'11px',fontWeight:'800'}}>{boletasPendientes.length}</span>}
+                </button>
+              )}
+            </nav>
+            {/* Footer: Salir / Auth */}
+            <div style={{padding:'16px 20px',borderTop:'1px solid #1e2a3a'}}>
+              {usuario ? (
+                <button onClick={()=>{manejarCerrarSesion();setMostrarMenu(false)}}
+                  style={{width:'100%',background:'rgba(255,59,48,0.08)',border:'1px solid rgba(255,59,48,0.2)',borderRadius:'10px',color:'#f87171',cursor:'pointer',fontSize:'14px',fontWeight:'700',padding:'12px 0'}}>
+                  Salir
+                </button>
+              ) : (
+                <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                  <button onClick={()=>{setPaginaActual('login');setMostrarMenu(false)}} style={{width:'100%',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'10px',color:'#eef0f6',cursor:'pointer',fontSize:'14px',fontWeight:'600',padding:'12px 0'}}>Iniciar sesión</button>
+                  <button onClick={()=>{setPaginaActual('registro');setMostrarMenu(false)}} style={{width:'100%',background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',cursor:'pointer',fontSize:'14px',fontWeight:'700',padding:'12px 0'}}>Registrarse</button>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
       <div style={s.contenedor}>
         {/* HERO */}
         {!usuario && (
@@ -1367,11 +1585,36 @@ function App() {
 
         {paginaActual === 'mis-boletas' && usuario && (
           <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-          <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
-            <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
+          <nav style={s.nav}>
+            <div style={s.navInner}>
               <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-              <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🎟 Mis boletas</p>
-              <div style={{width:'60px'}}></div>
+              {esMobile ? (
+                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                  </button>
+              ) : (
+                <div style={s.authBar}>
+                  {usuario ? (
+                    <>
+                      {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
+                      <span style={s.usuarioNombre}>{usuario.email}</span>
+                      <button style={s.botonSec} onClick={irAMisBoletas}>Mis boletas</button>
+                      <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+                        🛒
+                        {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                      </button>
+                      <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
+                    </>
+                  ) : (
+                    <>
+                      <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
+                      <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </nav>
           <div style={{maxWidth:'680px',margin:'0 auto',padding:'28px 20px 48px'}}>
@@ -2135,6 +2378,15 @@ function App() {
               <option value="">Selecciona un evento</option>
               {eventos.map(function(ev) { return <option key={ev.id} value={ev.id}>{ev.nombre} ({ev.moneda || 'COP'})</option> })}
             </select>
+            {form.eventoId && (() => {
+              const ev = eventos.find(e => e.id === form.eventoId)
+              const info = ev ? [ev.ciudad, ev.estadio].filter(Boolean).join(' · ') : ''
+              return info ? (
+                <p style={{color:'#6b93ff',fontSize:'12px',margin:'-8px 0 14px',display:'flex',alignItems:'center',gap:'6px'}}>
+                  <span>📍</span><span>{info}</span>
+                </p>
+              ) : null
+            })()}
             <label style={s.label}>Plataforma de la boleta</label>
             <select name="plataforma" value={form.plataforma} onChange={manejarCambio} required style={s.input}>
               <option value="">Selecciona la app donde tienes la boleta</option>
@@ -2185,6 +2437,8 @@ function App() {
         {(()=>{
           const boletasFiltradas = boletas.filter(b => {
             if (b.estado !== 'publicada') return false
+            if (filtros.ciudad && (b.eventos?.ciudad || '').toLowerCase() !== filtros.ciudad.toLowerCase()) return false
+            if (filtros.deporte && (b.eventos?.deporte || '').toLowerCase() !== filtros.deporte.toLowerCase()) return false
             if (busquedaPublica.trim()) {
               const q = busquedaPublica.toLowerCase()
               const nombre = (b.eventos?.nombre || '').toLowerCase()
@@ -2240,25 +2494,24 @@ function App() {
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#4f7eff'}
                 onMouseLeave={e=>e.currentTarget.style.borderColor='#1e2a3a'}
               >
-                {/* Top: fecha + flecha */}
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+                {/* Top: grid 3 cols — fecha | escudos centrados | flecha */}
+                <div style={{display:'grid',gridTemplateColumns:'80px 1fr 24px',alignItems:'center',gap:'8px'}}>
                   {fechaObj ? (
-                    <div style={{background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'10px',padding:'8px 12px',textAlign:'center',minWidth:'58px'}}>
+                    <div style={{background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'10px',padding:'8px 12px',textAlign:'center'}}>
                       <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'800',margin:0,textTransform:'uppercase',letterSpacing:'0.8px'}}>{mesAbr}</p>
                       <p style={{color:'#eef0f6',fontSize:'22px',fontWeight:'900',margin:'2px 0',lineHeight:'1'}}>{diaN}</p>
                       <p style={{color:'#8892a4',fontSize:'10px',fontWeight:'600',margin:0}}>{anioN}</p>
                       {horaStr && <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'700',margin:'3px 0 0',background:'rgba(79,126,255,0.15)',borderRadius:'6px',padding:'1px 4px'}}>{horaStr}</p>}
                     </div>
                   ) : <div/>}
-                  <span style={{color:'#4e5a6e',fontSize:'20px'}}>›</span>
-                </div>
-                {/* Centro: escudos */}
-                <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'18px'}}>
-                  <EscudoSVG nombre={equipo1} size={60} />
-                  {equipo2 && <>
-                    <span style={{color:'#2a3a52',fontSize:'13px',fontWeight:'800',letterSpacing:'1px'}}>VS</span>
-                    <EscudoSVG nombre={equipo2} size={60} />
-                  </>}
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'16px'}}>
+                    <EscudoSVG nombre={equipo1} size={60} />
+                    {equipo2 && <>
+                      <span style={{color:'#2a3a52',fontSize:'13px',fontWeight:'800',letterSpacing:'1px'}}>VS</span>
+                      <EscudoSVG nombre={equipo2} size={60} />
+                    </>}
+                  </div>
+                  <span style={{color:'#4e5a6e',fontSize:'18px',textAlign:'right'}}>›</span>
                 </div>
                 {/* Nombre + estadio centrados */}
                 <div style={{textAlign:'center'}}>
@@ -2300,14 +2553,41 @@ function App() {
           const seccionActual = seccionMapa || null
           const boletasSeccion = seccionActual ? (porTribuna[seccionActual] || []) : disponibles
           const esElCampin = (info?.estadio||'').toLowerCase().replace(/[íi]/g,'i').includes('campin')
+          const esAtanasio = (info?.estadio||'').toLowerCase().includes('atanasio') || (info?.estadio||'').toLowerCase().includes('girardot')
+          const esTecho = (info?.estadio||'').toLowerCase().includes('techo')
           return (
             <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
               {/* NAV */}
-              <nav style={{background:'rgba(8,11,18,0.96)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1a2332',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
-                <div style={{maxWidth:'680px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'56px'}}>
-                  <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#6b7a94',cursor:'pointer',fontSize:'13px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                  <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.2px'}}>🎟️ Entradas</p>
-                  <div style={{width:'60px'}} />
+              <nav style={s.nav}>
+                <div style={s.navInner}>
+                  <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                  {esMobile ? (
+                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                  </button>
+              ) : (
+                <div style={s.authBar}>
+                  {usuario ? (
+                    <>
+                      {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
+                      <span style={s.usuarioNombre}>{usuario.email}</span>
+                      <button style={s.botonSec} onClick={irAMisBoletas}>Mis boletas</button>
+                      <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+                        🛒
+                        {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                      </button>
+                      <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
+                    </>
+                  ) : (
+                    <>
+                      <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
+                      <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
+                    </>
+                  )}
+                </div>
+              )}
                 </div>
               </nav>
               <div style={{maxWidth:'680px',margin:'0 auto',padding:'0 20px 80px'}}>
@@ -2329,16 +2609,30 @@ function App() {
                 </div>
 
                 {/* MAPA */}
-                {esElCampin ? (
+                {(esElCampin || esAtanasio || esTecho) ? (
                   <div style={{marginBottom:'20px'}}>
                     <p style={{color:'#4e5a6e',fontSize:'10px',fontWeight:'700',textAlign:'center',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'1px'}}>
                       🗺️ Toca una tribuna para ver las boletas
                     </p>
-                    <MapaElCampin
-                      avail={porTribuna}
-                      selected={seccionActual}
-                      onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
-                    />
+                    {esElCampin ? (
+                      <MapaElCampin
+                        avail={porTribuna}
+                        selected={seccionActual}
+                        onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
+                      />
+                    ) : esAtanasio ? (
+                      <MapaAtanasio
+                        avail={porTribuna}
+                        selected={seccionActual}
+                        onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
+                      />
+                    ) : (
+                      <MapaEstadioTecho
+                        avail={porTribuna}
+                        selected={seccionActual}
+                        onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
+                      />
+                    )}
                     {/* Leyenda */}
                     <div style={{display:'flex',justifyContent:'center',gap:'16px',marginTop:'10px',flexWrap:'wrap'}}>
                       {[['rgba(61,219,122,0.7)','Disponible'],['rgba(79,126,255,0.8)','Seleccionado'],['rgba(255,255,255,0.15)','Sin disponibilidad']].map(([col,lbl])=>(
@@ -2357,7 +2651,7 @@ function App() {
                 )}
 
                 {/* TRIBUNA PILLS (non-Campín) */}
-                {!esElCampin && tribunas.length > 1 && (
+                {!esElCampin && !esAtanasio && !esTecho && tribunas.length > 1 && (
                   <div style={{display:'flex',gap:'8px',overflowX:'auto',paddingBottom:'4px',marginBottom:'16px'}}>
                     {tribunas.map(t => (
                       <button key={t} onClick={()=>setSeccionMapa(seccionMapa===t?null:t)}
@@ -2418,6 +2712,26 @@ function App() {
                   )
                 })}
 
+                {/* MAPA GOOGLE MAPS */}
+                {info?.estadio && (
+                  <div style={{marginTop:'28px',marginBottom:'8px'}}>
+                    <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.8px',margin:'0 0 10px',display:'flex',alignItems:'center',gap:'6px'}}>
+                      📍 Cómo llegar
+                    </p>
+                    <div style={{borderRadius:'14px',overflow:'hidden',border:'1px solid #1a2332',height:'200px'}}>
+                      <iframe
+                        title="Ubicación del estadio"
+                        width="100%"
+                        height="200"
+                        style={{border:0,display:'block'}}
+                        loading="lazy"
+                        referrerPolicy="no-referrer-when-downgrade"
+                        src={`https://maps.google.com/maps?q=${encodeURIComponent((info.estadio||'')+(info.ciudad?', '+info.ciudad:''))}&output=embed&z=15`}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {/* BOTÓN VER CARRITO */}
                 {carrito.length > 0 && (
                   <button
@@ -2435,11 +2749,36 @@ function App() {
         {/* CARRITO */}
         {paginaActual === 'carrito' && (
           <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
-              <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
+            <nav style={s.nav}>
+              <div style={s.navInner}>
                 <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🛒 Carrito {carrito.length > 0 && `(${carrito.length})`}</p>
-                <div style={{width:'60px'}}></div>
+                {esMobile ? (
+                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                    <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                  </button>
+              ) : (
+                <div style={s.authBar}>
+                  {usuario ? (
+                    <>
+                      {esAdmin && <button style={s.botonAdmin} onClick={() => setMostrarAdmin(!mostrarAdmin)}>Admin {boletasPendientes.length > 0 && `(${boletasPendientes.length})`}</button>}
+                      <span style={s.usuarioNombre}>{usuario.email}</span>
+                      <button style={s.botonSec} onClick={irAMisBoletas}>Mis boletas</button>
+                      <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+                        🛒
+                        {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+                      </button>
+                      <button style={s.botonSec} onClick={manejarCerrarSesion}>Salir</button>
+                    </>
+                  ) : (
+                    <>
+                      <button style={s.botonSec} onClick={() => setPaginaActual('login')}>Iniciar sesión</button>
+                      <button style={s.botonPrin} onClick={() => setPaginaActual('registro')}>Registrarse</button>
+                    </>
+                  )}
+                </div>
+              )}
               </div>
             </nav>
             <div style={{maxWidth:'480px',margin:'0 auto',padding: esMobile ? '24px 16px 48px' : '32px 20px 48px'}}>
