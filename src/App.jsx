@@ -429,6 +429,7 @@ function App() {
   const [boldCargando, setBoldCargando] = useState(false)
   const [paginaActual, setPaginaActual] = useState('inicio')
   const [pestanaMis, setPestanaMis] = useState('pedidos')
+  const [pestanaAdmin, setPestanaAdmin] = useState('pendientes')
   const [misCompras, setMisCompras] = useState([])
   const [misVentas, setMisVentas] = useState([])
   const [cargandoMis, setCargandoMis] = useState(false)
@@ -1841,8 +1842,35 @@ function App() {
         )}
 
         {esAdmin && mostrarAdmin && (
-          <div style={s.tarjetaAdmin}>
-            <p style={s.tituloAdmin}>Panel de administrador</p>
+          <div style={{position:'fixed',inset:0,zIndex:350,background:'#080b12',overflowY:'auto'}}>
+            {/* NAV ADMIN */}
+            <nav style={s.nav}>
+              <div style={s.navInner}>
+                <button onClick={()=>setMostrarAdmin(false)} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                </button>
+              </div>
+            </nav>
+            <div style={{maxWidth:'720px',margin:'0 auto',padding:'28px 20px 48px'}}>
+              {/* PESTAÑAS ADMIN */}
+              <div style={{display:'flex',gap:'3px',marginBottom:'24px',background:'rgba(255,255,255,0.03)',borderRadius:'10px',padding:'4px',overflowX:'auto'}}>
+                {[
+                  {key:'pendientes', label:'🔴 Pendientes', badge: boletasPendientes.length + ordenesLiberadas.filter(o=>!o.boletas?.usuarios?.es_admin).length},
+                  {key:'mis-boletas', label:'🎟 Mis boletas', badge: boletasAdmin.length},
+                  {key:'estadios', label:'🏟 Estadios', badge: 0},
+                  {key:'eventos', label:'📅 Eventos', badge: 0},
+                ].map(tab => (
+                  <button key={tab.key} onClick={()=>setPestanaAdmin(tab.key)} style={{flex:1,minWidth:'80px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaAdmin===tab.key?'#4f7eff':'transparent',color:pestanaAdmin===tab.key?'#fff':'#8892a4',whiteSpace:'nowrap',position:'relative'}}>
+                    {tab.label}{tab.badge > 0 ? ` (${tab.badge})` : ''}
+                  </button>
+                ))}
+              </div>
+
+              {/* ── PESTAÑA: PENDIENTES ── */}
+              {pestanaAdmin === 'pendientes' && (<>
             {boletasPendientes.length > 0 && (
               <div style={{ marginBottom: '20px' }}>
                 <p style={s.tituloPendiente}>Boletas pendientes de verificacion ({boletasPendientes.length})</p>
@@ -1896,6 +1924,10 @@ function App() {
             {ordenesLiberadas.filter(o => !o.boletas?.usuarios?.es_admin).length === 0 && (
               <p style={{color:'#6b7280',fontSize:'13px',marginBottom:'16px'}}>No hay pagos pendientes de envío.</p>
             )}
+              </>)}
+
+              {/* ── PESTAÑA: MIS BOLETAS ADMIN ── */}
+              {pestanaAdmin === 'mis-boletas' && (<>
             {boletasAdmin.length > 0 && (
               <div style={{marginBottom:'20px'}}>
                 <p style={{...s.tituloAdmin, marginBottom:'8px'}}>Gestionar boletas ({boletasAdmin.length})</p>
@@ -1963,6 +1995,10 @@ function App() {
                 <hr style={s.separador}/>
               </div>
             )}
+              </>)}
+
+              {/* ── PESTAÑA: ESTADIOS ── */}
+              {pestanaAdmin === 'estadios' && (<>
             <p style={s.tituloAdmin}>Estadios</p>
             {estadios.length === 0
               ? <p style={{color:'#4e5a6e',fontSize:'13px',marginBottom:'12px'}}>No hay estadios registrados.</p>
@@ -2057,7 +2093,10 @@ function App() {
               )}
               <button type="submit" style={s.botonSubmitVerde}>Crear estadio</button>
             </form>
-            <hr style={s.separador}/>
+              </>)}
+
+              {/* ── PESTAÑA: EVENTOS ── */}
+              {pestanaAdmin === 'eventos' && (<>
             <p style={s.tituloAdmin}>Eventos registrados</p>
             {eventos.length === 0
               ? <p style={{color:'#4e5a6e',fontSize:'13px',marginBottom:'16px'}}>No hay eventos.</p>
@@ -2181,6 +2220,8 @@ function App() {
               <button type="submit" style={s.botonSubmitVerde}>Crear evento</button>
               {mensajeEvento && <p style={s.mensaje}>{mensajeEvento}</p>}
             </form>
+              </>)}
+            </div>
           </div>
         )}
 
