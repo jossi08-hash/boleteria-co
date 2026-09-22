@@ -923,7 +923,14 @@ function App() {
 
   function irAMisBoletas() {
     setPaginaActual('mis-boletas')
+    setMostrarAdmin(false)
+    setMostrarFormulario(false)
     cargarMisBoletas()
+  }
+  function cerrarOverlays() {
+    setMostrarAdmin(false)
+    setMostrarFormulario(false)
+    setMostrarMenu(false)
   }
 
   function formatearPrecio(precio, moneda) {
@@ -1506,7 +1513,7 @@ function App() {
                 </button>
               </>
             ) : (
-              <button onClick={()=>setPaginaActual('login')} style={{background:'transparent',border:'1px solid #4f7eff',borderRadius:'8px',cursor:'pointer',color:'#4f7eff',fontSize:'12px',fontWeight:'600',padding:'5px 10px',lineHeight:1,whiteSpace:'nowrap'}}>
+              <button onClick={()=>{setPaginaActual('login');cerrarOverlays()}} style={{background:'transparent',border:'1px solid #4f7eff',borderRadius:'8px',cursor:'pointer',color:'#4f7eff',fontSize:'12px',fontWeight:'600',padding:'5px 10px',lineHeight:1,whiteSpace:'nowrap'}}>
                 {esMobile ? 'Entrar' : 'Iniciar sesión'}
               </button>
             )}
@@ -1517,7 +1524,7 @@ function App() {
               </button>
             )}
             {usuario && (
-              <button onClick={() => setPaginaActual('carrito')} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+              <button onClick={() => {setPaginaActual('carrito');cerrarOverlays()}} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
                 🛒
                 {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
               </button>
@@ -1552,13 +1559,13 @@ function App() {
             {/* Opciones */}
             <nav style={{flex:1,padding:'8px 0'}}>
               {/* Inicio */}
-              <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null);setMostrarMenu(false)}}
+              <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null);cerrarOverlays()}}
                 style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
                 <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🏠</span> Inicio
               </button>
               {/* Vender */}
               {usuario && (
-                <button onClick={()=>{setMostrarFormulario(true);setPaginaActual('inicio');setMostrarMenu(false)}}
+                <button onClick={()=>{cerrarOverlays();setMostrarFormulario(true);setPaginaActual('inicio')}}
                   style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
                   <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>➕</span> Vender boleta
                 </button>
@@ -1572,7 +1579,7 @@ function App() {
               )}
               {/* Carrito */}
               {usuario && (
-                <button onClick={()=>{setPaginaActual('carrito');setMostrarMenu(false)}}
+                <button onClick={()=>{setPaginaActual('carrito');cerrarOverlays()}}
                   style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
                   <span style={{display:'flex',alignItems:'center',gap:'12px'}}><span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🛒</span> Carrito</span>
                   {carrito.length > 0 && <span style={{background:'#4f7eff',color:'#fff',borderRadius:'20px',padding:'2px 9px',fontSize:'11px',fontWeight:'800'}}>{carrito.length}</span>}
