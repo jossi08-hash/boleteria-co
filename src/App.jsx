@@ -1279,9 +1279,9 @@ function App() {
   }
   const s = {
     pagina: { minHeight: '100vh', background: '#080b12', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,126,255,0.07), transparent)' },
-    nav: { background: 'rgba(13,17,23,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1e2a3a', position: 'sticky', top: 0, zIndex: 100, padding: '0 20px' },
-    navInner: { maxWidth: '720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '60px' },
-    logo: { color: '#eef0f6', fontSize: '17px', fontWeight: '800', letterSpacing: '-0.5px', margin: 0 },
+    nav: { background: 'rgba(13,17,23,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1e2a3a', position: 'sticky', top: 0, zIndex: 100, padding: esMobile ? '0 12px' : '0 20px' },
+    navInner: { maxWidth: '720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: esMobile ? '52px' : '60px' },
+    logo: { color: '#eef0f6', fontSize: esMobile ? '15px' : '17px', fontWeight: '800', letterSpacing: '-0.5px', margin: 0, whiteSpace: 'nowrap' },
     logoPunto: { color: '#4f7eff' },
     contenedor: { maxWidth: '720px', margin: '0 auto', padding: esMobile ? '0 12px 48px' : '0 20px 48px' },
     header: { display: 'none' },
@@ -1470,16 +1470,18 @@ function App() {
           <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
             {usuario ? (
               <>
-                <span style={{color:'#6b7a94',fontSize:'11px',fontWeight:'600',maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
-                  ¡Hola, {((usuario.user_metadata?.nombre || usuario.email || '').split(' ')[0].split('@')[0])}!
-                </span>
+                {!esMobile && (
+                  <span style={{color:'#6b7a94',fontSize:'11px',fontWeight:'600',maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                    ¡Hola, {((usuario.user_metadata?.nombre || usuario.email || '').split(' ')[0].split('@')[0])}!
+                  </span>
+                )}
                 <button onClick={manejarCerrarSesion} style={{background:'rgba(255,59,48,0.07)',border:'1px solid rgba(255,59,48,0.18)',borderRadius:'7px',cursor:'pointer',color:'#f87171',fontSize:'11px',fontWeight:'700',padding:'4px 8px',lineHeight:1}}>
                   Salir
                 </button>
               </>
             ) : (
               <button onClick={()=>setPaginaActual('login')} style={{background:'transparent',border:'1px solid #4f7eff',borderRadius:'8px',cursor:'pointer',color:'#4f7eff',fontSize:'12px',fontWeight:'600',padding:'5px 10px',lineHeight:1,whiteSpace:'nowrap'}}>
-                Iniciar sesión
+                {esMobile ? 'Entrar' : 'Iniciar sesión'}
               </button>
             )}
             {esAdmin && (
