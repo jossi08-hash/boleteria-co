@@ -2245,7 +2245,83 @@ function App() {
           </div>
         )}
 
-        {/* ── Página de Login ── */}
+        {/* ── Vista Publicar Boleta ── */}
+        {mostrarFormulario && usuario && (
+          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+              <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
+                <button onClick={()=>{setMostrarFormulario(false);setSilasExtra([])}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Publicar boleta</p>
+                <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                  <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+                </button>
+              </div>
+            </nav>
+            <div style={{maxWidth:'560px',margin:'0 auto',padding:'28px 20px 60px'}}>
+              <form onSubmit={manejarPublicar} style={s.tarjetaForm}>
+                <label style={s.label}>Evento</label>
+                <select name="eventoId" value={form.eventoId} onChange={manejarCambio} required style={s.input}>
+                  <option value="">Selecciona un evento</option>
+                  {eventos.map(function(ev) { return <option key={ev.id} value={ev.id}>{ev.nombre} ({ev.moneda || 'COP'})</option> })}
+                </select>
+                {form.eventoId && (() => {
+                  const ev = eventos.find(e => e.id === form.eventoId)
+                  const info = ev ? [ev.ciudad, ev.estadio].filter(Boolean).join(' · ') : ''
+                  return info ? (
+                    <p style={{color:'#6b93ff',fontSize:'12px',margin:'-8px 0 14px',display:'flex',alignItems:'center',gap:'6px'}}>
+                      <span>📍</span><span>{info}</span>
+                    </p>
+                  ) : null
+                })()}
+                <label style={s.label}>Plataforma de la boleta</label>
+                <select name="plataforma" value={form.plataforma} onChange={manejarCambio} required style={s.input}>
+                  <option value="">Selecciona la app donde tienes la boleta</option>
+                  {Object.keys(PLATAFORMAS).map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+                {form.plataforma && PLATAFORMAS[form.plataforma] && (
+                  <p style={{color:'#8892a4',fontSize:'11px',margin:'-10px 0 12px',lineHeight:1.5}}>
+                    ℹ️ {form.plataforma === 'TuBoletaPass' ? 'Santa Fe, América, Llaneros, Tolima' : form.plataforma === 'Quentro' ? 'Millonarios, Atlético Nacional' : form.plataforma === 'Warena' ? 'Cúcuta, Junior' : 'Ind. Medellín'}
+                  </p>
+                )}
+                <label style={s.label}>Tribuna</label>
+                {tribunasEvento.length > 0
+                  ? <select name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input}>
+                      <option value="">Selecciona tribuna</option>
+                      {tribunasEvento.map(t => <option key={t} value={t}>{t}</option>)}
+                    </select>
+                  : <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} placeholder="Ej: Occidental" />
+                }
+                <label style={s.label}>Fila</label>
+                <input name="fila" value={form.fila} onChange={manejarCambio} required style={s.input} />
+                <label style={s.label}>Silla</label>
+                <input name="silla" value={form.silla} onChange={manejarCambio} required style={s.input} />
+                <label style={s.label}>Precio</label>
+                <input name="precio" type="number" value={form.precio} onChange={manejarCambio} required style={s.input} />
+                {silasExtra.map((s2, i) => (
+                  <SillaExtraRow
+                    key={i}
+                    silla={s2}
+                    indice={i}
+                    tribunas={tribunasEvento}
+                    onChangeTribuna={v=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:v}:x))}
+                    onChangeFila={v=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,fila:v}:x))}
+                    onChangeSilla={v=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,silla:v}:x))}
+                    onRemove={()=>setSilasExtra(silasExtra.filter((_,j)=>j!==i))}
+                    inputStyle={s.input}
+                    labelStyle={s.label}
+                  />
+                ))}
+                <button type="button" onClick={()=>setSilasExtra([...silasExtra,{tribuna:form.tribuna||'',fila:'',silla:''}])} style={{background:'transparent',border:'1px dashed #1e2a3a',borderRadius:'8px',padding:'8px',fontSize:'12px',color:'#4e5a6e',cursor:'pointer',width:'100%',marginBottom:'16px'}}>+ Añadir otra silla</button>
+                <button type="submit" style={s.botonSubmit}>Publicar {silasExtra.length > 0 ? silasExtra.length+1+' boletas' : 'boleta'}</button>
+                {mensaje && <p style={s.mensaje}>{mensaje}</p>}
+              </form>
+            </div>
+          </div>
+        )}
+
+                {/* ── Página de Login ── */}
         {paginaActual === 'login' && (
           <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
             <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
@@ -2459,73 +2535,13 @@ function App() {
               <p style={{color:'#4e5a6e',fontSize:'12px',margin:0}}>{[...new Set(boletas.filter(b=>b.estado==='publicada'&&b.evento_id).map(b=>b.evento_id))].length} evento{[...new Set(boletas.filter(b=>b.estado==='publicada'&&b.evento_id).map(b=>b.evento_id))].length!==1?'s':''} con entradas</p>
             </div>
             {usuario&&(
-              <button onClick={()=>setMostrarFormulario(!mostrarFormulario)} style={{background:'rgba(79,126,255,0.12)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'10px',padding:'9px 18px',fontSize:'13px',fontWeight:'700',cursor:'pointer',flexShrink:0}}>
-                {mostrarFormulario?'✕ Cancelar':'+ Vender'}
+              <button onClick={()=>setMostrarFormulario(true)} style={{background:'rgba(79,126,255,0.12)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'10px',padding:'9px 18px',fontSize:'13px',fontWeight:'700',cursor:'pointer',flexShrink:0}}>
+                + Vender
               </button>
             )}
           </div>
         </div>
 
-        {mostrarFormulario && (
-          <form onSubmit={manejarPublicar} style={s.tarjetaForm}>
-            <p style={s.tituloForm}>Publicar boleta</p>
-            <label style={s.label}>Evento</label>
-            <select name="eventoId" value={form.eventoId} onChange={manejarCambio} required style={s.input}>
-              <option value="">Selecciona un evento</option>
-              {eventos.map(function(ev) { return <option key={ev.id} value={ev.id}>{ev.nombre} ({ev.moneda || 'COP'})</option> })}
-            </select>
-            {form.eventoId && (() => {
-              const ev = eventos.find(e => e.id === form.eventoId)
-              const info = ev ? [ev.ciudad, ev.estadio].filter(Boolean).join(' · ') : ''
-              return info ? (
-                <p style={{color:'#6b93ff',fontSize:'12px',margin:'-8px 0 14px',display:'flex',alignItems:'center',gap:'6px'}}>
-                  <span>📍</span><span>{info}</span>
-                </p>
-              ) : null
-            })()}
-            <label style={s.label}>Plataforma de la boleta</label>
-            <select name="plataforma" value={form.plataforma} onChange={manejarCambio} required style={s.input}>
-              <option value="">Selecciona la app donde tienes la boleta</option>
-              {Object.keys(PLATAFORMAS).map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-            {form.plataforma && PLATAFORMAS[form.plataforma] && (
-              <p style={{color:'#8892a4',fontSize:'11px',margin:'-10px 0 12px',lineHeight:1.5}}>
-                ℹ️ {form.plataforma === 'TuBoletaPass' ? 'Santa Fe, América, Llaneros, Tolima' : form.plataforma === 'Quentro' ? 'Millonarios, Atlético Nacional' : form.plataforma === 'Warena' ? 'Cúcuta, Junior' : 'Ind. Medellín'}
-              </p>
-            )}
-            <label style={s.label}>Tribuna</label>
-            {tribunasEvento.length > 0
-              ? <select name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input}>
-                  <option value="">Selecciona tribuna</option>
-                  {tribunasEvento.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              : <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} placeholder="Ej: Occidental" />
-            }
-            <label style={s.label}>Fila</label>
-            <input name="fila" value={form.fila} onChange={manejarCambio} required style={s.input} />
-            <label style={s.label}>Silla</label>
-            <input name="silla" value={form.silla} onChange={manejarCambio} required style={s.input} />
-            <label style={s.label}>Precio</label>
-            <input name="precio" type="number" value={form.precio} onChange={manejarCambio} required style={s.input} />
-            {silasExtra.map((s2, i) => (
-              <SillaExtraRow
-                key={i}
-                silla={s2}
-                indice={i}
-                tribunas={tribunasEvento}
-                onChangeTribuna={v=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:v}:x))}
-                onChangeFila={v=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,fila:v}:x))}
-                onChangeSilla={v=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,silla:v}:x))}
-                onRemove={()=>setSilasExtra(silasExtra.filter((_,j)=>j!==i))}
-                inputStyle={s.input}
-                labelStyle={s.label}
-              />
-            ))}
-            <button type="button" onClick={()=>setSilasExtra([...silasExtra,{tribuna:form.tribuna||'',fila:'',silla:''}])} style={{background:'transparent',border:'1px dashed #1e2a3a',borderRadius:'8px',padding:'8px',fontSize:'12px',color:'#4e5a6e',cursor:'pointer',width:'100%',marginBottom:'16px'}}>+ Añadir otra silla</button>
-            <button type="submit" style={s.botonSubmit}>Publicar {silasExtra.length > 0 ? silasExtra.length+1+' boletas' : 'boleta'}</button>
-            {mensaje && <p style={s.mensaje}>{mensaje}</p>}
-          </form>
-        )}
 
         {cargando && <p style={s.vacio}>Cargando eventos...</p>}
 
