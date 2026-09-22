@@ -1467,7 +1467,21 @@ function App() {
       <nav style={s.nav}>
         <div style={s.navInner}>
           <h1 style={s.logo}><span style={{fontSize:'20px'}}>🎟</span> Boletería <span style={s.logoPunto}>CO</span></h1>
-          <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
+            {usuario ? (
+              <>
+                <span style={{color:'#6b7a94',fontSize:'11px',fontWeight:'600',maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                  ¡Hola, {((usuario.user_metadata?.nombre || usuario.email || '').split(' ')[0].split('@')[0])}!
+                </span>
+                <button onClick={manejarCerrarSesion} style={{background:'rgba(255,59,48,0.07)',border:'1px solid rgba(255,59,48,0.18)',borderRadius:'7px',cursor:'pointer',color:'#f87171',fontSize:'11px',fontWeight:'700',padding:'4px 8px',lineHeight:1}}>
+                  Salir
+                </button>
+              </>
+            ) : (
+              <button onClick={()=>setPaginaActual('login')} style={{background:'transparent',border:'1px solid #4f7eff',borderRadius:'8px',cursor:'pointer',color:'#4f7eff',fontSize:'12px',fontWeight:'600',padding:'5px 10px',lineHeight:1,whiteSpace:'nowrap'}}>
+                Iniciar sesión
+              </button>
+            )}
             {esAdmin && (
               <button onClick={()=>{setMostrarAdmin(true);setPaginaActual('inicio')}} style={{position:'relative',background:'rgba(160,82,255,0.1)',border:'1px solid rgba(160,82,255,0.3)',borderRadius:'8px',cursor:'pointer',color:'#c084fc',fontSize:'12px',fontWeight:'700',padding:'5px 10px',lineHeight:1}}>
                 ⚙️ Admin
