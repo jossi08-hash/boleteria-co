@@ -1976,7 +1976,7 @@ function App() {
                               <p style={{color: enCarrito ? '#4ade80' : '#eef0f6',fontSize:'13px',fontWeight:'600',margin:'0 0 1px'}}>
                                 {b.fila ? `Fila ${b.fila}` : ''}{b.fila && b.silla ? ' · ' : ''}{b.silla ? `Silla ${b.silla}` : ''}
                               </p>
-                              <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{calcularTotal(b.precio, moneda, b.publicada_por_admin === true)}</p>
+                              <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{calcularTotal(b.precio, moneda, b.publicada_por_admin === true || b.usuarios?.es_admin === true)}</p>
                             </div>
                           </div>
                           <span style={{fontSize:'12px',fontWeight:'700',color: enCarrito ? '#4ade80' : '#4f7eff',flexShrink:0}}>{enCarrito ? '✓ Seleccionado' : '+ Seleccionar'}</span>
