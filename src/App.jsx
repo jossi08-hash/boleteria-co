@@ -1595,6 +1595,7 @@ function App() {
           <nav style={s.nav}>
             <div style={s.navInner}>
               <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+              <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🎟 Mis boletas</p>
               <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
                 <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
                 <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
@@ -1869,6 +1870,7 @@ function App() {
             <nav style={s.nav}>
               <div style={s.navInner}>
                 <button onClick={()=>setMostrarAdmin(false)} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>⚙️ Admin</span>
                 <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
                   <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
                   <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
@@ -2253,7 +2255,7 @@ function App() {
             <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
                 <button onClick={()=>{setMostrarFormulario(false);setSilasExtra([])}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Publicar boleta</p>
+                <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>➕ Publicar boleta</p>
                 <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
                   <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
                   <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
@@ -2675,6 +2677,7 @@ function App() {
               <nav style={s.nav}>
                 <div style={s.navInner}>
                   <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                  <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>🏟 Evento</span>
                   <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
                     <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
                     <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
@@ -2844,6 +2847,7 @@ function App() {
             <nav style={s.nav}>
               <div style={s.navInner}>
                 <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>🛒 Carrito</span>
                 <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
                   <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
                   <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
