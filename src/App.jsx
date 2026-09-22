@@ -1902,7 +1902,7 @@ function App() {
           boletasFiltradas.forEach(b => {
             const vid = b.vendedor_id || 'unknown'
             const key = `${b.evento_id || (b.eventos && b.eventos.id) || b.id}__${(b.tribuna || '').trim().toLowerCase()}__${vid}`
-            if (!grupos[key]) grupos[key] = { evento: b.eventos, tribuna: b.tribuna, boletas: [], esAdmin: b.publicada_por_admin === true, vendedorNombre: b.usuarios?.nombre || '' }
+            if (!grupos[key]) grupos[key] = { evento: b.eventos, tribuna: b.tribuna, boletas: [], esAdmin: b.publicada_por_admin === true || b.usuarios?.es_admin === true, vendedorNombre: b.usuarios?.nombre || '' }
             grupos[key].boletas.push(b)
           })
           return Object.entries(grupos).map(([key, grupo]) => {
