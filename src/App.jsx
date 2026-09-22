@@ -140,7 +140,7 @@ function App() {
   const [tribunaExpandida, setTribunaExpandida] = useState(null)
   const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP', tribunas: [] })
   const [mensajeEvento, setMensajeEvento] = useState('')
-  const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
+  const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '', tribunasEvento: [] })
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
   const [docModal, setCedModal] = useState(null)   // null | { tipo: 'boleta'|'carrito', boleta?: object }
@@ -441,6 +441,7 @@ function App() {
       const sugerida = ev ? sugerirPlataforma(ev.nombre) : ''
       if (sugerida) updated.plataforma = sugerida
       updated.tribuna = ''
+      updated.tribunasEvento = ev ? (ev.tribunas || []) : []
     }
     setForm(updated)
   }
@@ -506,7 +507,7 @@ function App() {
     if (exito) {
       const n = resultados.length
       setMensaje(n === 1 ? 'Boleta enviada. El equipo de Boletería CO la verificará pronto.' : n + ' boletas enviadas. El equipo de Boletería CO las verificará pronto.')
-      setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
+      setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '', tribunasEvento: [] })
       setSilasExtra([])
       cargarBoletas()
     } else { setMensaje('Hubo un error al publicar. Intenta de nuevo.') }
@@ -1765,16 +1766,13 @@ function App() {
               </p>
             )}
             <label style={s.label}>Tribuna</label>
-            {(() => {
-              const evSel = eventos.find(ev => ev.id === form.eventoId)
-              const trbs = evSel?.tribunas || []
-              return trbs.length > 0
-                ? <select name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input}>
-                    <option value="">Selecciona tribuna</option>
-                    {trbs.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                : <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} placeholder="Ej: Occidental" />
-            })()}
+            {form.tribunasEvento.length > 0
+              ? <select name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input}>
+                  <option value="">Selecciona tribuna</option>
+                  {form.tribunasEvento.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              : <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} placeholder="Ej: Occidental" />
+            }
             <label style={s.label}>Fila</label>
             <input name="fila" value={form.fila} onChange={manejarCambio} required style={s.input} />
             <label style={s.label}>Silla</label>
@@ -1782,7 +1780,7 @@ function App() {
             <label style={s.label}>Precio</label>
             <input name="precio" type="number" value={form.precio} onChange={manejarCambio} required style={s.input} />
             {(() => {
-              const trbs = (eventos.find(ev => ev.id === form.eventoId)?.tribunas) || []
+              const trbs = form.tribunasEvento || []
               return silasExtra.map((s2, i) => (
               <div key={i} style={{background:'rgba(79,126,255,0.04)',border:'1px solid rgba(79,126,255,0.15)',borderRadius:'10px',padding:'12px',marginBottom:'12px'}}>
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
