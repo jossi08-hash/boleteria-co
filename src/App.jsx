@@ -103,6 +103,38 @@ function sugerirPlataforma(nombreEvento) {
 }
 
 
+function SillaExtraRow({ silla, indice, tribunas, onChangeTribuna, onChangeFila, onChangeSilla, onRemove, inputStyle, labelStyle }) {
+  const hasTribunas = Array.isArray(tribunas) && tribunas.length > 0
+  return (
+    <div style={{background:'rgba(79,126,255,0.04)',border:'1px solid rgba(79,126,255,0.15)',borderRadius:'10px',padding:'12px',marginBottom:'12px'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
+        <span style={{color:'#6b93ff',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.4px'}}>Silla {indice+2}</span>
+        <button type="button" onClick={onRemove} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'16px',lineHeight:1,padding:'0 4px'}}>×</button>
+      </div>
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
+        <div>
+          <label style={{...labelStyle,marginBottom:'4px'}}>Tribuna</label>
+          {hasTribunas
+            ? <select value={silla.tribuna} onChange={e=>onChangeTribuna(e.target.value)} required style={{...inputStyle,marginBottom:0}}>
+                <option value="">Selecciona tribuna</option>
+                {tribunas.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            : <input value={silla.tribuna} onChange={e=>onChangeTribuna(e.target.value)} required style={{...inputStyle,marginBottom:0}} />
+          }
+        </div>
+        <div>
+          <label style={{...labelStyle,marginBottom:'4px'}}>Fila</label>
+          <input value={silla.fila} onChange={e=>onChangeFila(e.target.value)} style={{...inputStyle,marginBottom:0}} />
+        </div>
+        <div>
+          <label style={{...labelStyle,marginBottom:'4px'}}>Silla</label>
+          <input value={silla.silla} onChange={e=>onChangeSilla(e.target.value)} style={{...inputStyle,marginBottom:0}} />
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function App() {
   const [esMobile, setEsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 640)
   const [boletas, setBoletas] = useState([])
@@ -133,11 +165,23 @@ function App() {
   const [esRecuperacion, setEsRecuperacion] = useState(false)
   const [mensajeAuth, setMensajeAuth] = useState('')
   const [confirmarEliminarEvento, setConfirmarEliminarEvento] = useState(null)
+  const [confirmarEliminarBoleta, setConfirmarEliminarBoleta] = useState(null)
+  const [boletaEditando, setBoletaEditando] = useState(null)
+  const [busquedaBoleta, setBusquedaBoleta] = useState('')
+  const [formEditarBoleta, setFormEditarBoleta] = useState({ tribuna: '', fila: '', silla: '', precio: '' })
   const [eventoEditando, setEventoEditando] = useState(null)
   const [formEditar, setFormEditar] = useState({})
-  const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP' })
+  const [tribunaInputTemp, setTribunaInputTemp] = useState('')
+  const [estadios, setEstadios] = useState([])
+  const [formEstadio, setFormEstadio] = useState({ nombre: '', ciudad: '', tribunas: [] })
+  const [estadioEditando, setEstadioEditando] = useState(null)
+  const [tribunaEstadioTemp, setTribunaEstadioTemp] = useState('')
+  const [confirmarEliminarEstadio, setConfirmarEliminarEstadio] = useState(null)
+  const [tribunaExpandida, setTribunaExpandida] = useState(null)
+  const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', estadioId: '', fechaHora: '', moneda: 'COP', tribunas: [] })
   const [mensajeEvento, setMensajeEvento] = useState('')
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
+  const [tribunasEvento, setTribunasEvento] = useState([])
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
   const [docModal, setCedModal] = useState(null)   // null | { tipo: 'boleta'|'carrito', boleta?: object }
@@ -150,6 +194,7 @@ function App() {
   const [misVentas, setMisVentas] = useState([])
   const [cargandoMis, setCargandoMis] = useState(false)
   const [filtros, setFiltros] = useState({ ciudad: '', deporte: '', precioMax: '' })
+  const [busquedaPublica, setBusquedaPublica] = useState('')
   const [faqAbierto, setFaqAbierto] = useState(null)
   const [datosEntrega, setDatosEntrega] = useState({})
 
@@ -192,7 +237,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas(); cargarBoletasAdmin() }
+    if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas(); cargarBoletasAdmin(); cargarEstadios() }
   }, [esAdmin])
 
   useEffect(() => {
@@ -407,6 +452,21 @@ function App() {
     cargarBoletas(); cargarBoletasAdmin()
   }
 
+  async function guardarEdicionBoleta(e) {
+    e.preventDefault()
+    const { tribuna, fila, silla, precio } = formEditarBoleta
+    const { error } = await supabase.from('boletas').update({
+      tribuna: tribuna.trim(),
+      fila: fila.trim(),
+      silla: silla.trim(),
+      precio: Number(precio)
+    }).eq('id', boletaEditando)
+    if (error) { toast('Error al guardar cambios.'); return }
+    toast('Boleta actualizada.')
+    setBoletaEditando(null)
+    cargarBoletas(); cargarBoletasAdmin()
+  }
+
   async function cargarBoletasPendientes() {
     const { data } = await supabase
       .from('boletas')
@@ -426,8 +486,41 @@ function App() {
     cargarBoletasPendientes()
   }
 
+  async function cargarEstadios() {
+    const { data } = await supabase.from('estadios').select('*').order('ciudad').order('nombre')
+    setEstadios(data || [])
+  }
+
+  async function crearEstadio(e) {
+    e.preventDefault()
+    const { nombre, ciudad, tribunas } = formEstadio
+    const { error } = await supabase.from('estadios').insert({ nombre: nombre.trim(), ciudad: ciudad.trim(), tribunas })
+    if (error) { toast('Error al crear estadio.'); return }
+    toast('Estadio creado.')
+    setFormEstadio({ nombre: '', ciudad: '', tribunas: [] })
+    setTribunaEstadioTemp('')
+    cargarEstadios()
+  }
+
+  async function guardarEstadio(e) {
+    e.preventDefault()
+    const { nombre, ciudad, tribunas } = formEstadio
+    const { error } = await supabase.from('estadios').update({ nombre: nombre.trim(), ciudad: ciudad.trim(), tribunas }).eq('id', estadioEditando)
+    if (error) { toast('Error al guardar estadio.'); return }
+    toast('Estadio actualizado.')
+    setEstadioEditando(null)
+    cargarEstadios()
+  }
+
+  async function eliminarEstadio(id) {
+    const { error } = await supabase.from('estadios').delete().eq('id', id)
+    if (error) { toast('Error al eliminar estadio.'); return }
+    setConfirmarEliminarEstadio(null)
+    cargarEstadios()
+  }
+
   async function cargarEventos() {
-    const { data } = await supabase.from('eventos').select('id, nombre, moneda, fecha')
+    const { data } = await supabase.from('eventos').select('id, nombre, deporte, ciudad, estadio, fecha, hora, moneda, tribunas')
     setEventos(data || [])
   }
 
@@ -437,11 +530,23 @@ function App() {
       const ev = eventos.find(ev => ev.id === e.target.value)
       const sugerida = ev ? sugerirPlataforma(ev.nombre) : ''
       if (sugerida) updated.plataforma = sugerida
+      updated.tribuna = ''
+      setTribunasEvento(ev ? (ev.tribunas || []) : [])
     }
     setForm(updated)
   }
   function manejarCambioAuth(e) { setFormAuth({ ...formAuth, [e.target.name]: e.target.value }) }
-  function manejarCambioEvento(e) { setFormEvento({ ...formEvento, [e.target.name]: e.target.value }) }
+  function manejarCambioEvento(e) {
+    const updated = { ...formEvento, [e.target.name]: e.target.value }
+    if (e.target.name === 'estadioId') {
+      const est = estadios.find(es => es.id === e.target.value)
+      updated.estadio = est ? est.nombre : ''
+      updated.ciudad = est ? est.ciudad : updated.ciudad
+      updated.tribunas = est ? [...est.tribunas] : []
+      updated.estadioId = e.target.value
+    }
+    setFormEvento(updated)
+  }
 
   async function manejarCrearEvento(e) {
     e.preventDefault()
@@ -451,10 +556,11 @@ function App() {
       estadio: formEvento.estadio,
       fecha: formEvento.fechaHora ? formEvento.fechaHora.split('T')[0] : '',
       hora: formEvento.fechaHora ? formEvento.fechaHora.split('T')[1] : '',
-      moneda: formEvento.moneda
+      moneda: formEvento.moneda,
+      tribunas: formEvento.tribunas
     })
     if (error) { setMensajeEvento('Error: ' + error.message) }
-    else { setMensajeEvento('Evento creado correctamente.'); setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP' }); cargarEventos() }
+    else { setMensajeEvento('Evento creado correctamente.'); setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', estadioId: '', fechaHora: '', moneda: 'COP', tribunas: [] }); setTribunaInputTemp(''); cargarEventos() }
   }
 
   async function eliminarEvento(eventoId) {
@@ -472,15 +578,12 @@ function App() {
   async function editarEvento(e) {
     e.preventDefault()
     const { data: { session } } = await supabase.auth.getSession()
-    const { nombre, deporte, ciudad, estadio, fechaHora, moneda } = formEditar
+    const { nombre, deporte, ciudad, estadio, fechaHora, moneda, tribunas } = formEditar
     const campos = {
-      nombre,
-      deporte,
-      ciudad,
-      estadio,
-      moneda,
+      nombre, deporte, ciudad, estadio, moneda,
       fecha: fechaHora.split('T')[0],
-      hora: fechaHora.split('T')[1]
+      hora: fechaHora.split('T')[1],
+      tribunas: tribunas || []
     }
     const res = await fetch('/api/editar-evento', {
       method: 'PATCH',
@@ -504,6 +607,7 @@ function App() {
     if (exito) {
       const n = resultados.length
       setMensaje(n === 1 ? 'Boleta enviada. El equipo de Boletería CO la verificará pronto.' : n + ' boletas enviadas. El equipo de Boletería CO las verificará pronto.')
+      setTribunasEvento([])
       setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
       setSilasExtra([])
       cargarBoletas()
@@ -1404,28 +1508,166 @@ function App() {
             )}
             {boletasAdmin.length > 0 && (
               <div style={{marginBottom:'20px'}}>
-                <p style={{...s.tituloAdmin, marginBottom:'12px'}}>Gestionar boletas ({boletasAdmin.length})</p>
-                {boletasAdmin.map(b => (
-                  <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'12px 14px',marginBottom:'8px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
-                    <div>
-                      <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{b.eventos?.nombre || 'Evento'}</p>
-                      <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>
-                        {b.usuarios?.nombre} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}
-                        {' '}<span style={{color: b.estado==='oculta' ? '#facc15' : b.estado==='reservada' ? '#fb923c' : '#4ade80', fontWeight:'700'}}>({b.estado})</span>
-                      </p>
+                <p style={{...s.tituloAdmin, marginBottom:'8px'}}>Gestionar boletas ({boletasAdmin.length})</p>
+                <input
+                  type="text"
+                  placeholder="Buscar por evento o equipo..."
+                  value={busquedaBoleta}
+                  onChange={e => setBusquedaBoleta(e.target.value)}
+                  style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'8px',padding:'8px 12px',color:'#eef0f6',fontSize:'13px',marginBottom:'12px',outline:'none'}}
+                />
+                {boletasAdmin.filter(b => {
+                  if (!busquedaBoleta.trim()) return true
+                  const q = busquedaBoleta.toLowerCase()
+                  return (b.eventos?.nombre || '').toLowerCase().includes(q)
+                }).map(b => (
+                  <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'12px 14px',marginBottom:'8px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
+                      <div>
+                        <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{b.eventos?.nombre || 'Evento'}</p>
+                        <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>
+                          {b.usuarios?.nombre} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}
+                          {' '}<span style={{color: b.estado==='oculta' ? '#facc15' : b.estado==='reservada' ? '#fb923c' : '#4ade80', fontWeight:'700'}}>({b.estado})</span>
+                        </p>
+                      </div>
+                      <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                        {confirmarEliminarBoleta === b.id
+                          ? <>
+                              <button onClick={()=>{eliminarBoleta(b.id);setConfirmarEliminarBoleta(null)}} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, eliminar</button>
+                              <button onClick={()=>setConfirmarEliminarBoleta(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'6px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
+                            </>
+                          : <>
+                              {b.estado === 'oculta'
+                                ? <button onClick={()=>mostrarBoleta(b.id)} style={{background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Publicar</button>
+                                : <button onClick={()=>ocultarBoleta(b.id)} style={{background:'#3d2a00',color:'#facc15',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Ocultar</button>
+                              }
+                              <button onClick={()=>{ setBoletaEditando(boletaEditando===b.id ? null : b.id); setFormEditarBoleta({tribuna:b.tribuna||'',fila:b.fila||'',silla:b.silla||'',precio:b.precio||''}) }} style={{background:'#1a2f4a',color:'#60a5fa',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Editar</button>
+                              <button onClick={()=>setConfirmarEliminarBoleta(b.id)} style={{background:'#3b0a0a',color:'#f87171',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Eliminar</button>
+                            </>
+                        }
+                      </div>
                     </div>
-                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                      {b.estado === 'oculta'
-                        ? <button onClick={()=>mostrarBoleta(b.id)} style={{background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Publicar</button>
-                        : <button onClick={()=>ocultarBoleta(b.id)} style={{background:'#3d2a00',color:'#facc15',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Ocultar</button>
-                      }
-                      <button onClick={()=>{if(window.confirm('¿Eliminar esta boleta?')) eliminarBoleta(b.id)}} style={{background:'#3b0a0a',color:'#f87171',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Eliminar</button>
-                    </div>
+                    {boletaEditando === b.id && (
+                      <form onSubmit={guardarEdicionBoleta} style={{marginTop:'12px',display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'8px',alignItems:'flex-end'}}>
+                        <div>
+                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Tribuna</label>
+                          <input value={formEditarBoleta.tribuna} onChange={e=>setFormEditarBoleta(f=>({...f,tribuna:e.target.value}))} required style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                        </div>
+                        <div>
+                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Fila</label>
+                          <input value={formEditarBoleta.fila} onChange={e=>setFormEditarBoleta(f=>({...f,fila:e.target.value}))} style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                        </div>
+                        <div>
+                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Silla</label>
+                          <input value={formEditarBoleta.silla} onChange={e=>setFormEditarBoleta(f=>({...f,silla:e.target.value}))} style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                        </div>
+                        <div>
+                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Precio</label>
+                          <input type="number" value={formEditarBoleta.precio} onChange={e=>setFormEditarBoleta(f=>({...f,precio:e.target.value}))} required style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                        </div>
+                        <button type="submit" style={{gridColumn:'1/-1',background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'7px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Guardar cambios</button>
+                      </form>
+                    )}
                   </div>
                 ))}
                 <hr style={s.separador}/>
               </div>
             )}
+            <p style={s.tituloAdmin}>Estadios</p>
+            {estadios.length === 0
+              ? <p style={{color:'#4e5a6e',fontSize:'13px',marginBottom:'12px'}}>No hay estadios registrados.</p>
+              : <div style={{marginBottom:'16px',display:'flex',flexDirection:'column',gap:'8px'}}>
+                  {estadios.map(es => (
+                    <div key={es.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'10px 14px'}}>
+                      {estadioEditando === es.id
+                        ? <form onSubmit={guardarEstadio}>
+                            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+                              <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Nombre</label>
+                                <input value={formEstadio.nombre} onChange={e=>setFormEstadio(f=>({...f,nombre:e.target.value}))} required style={s.input} /></div>
+                              <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Ciudad</label>
+                                <input value={formEstadio.ciudad} onChange={e=>setFormEstadio(f=>({...f,ciudad:e.target.value}))} required style={s.input} /></div>
+                            </div>
+                            <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Tribunas</label>
+                            <div style={{display:'flex',gap:'8px',marginBottom:'8px'}}>
+                              <input value={tribunaEstadioTemp} onChange={e=>setTribunaEstadioTemp(e.target.value)}
+                                onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}}
+                                style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental General" />
+                              <button type="button" onClick={()=>{const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}
+                                style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+                            </div>
+                            {formEstadio.tribunas.length > 0 && (
+                              <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
+                                {formEstadio.tribunas.map(t => (
+                                  <span key={t} style={{background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#93c5fd',display:'flex',alignItems:'center',gap:'6px'}}>
+                                    {t}
+                                    <button type="button" onClick={()=>setFormEstadio(f=>({...f,tribunas:f.tribunas.filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <div style={{display:'flex',gap:'6px'}}>
+                              <button type="submit" style={{background:'#1e3a6a',border:'none',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'6px 14px'}}>Guardar</button>
+                              <button type="button" onClick={()=>setEstadioEditando(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
+                            </div>
+                          </form>
+                        : <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
+                            <div>
+                              <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{es.nombre}</p>
+                              <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 4px'}}>{es.ciudad}</p>
+                              {es.tribunas?.length > 0 && (
+                                <div style={{display:'flex',flexWrap:'wrap',gap:'4px'}}>
+                                  {es.tribunas.map(t => <span key={t} style={{background:'rgba(79,126,255,0.08)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'12px',padding:'2px 8px',fontSize:'11px',color:'#7aa2ff'}}>{t}</span>)}
+                                </div>
+                              )}
+                            </div>
+                            <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                              {confirmarEliminarEstadio === es.id
+                                ? <>
+                                    <button onClick={()=>eliminarEstadio(es.id)} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, eliminar</button>
+                                    <button onClick={()=>setConfirmarEliminarEstadio(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'6px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
+                                  </>
+                                : <>
+                                    <button onClick={()=>{setEstadioEditando(es.id);setFormEstadio({nombre:es.nombre,ciudad:es.ciudad,tribunas:[...(es.tribunas||[])]});setTribunaEstadioTemp('')}}
+                                      style={{background:'transparent',border:'1px solid #1e3a6a',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
+                                    <button onClick={()=>setConfirmarEliminarEstadio(es.id)} style={{background:'#3b0a0a',border:'none',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'5px 10px'}}>Eliminar</button>
+                                  </>
+                              }
+                            </div>
+                          </div>
+                      }
+                    </div>
+                  ))}
+                </div>
+            }
+            <form onSubmit={crearEstadio} style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'14px',marginBottom:'20px'}}>
+              <p style={{color:'#4f7eff',fontSize:'12px',fontWeight:'700',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'0.4px'}}>+ Agregar estadio</p>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+                <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Nombre</label>
+                  <input value={formEstadio.nombre} onChange={e=>setFormEstadio(f=>({...f,nombre:e.target.value}))} required style={s.input} placeholder="El Campín" /></div>
+                <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Ciudad</label>
+                  <input value={formEstadio.ciudad} onChange={e=>setFormEstadio(f=>({...f,ciudad:e.target.value}))} required style={s.input} placeholder="Bogotá DC" /></div>
+              </div>
+              <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Tribunas</label>
+              <div style={{display:'flex',gap:'8px',marginBottom:'8px'}}>
+                <input value={tribunaEstadioTemp} onChange={e=>setTribunaEstadioTemp(e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}}
+                  style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental General" />
+                <button type="button" onClick={()=>{const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}
+                  style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+              </div>
+              {formEstadio.tribunas.length > 0 && (
+                <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
+                  {formEstadio.tribunas.map(t => (
+                    <span key={t} style={{background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#93c5fd',display:'flex',alignItems:'center',gap:'6px'}}>
+                      {t}
+                      <button type="button" onClick={()=>setFormEstadio(f=>({...f,tribunas:f.tribunas.filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <button type="submit" style={s.botonSubmitVerde}>Crear estadio</button>
+            </form>
+            <hr style={s.separador}/>
             <p style={s.tituloAdmin}>Eventos registrados</p>
             {eventos.length === 0
               ? <p style={{color:'#4e5a6e',fontSize:'13px',marginBottom:'16px'}}>No hay eventos.</p>
@@ -1448,10 +1690,27 @@ function App() {
                               <input value={formEditar.ciudad||''} onChange={e=>setFormEditar(f=>({...f,ciudad:e.target.value}))} required style={s.input} placeholder="Ciudad" />
                               <input value={formEditar.estadio||''} onChange={e=>setFormEditar(f=>({...f,estadio:e.target.value}))} required style={s.input} placeholder="Estadio" />
                             </div>
-                            <input type="datetime-local" value={formEditar.fechaHora||''} onChange={e=>setFormEditar(f=>({...f,fechaHora:e.target.value}))} required style={{...s.input,marginBottom:'10px'}} />
+                            <input type="datetime-local" value={formEditar.fechaHora||''} onChange={e=>setFormEditar(f=>({...f,fechaHora:e.target.value}))} required style={{...s.input,marginBottom:'8px'}} />
+                            <div style={{marginBottom:'10px'}}>
+                              <p style={{color:'#8892a4',fontSize:'11px',margin:'0 0 6px',textTransform:'uppercase',letterSpacing:'0.05em'}}>Tribunas</p>
+                              <div style={{display:'flex',gap:'8px',marginBottom:'6px'}}>
+                                <input value={tribunaInputTemp} onChange={e=>setTribunaInputTemp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaInputTemp.trim();if(t&&!(formEditar.tribunas||[]).includes(t)){setFormEditar(f=>({...f,tribunas:[...(f.tribunas||[]),t]}));setTribunaInputTemp('')}}}} style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental Preferencial" />
+                                <button type="button" onClick={()=>{const t=tribunaInputTemp.trim();if(t&&!(formEditar.tribunas||[]).includes(t)){setFormEditar(f=>({...f,tribunas:[...(f.tribunas||[]),t]}));setTribunaInputTemp('')}}} style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+                              </div>
+                              {(formEditar.tribunas||[]).length > 0 && (
+                                <div style={{display:'flex',flexWrap:'wrap',gap:'6px'}}>
+                                  {(formEditar.tribunas||[]).map(t => (
+                                    <span key={t} style={{background:'rgba(147,197,253,0.1)',border:'1px solid #1e3a6a',borderRadius:'20px',color:'#93c5fd',fontSize:'11px',padding:'3px 10px',display:'flex',alignItems:'center',gap:'6px'}}>
+                                      {t}
+                                      <button type="button" onClick={()=>setFormEditar(f=>({...f,tribunas:(f.tribunas||[]).filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
                             <div style={{display:'flex',gap:'8px'}}>
                               <button type="submit" style={{background:'#1a3a6a',border:'none',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'6px 14px'}}>Guardar</button>
-                              <button type="button" onClick={()=>{setEventoEditando(null);setFormEditar({})}} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
+                              <button type="button" onClick={()=>{setEventoEditando(null);setFormEditar({});setTribunaInputTemp('')}} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
                             </div>
                           </form>
                         : <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px'}}>
@@ -1465,7 +1724,7 @@ function App() {
                                   <button onClick={() => setConfirmarEliminarEvento(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'5px 10px'}}>Cancelar</button>
                                 </div>
                               : <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                                  <button onClick={() => { setEventoEditando(ev.id); setFormEditar({ nombre: ev.nombre, deporte: ev.deporte, ciudad: ev.ciudad, estadio: ev.estadio, moneda: ev.moneda, fechaHora: ev.fecha && ev.hora ? ev.fecha + 'T' + ev.hora : '' }) }} style={{background:'transparent',border:'1px solid #1e3a6a',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
+                                  <button onClick={() => { setEventoEditando(ev.id); setTribunaInputTemp(''); setFormEditar({ nombre: ev.nombre, deporte: ev.deporte, ciudad: ev.ciudad, estadio: ev.estadio, moneda: ev.moneda, fechaHora: ev.fecha && ev.hora ? ev.fecha + 'T' + ev.hora : '', tribunas: ev.tribunas || [] }) }} style={{background:'transparent',border:'1px solid #1e3a6a',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
                                   <button onClick={() => setConfirmarEliminarEvento(ev.id)} style={{background:'transparent',border:'1px solid #3a1e1e',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Eliminar</button>
                                 </div>
                             }
@@ -1493,11 +1752,41 @@ function App() {
               </div>
               <div style={s.row2}>
                 <div><label style={s.label}>Ciudad</label><input name="ciudad" value={formEvento.ciudad} onChange={manejarCambioEvento} required style={s.input} placeholder="Bogota" /></div>
-                <div><label style={s.label}>Estadio o lugar</label><input name="estadio" value={formEvento.estadio} onChange={manejarCambioEvento} required style={s.input} placeholder="El Campin" /></div>
+                <div>
+                  <label style={s.label}>Estadio o lugar</label>
+                  {estadios.length > 0
+                    ? <select name="estadioId" value={formEvento.estadioId || ''} onChange={manejarCambioEvento} style={s.input}>
+                        <option value="">Selecciona estadio...</option>
+                        {estadios.map(es => <option key={es.id} value={es.id}>{es.nombre} — {es.ciudad}</option>)}
+                        <option value="otro">Otro (escribir)</option>
+                      </select>
+                    : null
+                  }
+                  {(formEvento.estadioId === 'otro' || estadios.length === 0) && (
+                    <input name="estadio" value={formEvento.estadio} onChange={manejarCambioEvento} required style={{...s.input, marginTop: estadios.length > 0 ? '6px' : 0}} placeholder="El Campin" />
+                  )}
+                </div>
               </div>
               <div>
                 <label style={s.label}>Fecha y hora</label>
                 <input name="fechaHora" type="datetime-local" value={formEvento.fechaHora || ''} onChange={manejarCambioEvento} required style={s.input} />
+              </div>
+              <div>
+                <label style={s.label}>Tribunas del evento</label>
+                <div style={{display:'flex',gap:'8px',marginBottom:'8px'}}>
+                  <input value={tribunaInputTemp} onChange={e=>setTribunaInputTemp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaInputTemp.trim();if(t&&!formEvento.tribunas.includes(t)){setFormEvento({...formEvento,tribunas:[...formEvento.tribunas,t]});setTribunaInputTemp('')}}}} style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental Preferencial" />
+                  <button type="button" onClick={()=>{const t=tribunaInputTemp.trim();if(t&&!formEvento.tribunas.includes(t)){setFormEvento({...formEvento,tribunas:[...formEvento.tribunas,t]});setTribunaInputTemp('')}}} style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+                </div>
+                {formEvento.tribunas.length > 0 && (
+                  <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'8px'}}>
+                    {formEvento.tribunas.map(t => (
+                      <span key={t} style={{background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#93c5fd',display:'flex',alignItems:'center',gap:'6px'}}>
+                        {t}
+                        <button type="button" onClick={()=>setFormEvento({...formEvento,tribunas:formEvento.tribunas.filter(x=>x!==t)})} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>x</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
               <button type="submit" style={s.botonSubmitVerde}>Crear evento</button>
               {mensajeEvento && <p style={s.mensaje}>{mensajeEvento}</p>}
@@ -1721,7 +2010,13 @@ function App() {
               </p>
             )}
             <label style={s.label}>Tribuna</label>
-            <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} />
+            {tribunasEvento.length > 0
+              ? <select name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input}>
+                  <option value="">Selecciona tribuna</option>
+                  {tribunasEvento.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              : <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} placeholder="Ej: Occidental" />
+            }
             <label style={s.label}>Fila</label>
             <input name="fila" value={form.fila} onChange={manejarCambio} required style={s.input} />
             <label style={s.label}>Silla</label>
@@ -1729,28 +2024,20 @@ function App() {
             <label style={s.label}>Precio</label>
             <input name="precio" type="number" value={form.precio} onChange={manejarCambio} required style={s.input} />
             {silasExtra.map((s2, i) => (
-              <div key={i} style={{background:'rgba(79,126,255,0.04)',border:'1px solid rgba(79,126,255,0.15)',borderRadius:'10px',padding:'12px',marginBottom:'12px'}}>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
-                  <span style={{color:'#6b93ff',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.4px'}}>Silla {i+2}</span>
-                  <button type="button" onClick={()=>setSilasExtra(silasExtra.filter((_,j)=>j!==i))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'16px',lineHeight:1,padding:'0 4px'}}>×</button>
-                </div>
-                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
-                  <div>
-                    <label style={{...s.label,marginBottom:'4px'}}>Tribuna</label>
-                    <input value={s2.tribuna} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:e.target.value}:x))} required style={{...s.input,marginBottom:0}} />
-                  </div>
-                  <div>
-                    <label style={{...s.label,marginBottom:'4px'}}>Fila</label>
-                    <input value={s2.fila} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,fila:e.target.value}:x))} style={{...s.input,marginBottom:0}} />
-                  </div>
-                  <div>
-                    <label style={{...s.label,marginBottom:'4px'}}>Silla</label>
-                    <input value={s2.silla} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,silla:e.target.value}:x))} style={{...s.input,marginBottom:0}} />
-                  </div>
-                </div>
-              </div>
+              <SillaExtraRow
+                key={i}
+                silla={s2}
+                indice={i}
+                tribunas={tribunasEvento}
+                onChangeTribuna={v=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:v}:x))}
+                onChangeFila={v=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,fila:v}:x))}
+                onChangeSilla={v=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,silla:v}:x))}
+                onRemove={()=>setSilasExtra(silasExtra.filter((_,j)=>j!==i))}
+                inputStyle={s.input}
+                labelStyle={s.label}
+              />
             ))}
-            <button type="button" onClick={()=>setSilasExtra([...silasExtra,{tribuna:'',fila:'',silla:''}])} style={{background:'transparent',border:'1px dashed #1e2a3a',borderRadius:'8px',padding:'8px',fontSize:'12px',color:'#4e5a6e',cursor:'pointer',width:'100%',marginBottom:'16px'}}>+ Añadir otra silla</button>
+            <button type="button" onClick={()=>setSilasExtra([...silasExtra,{tribuna:form.tribuna||'',fila:'',silla:''}])} style={{background:'transparent',border:'1px dashed #1e2a3a',borderRadius:'8px',padding:'8px',fontSize:'12px',color:'#4e5a6e',cursor:'pointer',width:'100%',marginBottom:'16px'}}>+ Añadir otra silla</button>
             <button type="submit" style={s.botonSubmit}>Publicar {silasExtra.length > 0 ? silasExtra.length+1+' boletas' : 'boleta'}</button>
             {mensaje && <p style={s.mensaje}>{mensaje}</p>}
           </form>
@@ -1762,7 +2049,15 @@ function App() {
           const ciudades = [...new Set(boletas.map(b => b.eventos?.ciudad).filter(Boolean))]
           const deportes = [...new Set(boletas.map(b => b.eventos?.deporte).filter(Boolean))]
           return (
-            <div style={{display:'flex',gap:'8px',marginBottom:'20px',flexWrap:'wrap'}}>
+            <div style={{marginBottom:'20px'}}>
+              <input
+                type="text"
+                placeholder="Buscar evento o equipo..."
+                value={busquedaPublica}
+                onChange={e => setBusquedaPublica(e.target.value)}
+                style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'20px',padding:'9px 18px',color:'#eef0f6',fontSize:'13px',outline:'none',marginBottom:'8px'}}
+              />
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
               <select
                 value={filtros.ciudad}
                 onChange={e => setFiltros(f => ({...f, ciudad: e.target.value}))}
@@ -1786,12 +2081,13 @@ function App() {
                 onChange={e => setFiltros(f => ({...f, precioMax: e.target.value}))}
                 style={{flex:'1', minWidth:'120px', background:'rgba(255,255,255,0.04)', border:'1px solid #1e2a3a', borderRadius:'20px', padding:'8px 16px', color:'#eef0f6', fontSize:'13px', cursor:'pointer', outline:'none'}}
               />
-              {(filtros.ciudad || filtros.deporte || filtros.precioMax) && (
-                <button
-                  onClick={() => setFiltros({ ciudad: '', deporte: '', precioMax: '' })}
-                  style={{background:'transparent',border:'1px solid #1e2a3a',color:'#4e5a6e',borderRadius:'20px',padding:'8px 16px',cursor:'pointer',fontSize:'13px'}}
-                >Limpiar</button>
-              )}
+                {(filtros.ciudad || filtros.deporte || filtros.precioMax) && (
+                  <button
+                    onClick={() => setFiltros({ ciudad: '', deporte: '', precioMax: '' })}
+                    style={{background:'transparent',border:'1px solid #1e2a3a',color:'#4e5a6e',borderRadius:'20px',padding:'8px 16px',cursor:'pointer',fontSize:'13px'}}
+                  >Limpiar</button>
+                )}
+              </div>
             </div>
           )
         })()}
@@ -1801,6 +2097,10 @@ function App() {
             if (filtros.ciudad && b.eventos?.ciudad !== filtros.ciudad) return false
             if (filtros.deporte && b.eventos?.deporte !== filtros.deporte) return false
             if (filtros.precioMax && Number(b.precio) > Number(filtros.precioMax)) return false
+            if (busquedaPublica.trim()) {
+              const q = busquedaPublica.toLowerCase()
+              if (!(b.eventos?.nombre || '').toLowerCase().includes(q)) return false
+            }
             return true
           })
           if (!cargando && boletas.length === 0) return (
@@ -1820,76 +2120,116 @@ function App() {
             </div>
           )
           if (!cargando && boletasFiltradas.length === 0) return <p style={s.vacio}>No hay boletas que coincidan con los filtros.</p>
-          return boletasFiltradas.map(function(b) {
-          const moneda = b.eventos ? b.eventos.moneda : 'COP'
-          const esBoleteriaCO = b.publicada_por_admin === true
-          const nombreVendedor = b.usuarios ? b.usuarios.nombre : 'Usuario'
-          const ventasVendedor = b.vendedor_id ? (ventasPorVendedor[b.vendedor_id] || 0) : 0
-
-          return (
-            <div key={b.id} style={{...s.tarjetaBoleta, borderTop: '2px solid #4f7eff', background: 'linear-gradient(135deg, #0f1a2e 0%, #0f1623 100%)'}}>
-              <h3 style={s.nombreEvento}>{b.eventos ? b.eventos.nombre : ''}</h3>
-              <p style={s.detalleEvento}>{b.eventos ? b.eventos.ciudad : ''}{b.eventos && b.eventos.estadio ? ' · ' + b.eventos.estadio : ''}</p>
-              {b.eventos && b.eventos.fecha && (
-                <p style={{...s.detalleEvento, color:'#a78bfa', fontSize:'12px'}}>
-                  {new Date(b.eventos.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}
-                  {b.eventos.hora ? ` · ${b.eventos.hora.slice(0,5).replace(/^0/,'').replace(':','h')}` : ''}
-                </p>
-              )}
-              <p style={s.detalleEvento}>Tribuna {b.tribuna} - Fila {b.fila} - Silla {b.silla}</p>
-              <div style={s.vendedorRow}>
-                {esBoleteriaCO ? (
-                  <div style={{display:'flex',alignItems:'center',gap:'6px'}}>
-                    <span style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700'}}>Boletería CO</span>
-                    <span style={{background:'#4f7eff',color:'#fff',fontSize:'10px',fontWeight:'700',padding:'2px 7px',borderRadius:'20px',letterSpacing:'0.3px'}}>✓ Verificado</span>
+          // Agrupar por (evento_id, tribuna, vendedor_id)
+          const grupos = {}
+          boletasFiltradas.forEach(b => {
+            const vid = b.vendedor_id || 'unknown'
+            const key = `${b.evento_id || (b.eventos && b.eventos.id) || b.id}__${(b.tribuna || '').trim().toLowerCase()}__${vid}`
+            if (!grupos[key]) grupos[key] = { evento: b.eventos, tribuna: b.tribuna, boletas: [], esAdmin: b.publicada_por_admin === true || b.usuarios?.es_admin === true, vendedorNombre: b.usuarios?.nombre || '' }
+            grupos[key].boletas.push(b)
+          })
+          return Object.entries(grupos).map(([key, grupo]) => {
+            const disponibles = grupo.boletas.filter(b => b.estado === 'publicada')
+            const precios = disponibles.map(b => Number(b.precio)).filter(p => p > 0)
+            const precioMin = precios.length > 0 ? Math.min(...precios) : 0
+            const moneda = grupo.evento ? grupo.evento.moneda : 'COP'
+            const expandida = tribunaExpandida === key
+            const enCarritoDeGrupo = disponibles.filter(b => carrito.some(ci => ci.id === b.id))
+            return (
+              <div key={key} style={{...s.tarjetaBoleta, borderTop: '2px solid #4f7eff', background: 'linear-gradient(135deg, #0f1a2e 0%, #0f1623 100%)'}}>
+                <h3 style={s.nombreEvento}>{grupo.evento ? grupo.evento.nombre : ''}</h3>
+                <p style={s.detalleEvento}>{grupo.evento ? grupo.evento.ciudad : ''}{grupo.evento && grupo.evento.estadio ? ' · ' + grupo.evento.estadio : ''}</p>
+                {grupo.evento && grupo.evento.fecha && (
+                  <p style={{...s.detalleEvento, color:'#a78bfa', fontSize:'12px'}}>
+                    {new Date(grupo.evento.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}
+                    {grupo.evento.hora ? ` · ${grupo.evento.hora.slice(0,5).replace(/^0/,'').replace(':','h')}` : ''}
+                  </p>
+                )}
+                <p style={{...s.detalleEvento, fontWeight:'600', color:'#93c5fd', marginBottom:'8px'}}>🏟 Tribuna {grupo.tribuna}</p>
+                <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'12px'}}>
+                  {grupo.esAdmin
+                    ? <span style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px',letterSpacing:'0.3px'}}>✓ Verificado · Boletería CO</span>
+                    : <span style={{color:'#4e5a6e',fontSize:'11px'}}>Vendedor: {grupo.vendedorNombre || 'Particular'}</span>
+                  }
+                </div>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'12px'}}>
+                  <div>
+                    {disponibles.length > 0
+                      ? <p style={{...s.precio, marginBottom:'2px'}}>{`desde ${calcularTotal(precioMin, moneda, grupo.esAdmin)}`}</p>
+                      : <p style={{color:'#6b7280',fontSize:'13px',margin:'0 0 2px'}}>Sin disponibles</p>
+                    }
+                    <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{disponibles.length} asiento{disponibles.length !== 1 ? 's' : ''} disponible{disponibles.length !== 1 ? 's' : ''}</p>
                   </div>
-                ) : (
-                  <>
-                    <span style={s.vendedorNombre}>{nombreVendedor || 'Vendedor'}</span>
-                    <span style={s.ventasCount}>{ventasVendedor} ventas</span>
-                  </>
-                )}
-              </div>
-              <div style={s.filaPrecio}>
-                <p style={s.precio}>{b.estado === 'vendida' ? <span style={{color:'#6b7280',fontSize:'13px'}}>Vendida</span> : calcularTotal(b.precio, moneda, b.publicada_por_admin === true)}</p>
-                {b.estado === 'reservada' ? (
-                  <span style={{background:'#3d2a00',color:'#facc15',fontSize:'12px',fontWeight:'600',padding:'6px 14px',borderRadius:'8px'}}>⏳ Reservada</span>
-                ) : b.estado === 'vendida' ? (
-                  <span style={{background:'#1a1a1a',color:'#6b7280',fontSize:'12px',fontWeight:'600',padding:'6px 14px',borderRadius:'8px'}}>Vendida</span>
-                ) : (
-                  (() => {
-                    const enCarrito = carrito.some(c => c.id === b.id)
-                    return (
+                  {disponibles.length === 1 && (
+                    <button
+                      onClick={() => {
+                        const b = disponibles[0]
+                        const enC = carrito.some(ci => ci.id === b.id)
+                        enC ? setCarrito(carrito.filter(ci => ci.id !== b.id)) : setCarrito([...carrito, b])
+                      }}
+                      style={{background: carrito.some(ci => ci.id === disponibles[0].id) ? '#0f2d1e' : '#4f7eff', border: carrito.some(ci => ci.id === disponibles[0].id) ? '1px solid #166534' : 'none', borderRadius:'10px', color: carrito.some(ci => ci.id === disponibles[0].id) ? '#4ade80' : '#fff', fontSize:'13px', fontWeight:'700', cursor:'pointer', padding:'10px 18px', flexShrink:0}}
+                    >
+                      {carrito.some(ci => ci.id === disponibles[0].id) ? '✓ En carrito' : 'Añadir al carrito'}
+                    </button>
+                  )}
+                  {disponibles.length > 1 && (
+                    <button
+                      onClick={() => setTribunaExpandida(expandida ? null : key)}
+                      style={{background: enCarritoDeGrupo.length > 0 ? '#0a2a1a' : '#4f7eff', border: enCarritoDeGrupo.length > 0 ? '1px solid #166534' : 'none', borderRadius:'10px', color: enCarritoDeGrupo.length > 0 ? '#4ade80' : '#fff', fontSize:'13px', fontWeight:'700', cursor:'pointer', padding:'10px 18px', flexShrink:0}}
+                    >
+                      {expandida ? 'Cerrar' : enCarritoDeGrupo.length > 0 ? `${enCarritoDeGrupo.length} en carrito · Ver` : `Ver ${disponibles.length} asientos`}
+                    </button>
+                  )}
+                </div>
+                {expandida && disponibles.length > 1 && (
+                  <div style={{marginTop:'12px',borderTop:'1px solid #1e2a3a',paddingTop:'12px',display:'flex',flexDirection:'column',gap:'8px'}}>
+                    {disponibles.map(b => {
+                      const enCarrito = carrito.some(ci => ci.id === b.id)
+                      return (
+                        <div
+                          key={b.id}
+                          onClick={() => enCarrito ? setCarrito(carrito.filter(ci => ci.id !== b.id)) : setCarrito([...carrito, b])}
+                          style={{display:'flex',justifyContent:'space-between',alignItems:'center',background: enCarrito ? 'rgba(79,222,128,0.07)' : 'rgba(255,255,255,0.03)',border: enCarrito ? '1px solid #166534' : '1px solid transparent',borderRadius:'10px',padding:'12px 14px',gap:'10px',cursor:'pointer',transition:'all 0.15s'}}
+                        >
+                          <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1,minWidth:0}}>
+                            <div style={{width:'20px',height:'20px',borderRadius:'50%',border: enCarrito ? 'none' : '2px solid #2a3a4a',background: enCarrito ? '#4ade80' : 'transparent',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                              {enCarrito && <svg width='11' height='11' viewBox='0 0 12 12' fill='none'><path d='M2 6l3 3 5-5' stroke='#0a1a0a' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/></svg>}
+                            </div>
+                            <div>
+                              <p style={{color: enCarrito ? '#4ade80' : '#eef0f6',fontSize:'13px',fontWeight:'600',margin:'0 0 1px'}}>
+                                {b.fila ? `Fila ${b.fila}` : ''}{b.fila && b.silla ? ' · ' : ''}{b.silla ? `Silla ${b.silla}` : ''}
+                              </p>
+                              <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{calcularTotal(b.precio, moneda, b.publicada_por_admin === true || b.usuarios?.es_admin === true)}</p>
+                            </div>
+                          </div>
+                          <span style={{fontSize:'12px',fontWeight:'700',color: enCarrito ? '#4ade80' : '#4f7eff',flexShrink:0}}>{enCarrito ? '✓ Seleccionado' : '+ Seleccionar'}</span>
+                        </div>
+                      )
+                    })}
+                    {enCarritoDeGrupo.length > 0 && (
                       <button
-                        onClick={() => {
-                          if (enCarrito) {
-                            setCarrito(carrito.filter(c => c.id !== b.id))
-                          } else {
-                            setCarrito([...carrito, b])
-                          }
-                        }}
-                        style={{...s.botonComprar, background: enCarrito ? '#0f2d1e' : '#4f7eff', color: enCarrito ? '#4ade80' : '#fff', border: enCarrito ? '1px solid #166534' : 'none'}}
+                        onClick={() => setPaginaActual('carrito')}
+                        style={{marginTop:'4px',background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',fontSize:'13px',fontWeight:'700',cursor:'pointer',padding:'12px',width:'100%'}}
                       >
-                        {enCarrito ? '✓ En carrito' : '+ Añadir'}
+                        {enCarritoDeGrupo.length === 1 ? 'Ver mi asiento en el carrito →' : `Ver ${enCarritoDeGrupo.length} asientos en el carrito →`}
                       </button>
-                    )
-                  })()
+                    )}
+                  </div>
                 )}
+                <div style={{marginTop:'10px',borderTop:'1px solid #1e2a3a',paddingTop:'10px'}}>
+                  <a
+                    href={`https://wa.me/?text=${encodeURIComponent(`🎟 ${grupo.evento ? grupo.evento.nombre : 'Boleta'} — Tribuna ${grupo.tribuna} — desde ${calcularTotal(precioMin, moneda, grupo.esAdmin)} | Boletería CO: https://boleteriaco.com`)}`}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                    style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'12px',color:'#4ade80',textDecoration:'none',fontWeight:'600'}}
+                  >
+                    <svg width='14' height='14' viewBox='0 0 24 24' fill='currentColor'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z'/><path d='M12 0C5.373 0 0 5.373 0 12c0 2.136.562 4.14 1.542 5.873L.057 23.98l6.264-1.641A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.032-1.382l-.36-.214-3.733.979.997-3.643-.235-.374A9.818 9.818 0 1112 21.818z'/></svg>
+                    Compartir
+                  </a>
+                </div>
               </div>
-              <div style={{marginTop:'10px',borderTop:'1px solid #1e2a3a',paddingTop:'10px'}}>
-                <a
-                  href={`https://wa.me/?text=${encodeURIComponent(`🎟 ${b.eventos ? b.eventos.nombre : 'Boleta'} — ${calcularTotal(b.precio, moneda, b.publicada_por_admin === true)} | Boletería CO: https://boleteriaco.com`)}`}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'12px',color:'#4ade80',textDecoration:'none',fontWeight:'600'}}
-                >
-                  <svg width='14' height='14' viewBox='0 0 24 24' fill='currentColor'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z'/><path d='M12 0C5.373 0 0 5.373 0 12c0 2.136.562 4.14 1.542 5.873L.057 23.98l6.264-1.641A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.032-1.382l-.36-.214-3.733.979.997-3.643-.235-.374A9.818 9.818 0 1112 21.818z'/></svg>
-                  Compartir
-                </a>
-              </div>
-            </div>
-          )
-        })
+            )
+          })
         })()}
 
         {/* CARRITO */}
