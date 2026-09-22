@@ -166,6 +166,8 @@ function App() {
   const [mensajeAuth, setMensajeAuth] = useState('')
   const [confirmarEliminarEvento, setConfirmarEliminarEvento] = useState(null)
   const [confirmarEliminarBoleta, setConfirmarEliminarBoleta] = useState(null)
+  const [boletaEditando, setBoletaEditando] = useState(null)
+  const [formEditarBoleta, setFormEditarBoleta] = useState({ tribuna: '', fila: '', silla: '', precio: '' })
   const [eventoEditando, setEventoEditando] = useState(null)
   const [formEditar, setFormEditar] = useState({})
   const [tribunaInputTemp, setTribunaInputTemp] = useState('')
@@ -440,6 +442,21 @@ function App() {
   async function eliminarBoleta(id) {
     const { error } = await supabase.from('boletas').delete().eq('id', id)
     if (error) { toast('No se puede eliminar — tiene órdenes asociadas.'); return }
+    cargarBoletas(); cargarBoletasAdmin()
+  }
+
+  async function guardarEdicionBoleta(e) {
+    e.preventDefault()
+    const { tribuna, fila, silla, precio } = formEditarBoleta
+    const { error } = await supabase.from('boletas').update({
+      tribuna: tribuna.trim(),
+      fila: fila.trim(),
+      silla: silla.trim(),
+      precio: Number(precio)
+    }).eq('id', boletaEditando)
+    if (error) { toast('Error al guardar cambios.'); return }
+    toast('Boleta actualizada.')
+    setBoletaEditando(null)
     cargarBoletas(); cargarBoletasAdmin()
   }
 
@@ -1443,29 +1460,53 @@ function App() {
               <div style={{marginBottom:'20px'}}>
                 <p style={{...s.tituloAdmin, marginBottom:'12px'}}>Gestionar boletas ({boletasAdmin.length})</p>
                 {boletasAdmin.map(b => (
-                  <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'12px 14px',marginBottom:'8px',display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
-                    <div>
-                      <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{b.eventos?.nombre || 'Evento'}</p>
-                      <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>
-                        {b.usuarios?.nombre} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}
-                        {' '}<span style={{color: b.estado==='oculta' ? '#facc15' : b.estado==='reservada' ? '#fb923c' : '#4ade80', fontWeight:'700'}}>({b.estado})</span>
-                      </p>
+                  <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'12px 14px',marginBottom:'8px'}}>
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
+                      <div>
+                        <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{b.eventos?.nombre || 'Evento'}</p>
+                        <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>
+                          {b.usuarios?.nombre} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}
+                          {' '}<span style={{color: b.estado==='oculta' ? '#facc15' : b.estado==='reservada' ? '#fb923c' : '#4ade80', fontWeight:'700'}}>({b.estado})</span>
+                        </p>
+                      </div>
+                      <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                        {confirmarEliminarBoleta === b.id
+                          ? <>
+                              <button onClick={()=>{eliminarBoleta(b.id);setConfirmarEliminarBoleta(null)}} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, eliminar</button>
+                              <button onClick={()=>setConfirmarEliminarBoleta(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'6px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
+                            </>
+                          : <>
+                              {b.estado === 'oculta'
+                                ? <button onClick={()=>mostrarBoleta(b.id)} style={{background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Publicar</button>
+                                : <button onClick={()=>ocultarBoleta(b.id)} style={{background:'#3d2a00',color:'#facc15',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Ocultar</button>
+                              }
+                              <button onClick={()=>{ setBoletaEditando(boletaEditando===b.id ? null : b.id); setFormEditarBoleta({tribuna:b.tribuna||'',fila:b.fila||'',silla:b.silla||'',precio:b.precio||''}) }} style={{background:'#1a2f4a',color:'#60a5fa',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Editar</button>
+                              <button onClick={()=>setConfirmarEliminarBoleta(b.id)} style={{background:'#3b0a0a',color:'#f87171',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Eliminar</button>
+                            </>
+                        }
+                      </div>
                     </div>
-                    <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                      {confirmarEliminarBoleta === b.id
-                        ? <>
-                            <button onClick={()=>{eliminarBoleta(b.id);setConfirmarEliminarBoleta(null)}} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, eliminar</button>
-                            <button onClick={()=>setConfirmarEliminarBoleta(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'6px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
-                          </>
-                        : <>
-                            {b.estado === 'oculta'
-                              ? <button onClick={()=>mostrarBoleta(b.id)} style={{background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Publicar</button>
-                              : <button onClick={()=>ocultarBoleta(b.id)} style={{background:'#3d2a00',color:'#facc15',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Ocultar</button>
-                            }
-                            <button onClick={()=>setConfirmarEliminarBoleta(b.id)} style={{background:'#3b0a0a',color:'#f87171',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Eliminar</button>
-                          </>
-                      }
-                    </div>
+                    {boletaEditando === b.id && (
+                      <form onSubmit={guardarEdicionBoleta} style={{marginTop:'12px',display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'8px',alignItems:'flex-end'}}>
+                        <div>
+                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Tribuna</label>
+                          <input value={formEditarBoleta.tribuna} onChange={e=>setFormEditarBoleta(f=>({...f,tribuna:e.target.value}))} required style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                        </div>
+                        <div>
+                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Fila</label>
+                          <input value={formEditarBoleta.fila} onChange={e=>setFormEditarBoleta(f=>({...f,fila:e.target.value}))} style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                        </div>
+                        <div>
+                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Silla</label>
+                          <input value={formEditarBoleta.silla} onChange={e=>setFormEditarBoleta(f=>({...f,silla:e.target.value}))} style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                        </div>
+                        <div>
+                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Precio</label>
+                          <input type="number" value={formEditarBoleta.precio} onChange={e=>setFormEditarBoleta(f=>({...f,precio:e.target.value}))} required style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                        </div>
+                        <button type="submit" style={{gridColumn:'1/-1',background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'7px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Guardar cambios</button>
+                      </form>
+                    )}
                   </div>
                 ))}
                 <hr style={s.separador}/>
