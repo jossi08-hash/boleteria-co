@@ -1790,7 +1790,16 @@ function App() {
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
                   <div>
                     <label style={{...s.label,marginBottom:'4px'}}>Tribuna</label>
-                    <input value={s2.tribuna} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:e.target.value}:x))} required style={{...s.input,marginBottom:0}} />
+                    {(() => {
+                      const evSel = eventos.find(ev => ev.id === form.eventoId)
+                      const trbs = evSel?.tribunas || []
+                      return trbs.length > 0
+                        ? <select value={s2.tribuna} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:e.target.value}:x))} required style={{...s.input,marginBottom:0}}>
+                            <option value="">Selecciona tribuna</option>
+                            {trbs.map(t => <option key={t} value={t}>{t}</option>)}
+                          </select>
+                        : <input value={s2.tribuna} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:e.target.value}:x))} required style={{...s.input,marginBottom:0}} />
+                    })()}
                   </div>
                   <div>
                     <label style={{...s.label,marginBottom:'4px'}}>Fila</label>
