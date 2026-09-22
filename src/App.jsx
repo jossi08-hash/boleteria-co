@@ -103,6 +103,101 @@ function sugerirPlataforma(nombreEvento) {
 }
 
 
+function coloresEquipo(nombre) {
+  const n = (nombre||'').toLowerCase()
+  if (n.includes('santa fe')) return ['#c8102e','#ffffff']
+  if (n.includes('millonarios')) return ['#003fa0','#b8d4f5']
+  if (n.includes('atletico nacional')||(n.includes('nacional')&&!n.includes('santa'))) return ['#006400','#f5c518']
+  if (n.includes('america')||n.includes('américa')) return ['#dd0000','#ffffff']
+  if (n.includes('junior')) return ['#cc0000','#f5c518']
+  if (n.includes('medellin')||n.includes('medellín')||n.includes('dim')) return ['#cc0000','#003fa0']
+  if (n.includes('deportivo cali')||n.includes('dep. cali')) return ['#006400','#1a1a1a']
+  if (n.includes('tolima')) return ['#cc0000','#1a1a1a']
+  if (n.includes('cucuta')||n.includes('cúcuta')) return ['#1a1a1a','#f0f0f0']
+  if (n.includes('peñarol')) return ['#f5c518','#1a1a1a']
+  if (n.includes('boca')) return ['#003fa0','#f5c518']
+  if (n.includes('river')) return ['#cc0000','#f0f0f0']
+  if (n.includes('flamengo')) return ['#cc0000','#1a1a1a']
+  return ['#4f7eff','#ffffff']
+}
+function extraerEquipos(nombre) {
+  const p = (nombre||'').split(/\s+vs\.?\s*/i)
+  return p.length>=2 ? [p[0].trim(), p.slice(1).join(' vs ').trim()] : [nombre||'', null]
+}
+function EscudoSVG({nombre, size=44}) {
+  const [c1,c2] = coloresEquipo(nombre)
+  const ini = (nombre||'').split(/\s+/).filter(w=>w.length>2).slice(0,2).map(w=>w[0].toUpperCase()).join('')||'?'
+  return (
+    <svg width={size} height={size} viewBox="0 0 44 50" xmlns="http://www.w3.org/2000/svg" style={{flexShrink:0}}>
+      <path d="M22 2 L40 9 L40 28 Q40 44 22 50 Q4 44 4 28 L4 9 Z" fill={c1}/>
+      <path d="M22 2 L40 9 L40 28 Q40 44 22 50 Q4 44 4 28 L4 9 Z" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+      <text x="22" y="32" textAnchor="middle" dominantBaseline="middle" fill={c2} fontSize="13" fontWeight="800" fontFamily="system-ui,sans-serif" letterSpacing="-0.3">{ini}</text>
+    </svg>
+  )
+}
+function MapaElCampin({avail, selected, onSelect}) {
+  const CX=240, CY=180
+  const r2d = d => d*Math.PI/180
+  const ptx = (rx,ry,d) => CX+rx*Math.cos(r2d(d))
+  const pty = (rx,ry,d) => CY+ry*Math.sin(r2d(d))
+  const f = n => +n.toFixed(2)
+  function ringPath({oRx,oRy,iRx,iRy,s,e}) {
+    const span=((e-s)%360+360)%360, lg=span>180?1:0
+    return `M${f(ptx(oRx,oRy,s))} ${f(pty(oRx,oRy,s))} A${oRx} ${oRy} 0 ${lg} 1 ${f(ptx(oRx,oRy,e))} ${f(pty(oRx,oRy,e))} L${f(ptx(iRx,iRy,e))} ${f(pty(iRx,iRy,e))} A${iRx} ${iRy} 0 ${lg} 0 ${f(ptx(iRx,iRy,s))} ${f(pty(iRx,iRy,s))}Z`
+  }
+  function midPt({oRx,oRy,iRx,iRy,s,e}) {
+    const span=((e-s)%360+360)%360, mid=s+span/2
+    return [f(CX+(oRx+iRx)/2*Math.cos(r2d(mid))), f(CY+(oRy+iRy)/2*Math.sin(r2d(mid)))]
+  }
+  const SECS=[
+    {id:'norte',   name:'Norte',         oRx:200,oRy:155,iRx:158,iRy:112,s:210,e:330},
+    {id:'sur',     name:'Sur',           oRx:200,oRy:155,iRx:158,iRy:112,s:30, e:150},
+    {id:'or-gen',  name:'Or. General',   oRx:200,oRy:155,iRx:158,iRy:112,s:330,e:30 },
+    {id:'or-pref', name:'Or. Pref.',     oRx:158,oRy:112,iRx:118,iRy:68, s:330,e:30 },
+    {id:'occ-gen', name:'Occ. General',  oRx:200,oRy:155,iRx:158,iRy:112,s:150,e:210},
+    {id:'occ-pref',name:'Occ. Pref.',    oRx:158,oRy:112,iRx:118,iRy:68, s:150,e:210},
+  ]
+  const fw=220, fh=120, fx=CX-fw/2, fy=CY-fh/2
+  const stripes = Array.from({length:9},(_,i)=>({x:f(fx+i*(fw/9)), fill:i%2===0?'#1e5c28':'#226630'}))
+  return (
+    <svg viewBox="0 0 480 360" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'auto',display:'block',borderRadius:'8px'}} aria-label="Mapa estadio El Campín">
+      <defs><clipPath id="fcc"><rect x={fx} y={fy} width={fw} height={fh} rx="8"/></clipPath></defs>
+      <rect width="480" height="360" fill="#06101c" rx="10"/>
+      {SECS.map(sec=>{
+        const isAvail=(avail[sec.id]||[]).length>0
+        const isSel=selected===sec.id
+        return (
+          <path key={sec.id} d={ringPath(sec)}
+            fill={isSel?'rgba(79,126,255,0.3)':isAvail?'rgba(61,219,122,0.18)':'rgba(255,255,255,0.04)'}
+            stroke={isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.4)':'rgba(255,255,255,0.07)'}
+            strokeWidth={isSel?2:0.8}
+            style={{cursor:isAvail?'pointer':'default'}}
+            onClick={()=>isAvail&&onSelect(sec.id)}
+          />
+        )
+      })}
+      <ellipse cx={CX} cy={CY} rx="118" ry="68" fill="#0a1827"/>
+      {stripes.map((s,i)=><rect key={i} x={s.x} y={fy} width={f(fw/9)} height={fh} fill={s.fill} clipPath="url(#fcc)"/>)}
+      <g clipPath="url(#fcc)">
+        <rect x={f(fx+1.5)} y={f(fy+1.5)} width={f(fw-3)} height={f(fh-3)} rx="6" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
+        <line x1={CX} y1={f(fy+1.5)} x2={CX} y2={f(fy+fh-1.5)} stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
+        <circle cx={CX} cy={CY} r="17" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
+        <circle cx={CX} cy={CY} r="2" fill="rgba(255,255,255,.4)"/>
+        <rect x={f(fx+1.5)} y={f(CY-20)} width="34" height="40" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
+        <rect x={f(fx+fw-35.5)} y={f(CY-20)} width="34" height="40" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
+      </g>
+      {SECS.filter(sec=>(avail[sec.id]||[]).length>0).map(sec=>{
+        const [lx,ly]=midPt(sec)
+        return <text key={sec.id+'l'} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fontWeight="700" fill="rgba(255,255,255,0.7)" style={{pointerEvents:'none'}}>{sec.name}</text>
+      })}
+      <text x={CX} y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill="rgba(255,255,255,0.2)">N</text>
+      <text x={CX} y="350" textAnchor="middle" fontSize="10" fontWeight="700" fill="rgba(255,255,255,0.2)">S</text>
+      <text x="472" y={CY+4} textAnchor="middle" fontSize="10" fontWeight="700" fill="rgba(255,255,255,0.2)">E</text>
+      <text x="8" y={CY+4} textAnchor="middle" fontSize="10" fontWeight="700" fill="rgba(255,255,255,0.2)">O</text>
+    </svg>
+  )
+}
+
 function SillaExtraRow({ silla, indice, tribunas, onChangeTribuna, onChangeFila, onChangeSilla, onRemove, inputStyle, labelStyle }) {
   const hasTribunas = Array.isArray(tribunas) && tribunas.length > 0
   return (
@@ -195,6 +290,8 @@ function App() {
   const [cargandoMis, setCargandoMis] = useState(false)
   const [filtros, setFiltros] = useState({ ciudad: '', deporte: '', precioMax: '' })
   const [busquedaPublica, setBusquedaPublica] = useState('')
+  const [eventoSeleccionado, setEventoSeleccionado] = useState(null)
+  const [seccionMapa, setSeccionMapa] = useState(null)
   const [faqAbierto, setFaqAbierto] = useState(null)
   const [datosEntrega, setDatosEntrega] = useState({})
 
@@ -1976,19 +2073,49 @@ function App() {
           </form>
         )}
 
-        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', margin:'32px 0 16px'}}>
-          <div>
-            <p style={{color:'#eef0f6', fontSize:'18px', fontWeight:'800', margin:'0 0 2px', letterSpacing:'-0.5px'}}>
-              Boletas disponibles
-            </p>
-            <p style={{color:'#4e5a6e', fontSize:'12px', margin:0}}>{boletas.filter(b=>b.estado==='publicada').length} boleta{boletas.filter(b=>b.estado==='publicada').length!==1?'s':''} en el mercado</p>
+        {/* ── BARRA DE BÚSQUEDA ── */}
+        <div style={{margin:'28px 0 0'}}>
+          <div style={{position:'relative',marginBottom:'12px'}}>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}}>
+              <circle cx="6.5" cy="6.5" r="5" stroke="#6b82a0" strokeWidth="1.5"/>
+              <path d="M10.5 10.5L14 14" stroke="#6b82a0" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Buscar equipo o evento..."
+              value={busquedaPublica}
+              onChange={e=>setBusquedaPublica(e.target.value)}
+              style={{width:'100%',boxSizing:'border-box',background:'#0f1928',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'11px 16px 11px 38px',color:'#eef0f6',fontSize:'14px',outline:'none'}}
+            />
           </div>
-          {usuario && (
-            <button style={{background:'rgba(79,126,255,0.12)', color:'#6b93ff', border:'1px solid rgba(79,126,255,0.25)', borderRadius:'10px', padding:'9px 18px', fontSize:'13px', fontWeight:'700', cursor:'pointer'}}
-              onClick={() => setMostrarFormulario(!mostrarFormulario)}>
-              {mostrarFormulario ? '✕ Cancelar' : '+ Vender'}
-            </button>
-          )}
+          {!cargando && boletas.length>0 && (()=>{
+            const ciudades=[...new Set(boletas.map(b=>b.eventos?.ciudad).filter(Boolean))]
+            const deportes=[...new Set(boletas.map(b=>b.eventos?.deporte).filter(Boolean))]
+            return (
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'16px'}}>
+                <select value={filtros.ciudad} onChange={e=>setFiltros(f=>({...f,ciudad:e.target.value}))} style={{flex:'1',minWidth:'130px',background:'#0f1928',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'8px 14px',color:'#eef0f6',fontSize:'12px',cursor:'pointer',outline:'none'}}>
+                  <option value=''>Todas las ciudades</option>
+                  {ciudades.map(c=><option key={c} value={c}>{c}</option>)}
+                </select>
+                <select value={filtros.deporte} onChange={e=>setFiltros(f=>({...f,deporte:e.target.value}))} style={{flex:'1',minWidth:'130px',background:'#0f1928',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'8px 14px',color:'#eef0f6',fontSize:'12px',cursor:'pointer',outline:'none'}}>
+                  <option value=''>Todos los deportes</option>
+                  {deportes.map(d=><option key={d} value={d}>{d}</option>)}
+                </select>
+                {(filtros.ciudad||filtros.deporte)&&<button onClick={()=>setFiltros({ciudad:'',deporte:'',precioMax:''})} style={{background:'transparent',border:'1px solid #1e2a3a',color:'#6b82a0',borderRadius:'10px',padding:'8px 14px',cursor:'pointer',fontSize:'12px'}}>Limpiar</button>}
+              </div>
+            )
+          })()}
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
+            <div>
+              <p style={{color:'#eef0f6',fontSize:'17px',fontWeight:'800',margin:'0 0 2px',letterSpacing:'-0.4px'}}>Eventos disponibles</p>
+              <p style={{color:'#4e5a6e',fontSize:'12px',margin:0}}>{[...new Set(boletas.filter(b=>b.estado==='publicada'&&b.evento_id).map(b=>b.evento_id))].length} evento{[...new Set(boletas.filter(b=>b.estado==='publicada'&&b.evento_id).map(b=>b.evento_id))].length!==1?'s':''} con entradas</p>
+            </div>
+            {usuario&&(
+              <button onClick={()=>setMostrarFormulario(!mostrarFormulario)} style={{background:'rgba(79,126,255,0.12)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'10px',padding:'9px 18px',fontSize:'13px',fontWeight:'700',cursor:'pointer',flexShrink:0}}>
+                {mostrarFormulario?'✕ Cancelar':'+ Vender'}
+              </button>
+            )}
+          </div>
         </div>
 
         {mostrarFormulario && (
@@ -2043,57 +2170,13 @@ function App() {
           </form>
         )}
 
-        {cargando && <p style={s.vacio}>Cargando boletas...</p>}
+        {cargando && <p style={s.vacio}>Cargando eventos...</p>}
 
-        {!cargando && boletas.length > 0 && (() => {
-          const ciudades = [...new Set(boletas.map(b => b.eventos?.ciudad).filter(Boolean))]
-          const deportes = [...new Set(boletas.map(b => b.eventos?.deporte).filter(Boolean))]
-          return (
-            <div style={{marginBottom:'20px'}}>
-              <input
-                type="text"
-                placeholder="Buscar evento o equipo..."
-                value={busquedaPublica}
-                onChange={e => setBusquedaPublica(e.target.value)}
-                style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'20px',padding:'9px 18px',color:'#eef0f6',fontSize:'13px',outline:'none',marginBottom:'8px'}}
-              />
-              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-              <select
-                value={filtros.ciudad}
-                onChange={e => setFiltros(f => ({...f, ciudad: e.target.value}))}
-                style={{flex:'1', minWidth:'120px', background:'rgba(255,255,255,0.04)', border:'1px solid #1e2a3a', borderRadius:'20px', padding:'8px 16px', color:'#eef0f6', fontSize:'13px', cursor:'pointer', outline:'none'}}
-              >
-                <option value=''>Todas las ciudades</option>
-                {ciudades.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <select
-                value={filtros.deporte}
-                onChange={e => setFiltros(f => ({...f, deporte: e.target.value}))}
-                style={{flex:'1', minWidth:'120px', background:'rgba(255,255,255,0.04)', border:'1px solid #1e2a3a', borderRadius:'20px', padding:'8px 16px', color:'#eef0f6', fontSize:'13px', cursor:'pointer', outline:'none'}}
-              >
-                <option value=''>Todos los deportes</option>
-                {deportes.map(d => <option key={d} value={d}>{d}</option>)}
-              </select>
-              <input
-                type='number'
-                placeholder='Precio max.'
-                value={filtros.precioMax}
-                onChange={e => setFiltros(f => ({...f, precioMax: e.target.value}))}
-                style={{flex:'1', minWidth:'120px', background:'rgba(255,255,255,0.04)', border:'1px solid #1e2a3a', borderRadius:'20px', padding:'8px 16px', color:'#eef0f6', fontSize:'13px', cursor:'pointer', outline:'none'}}
-              />
-                {(filtros.ciudad || filtros.deporte || filtros.precioMax) && (
-                  <button
-                    onClick={() => setFiltros({ ciudad: '', deporte: '', precioMax: '' })}
-                    style={{background:'transparent',border:'1px solid #1e2a3a',color:'#4e5a6e',borderRadius:'20px',padding:'8px 16px',cursor:'pointer',fontSize:'13px'}}
-                  >Limpiar</button>
-                )}
-              </div>
-            </div>
-          )
-        })()}
-
+        {/* ── TARJETAS DE EVENTOS ── */}
         {(() => {
           const boletasFiltradas = boletas.filter(b => {
+            if (b.estado !== 'publicada') return false
+            if (!b.evento_id) return false
             if (filtros.ciudad && b.eventos?.ciudad !== filtros.ciudad) return false
             if (filtros.deporte && b.eventos?.deporte !== filtros.deporte) return false
             if (filtros.precioMax && Number(b.precio) > Number(filtros.precioMax)) return false
@@ -2116,121 +2199,250 @@ function App() {
                 style={{marginTop:'8px',background:'#4f7eff',color:'#fff',border:'none',borderRadius:'12px',padding:'14px 32px',fontSize:'15px',fontWeight:'700',cursor:'pointer',boxShadow:'0 0 28px rgba(79,126,255,0.3)'}}>
                 Publicar mi boleta
               </button>
-              
+
             </div>
           )
-          if (!cargando && boletasFiltradas.length === 0) return <p style={s.vacio}>No hay boletas que coincidan con los filtros.</p>
-          // Agrupar por (evento_id, tribuna, vendedor_id)
-          const grupos = {}
+          if (!cargando && boletasFiltradas.length === 0) return <p style={s.vacio}>No hay eventos que coincidan con la búsqueda.</p>
+          // Agrupar por evento_id
+          const eventosMap = {}
           boletasFiltradas.forEach(b => {
-            const vid = b.vendedor_id || 'unknown'
-            const key = `${b.evento_id || (b.eventos && b.eventos.id) || b.id}__${(b.tribuna || '').trim().toLowerCase()}__${vid}`
-            if (!grupos[key]) grupos[key] = { evento: b.eventos, tribuna: b.tribuna, boletas: [], esAdmin: b.publicada_por_admin === true || b.usuarios?.es_admin === true, vendedorNombre: b.usuarios?.nombre || '' }
-            grupos[key].boletas.push(b)
+            const eid = b.evento_id
+            if (!eventosMap[eid]) eventosMap[eid] = { evento: b.eventos, boletas: [] }
+            eventosMap[eid].boletas.push(b)
           })
-          return Object.entries(grupos).map(([key, grupo]) => {
+          // Ordenar por fecha más próxima
+          const eventosOrdenados = Object.entries(eventosMap).sort(([,a],[,b2]) => {
+            const fa = a.evento?.fecha || '9999'
+            const fb = b2.evento?.fecha || '9999'
+            return fa < fb ? -1 : fa > fb ? 1 : 0
+          })
+          return eventosOrdenados.map(([eid, grupo]) => {
+            const ev = grupo.evento
             const disponibles = grupo.boletas.filter(b => b.estado === 'publicada')
             const precios = disponibles.map(b => Number(b.precio)).filter(p => p > 0)
             const precioMin = precios.length > 0 ? Math.min(...precios) : 0
-            const moneda = grupo.evento ? grupo.evento.moneda : 'COP'
-            const expandida = tribunaExpandida === key
-            const enCarritoDeGrupo = disponibles.filter(b => carrito.some(ci => ci.id === b.id))
+            const moneda = ev?.moneda || 'COP'
+            const hayAdmin = grupo.boletas.some(b => b.publicada_por_admin === true || b.usuarios?.es_admin === true)
+            const [equipo1, equipo2] = extraerEquipos(ev?.nombre || '')
+            const fechaStr = ev?.fecha
+              ? new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short'}).replace('.','').replace(',','')
+              : null
+            const horaStr = ev?.hora ? ev.hora.slice(0,5) : null
             return (
-              <div key={key} style={{...s.tarjetaBoleta, borderTop: '2px solid #4f7eff', background: 'linear-gradient(135deg, #0f1a2e 0%, #0f1623 100%)'}}>
-                <h3 style={s.nombreEvento}>{grupo.evento ? grupo.evento.nombre : ''}</h3>
-                <p style={s.detalleEvento}>{grupo.evento ? grupo.evento.ciudad : ''}{grupo.evento && grupo.evento.estadio ? ' · ' + grupo.evento.estadio : ''}</p>
-                {grupo.evento && grupo.evento.fecha && (
-                  <p style={{...s.detalleEvento, color:'#a78bfa', fontSize:'12px'}}>
-                    {new Date(grupo.evento.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}
-                    {grupo.evento.hora ? ` · ${grupo.evento.hora.slice(0,5).replace(/^0/,'').replace(':','h')}` : ''}
-                  </p>
-                )}
-                <p style={{...s.detalleEvento, fontWeight:'600', color:'#93c5fd', marginBottom:'8px'}}>🏟 Tribuna {grupo.tribuna}</p>
-                <div style={{display:'flex',alignItems:'center',gap:'6px',marginBottom:'12px'}}>
-                  {grupo.esAdmin
-                    ? <span style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px',letterSpacing:'0.3px'}}>✓ Verificado · Boletería CO</span>
-                    : <span style={{color:'#4e5a6e',fontSize:'11px'}}>Vendedor: {grupo.vendedorNombre || 'Particular'}</span>
-                  }
-                </div>
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'12px'}}>
-                  <div>
-                    {disponibles.length > 0
-                      ? <p style={{...s.precio, marginBottom:'2px'}}>{`desde ${calcularTotal(precioMin, moneda, grupo.esAdmin)}`}</p>
-                      : <p style={{color:'#6b7280',fontSize:'13px',margin:'0 0 2px'}}>Sin disponibles</p>
-                    }
-                    <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{disponibles.length} asiento{disponibles.length !== 1 ? 's' : ''} disponible{disponibles.length !== 1 ? 's' : ''}</p>
-                  </div>
-                  {disponibles.length === 1 && (
-                    <button
-                      onClick={() => {
-                        const b = disponibles[0]
-                        const enC = carrito.some(ci => ci.id === b.id)
-                        enC ? setCarrito(carrito.filter(ci => ci.id !== b.id)) : setCarrito([...carrito, b])
-                      }}
-                      style={{background: carrito.some(ci => ci.id === disponibles[0].id) ? '#0f2d1e' : '#4f7eff', border: carrito.some(ci => ci.id === disponibles[0].id) ? '1px solid #166534' : 'none', borderRadius:'10px', color: carrito.some(ci => ci.id === disponibles[0].id) ? '#4ade80' : '#fff', fontSize:'13px', fontWeight:'700', cursor:'pointer', padding:'10px 18px', flexShrink:0}}
-                    >
-                      {carrito.some(ci => ci.id === disponibles[0].id) ? '✓ En carrito' : 'Añadir al carrito'}
-                    </button>
-                  )}
-                  {disponibles.length > 1 && (
-                    <button
-                      onClick={() => setTribunaExpandida(expandida ? null : key)}
-                      style={{background: enCarritoDeGrupo.length > 0 ? '#0a2a1a' : '#4f7eff', border: enCarritoDeGrupo.length > 0 ? '1px solid #166534' : 'none', borderRadius:'10px', color: enCarritoDeGrupo.length > 0 ? '#4ade80' : '#fff', fontSize:'13px', fontWeight:'700', cursor:'pointer', padding:'10px 18px', flexShrink:0}}
-                    >
-                      {expandida ? 'Cerrar' : enCarritoDeGrupo.length > 0 ? `${enCarritoDeGrupo.length} en carrito · Ver` : `Ver ${disponibles.length} asientos`}
-                    </button>
-                  )}
-                </div>
-                {expandida && disponibles.length > 1 && (
-                  <div style={{marginTop:'12px',borderTop:'1px solid #1e2a3a',paddingTop:'12px',display:'flex',flexDirection:'column',gap:'8px'}}>
-                    {disponibles.map(b => {
-                      const enCarrito = carrito.some(ci => ci.id === b.id)
-                      return (
-                        <div
-                          key={b.id}
-                          onClick={() => enCarrito ? setCarrito(carrito.filter(ci => ci.id !== b.id)) : setCarrito([...carrito, b])}
-                          style={{display:'flex',justifyContent:'space-between',alignItems:'center',background: enCarrito ? 'rgba(79,222,128,0.07)' : 'rgba(255,255,255,0.03)',border: enCarrito ? '1px solid #166534' : '1px solid transparent',borderRadius:'10px',padding:'12px 14px',gap:'10px',cursor:'pointer',transition:'all 0.15s'}}
-                        >
-                          <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1,minWidth:0}}>
-                            <div style={{width:'20px',height:'20px',borderRadius:'50%',border: enCarrito ? 'none' : '2px solid #2a3a4a',background: enCarrito ? '#4ade80' : 'transparent',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
-                              {enCarrito && <svg width='11' height='11' viewBox='0 0 12 12' fill='none'><path d='M2 6l3 3 5-5' stroke='#0a1a0a' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/></svg>}
-                            </div>
-                            <div>
-                              <p style={{color: enCarrito ? '#4ade80' : '#eef0f6',fontSize:'13px',fontWeight:'600',margin:'0 0 1px'}}>
-                                {b.fila ? `Fila ${b.fila}` : ''}{b.fila && b.silla ? ' · ' : ''}{b.silla ? `Silla ${b.silla}` : ''}
-                              </p>
-                              <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{calcularTotal(b.precio, moneda, b.publicada_por_admin === true || b.usuarios?.es_admin === true)}</p>
-                            </div>
-                          </div>
-                          <span style={{fontSize:'12px',fontWeight:'700',color: enCarrito ? '#4ade80' : '#4f7eff',flexShrink:0}}>{enCarrito ? '✓ Seleccionado' : '+ Seleccionar'}</span>
-                        </div>
-                      )
-                    })}
-                    {enCarritoDeGrupo.length > 0 && (
-                      <button
-                        onClick={() => setPaginaActual('carrito')}
-                        style={{marginTop:'4px',background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',fontSize:'13px',fontWeight:'700',cursor:'pointer',padding:'12px',width:'100%'}}
-                      >
-                        {enCarritoDeGrupo.length === 1 ? 'Ver mi asiento en el carrito →' : `Ver ${enCarritoDeGrupo.length} asientos en el carrito →`}
-                      </button>
-                    )}
+              <div
+                key={eid}
+                onClick={() => { setEventoSeleccionado(ev); setSeccionMapa(null); setPaginaActual('evento') }}
+                style={{background:'#0d1521',border:'1px solid #1a2436',borderRadius:'16px',marginBottom:'12px',overflow:'hidden',cursor:'pointer',transition:'border-color 0.15s',display:'flex',flexDirection:'column'}}
+                onMouseEnter={e=>e.currentTarget.style.borderColor='#2d3f5a'}
+                onMouseLeave={e=>e.currentTarget.style.borderColor='#1a2436'}
+              >
+                {/* Chip de fecha */}
+                {fechaStr && (
+                  <div style={{background:'#111d2e',borderBottom:'1px solid #1a2436',padding:'7px 16px',display:'flex',alignItems:'center',gap:'10px'}}>
+                    <span style={{color:'#6b93ff',fontSize:'11px',fontWeight:'700',letterSpacing:'0.3px',textTransform:'uppercase'}}>{fechaStr}{horaStr ? ` · ${horaStr}` : ''}</span>
+                    {ev?.ciudad && <span style={{color:'#4e5a6e',fontSize:'11px'}}>· {ev.ciudad}{ev.estadio ? ` · ${ev.estadio}` : ''}</span>}
                   </div>
                 )}
-                <div style={{marginTop:'10px',borderTop:'1px solid #1e2a3a',paddingTop:'10px'}}>
-                  <a
-                    href={`https://wa.me/?text=${encodeURIComponent(`🎟 ${grupo.evento ? grupo.evento.nombre : 'Boleta'} — Tribuna ${grupo.tribuna} — desde ${calcularTotal(precioMin, moneda, grupo.esAdmin)} | Boletería CO: https://boleteriaco.com`)}`}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    style={{display:'inline-flex',alignItems:'center',gap:'6px',fontSize:'12px',color:'#4ade80',textDecoration:'none',fontWeight:'600'}}
-                  >
-                    <svg width='14' height='14' viewBox='0 0 24 24' fill='currentColor'><path d='M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z'/><path d='M12 0C5.373 0 0 5.373 0 12c0 2.136.562 4.14 1.542 5.873L.057 23.98l6.264-1.641A11.944 11.944 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.032-1.382l-.36-.214-3.733.979.997-3.643-.235-.374A9.818 9.818 0 1112 21.818z'/></svg>
-                    Compartir
-                  </a>
+                {/* Cuerpo */}
+                <div style={{padding:'16px',display:'flex',alignItems:'center',gap:'14px'}}>
+                  {/* Escudos */}
+                  <div style={{display:'flex',alignItems:'center',gap:'6px',flexShrink:0}}>
+                    <EscudoSVG nombre={equipo1} size={42}/>
+                    {equipo2 && <>
+                      <span style={{color:'#3a4a5e',fontSize:'13px',fontWeight:'700'}}>vs</span>
+                      <EscudoSVG nombre={equipo2} size={42}/>
+                    </>}
+                  </div>
+                  {/* Info */}
+                  <div style={{flex:1,minWidth:0}}>
+                    <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:'0 0 3px',letterSpacing:'-0.3px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev?.nombre || 'Evento'}</p>
+                    {!fechaStr && ev?.ciudad && <p style={{color:'#4e5a6e',fontSize:'12px',margin:'0 0 2px'}}>{ev.ciudad}{ev.estadio ? ` · ${ev.estadio}` : ''}</p>}
+                    <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                      {disponibles.length > 0
+                        ? <span style={{color:'#4f7eff',fontSize:'14px',fontWeight:'800'}}>desde {calcularTotal(precioMin, moneda, hayAdmin)}</span>
+                        : <span style={{color:'#6b7280',fontSize:'13px'}}>Sin disponibles</span>
+                      }
+                      <span style={{color:'#3a4a5e',fontSize:'12px'}}>·</span>
+                      <span style={{color:'#8892a4',fontSize:'12px'}}>{disponibles.length} entrada{disponibles.length!==1?'s':''}</span>
+                      {hayAdmin && <span style={{background:'rgba(79,126,255,0.12)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'2px 7px',borderRadius:'20px'}}>✓ Verificado</span>}
+                    </div>
+                  </div>
+                  {/* Flecha */}
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{flexShrink:0,opacity:0.35}}>
+                    <path d="M6 3l5 5-5 5" stroke="#eef0f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </div>
               </div>
             )
           })
         })()}
+
+        {/* ── PÁGINA DE EVENTO ── */}
+        {paginaActual === 'evento' && eventoSeleccionado && (
+          <div style={{position:'fixed',inset:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+              <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
+                <button onClick={()=>{setPaginaActual('inicio');setEventoSeleccionado(null);setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.3px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',maxWidth:'60%',textAlign:'center'}}>{eventoSeleccionado.nombre}</p>
+                <button onClick={()=>setPaginaActual('carrito')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',padding:0,position:'relative'}}>
+                  🛒{carrito.length>0&&<span style={{position:'absolute',top:'-6px',right:'-10px',background:'#4f7eff',color:'#fff',fontSize:'9px',fontWeight:'800',borderRadius:'50%',width:'16px',height:'16px',display:'flex',alignItems:'center',justifyContent:'center'}}>{carrito.length}</span>}
+                </button>
+              </div>
+            </nav>
+            <div style={{maxWidth:'520px',margin:'0 auto',padding: esMobile ? '20px 16px 64px' : '28px 20px 64px'}}>
+              {/* Hero del evento */}
+              {(() => {
+                const ev = eventoSeleccionado
+                const [eq1, eq2] = extraerEquipos(ev.nombre || '')
+                const fechaLarga = ev.fecha ? new Date(ev.fecha+'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}) : null
+                return (
+                  <div style={{background:'linear-gradient(135deg,#0d1829 0%,#0a1220 100%)',border:'1px solid #1e2a3a',borderRadius:'18px',padding:'24px 20px',marginBottom:'20px',textAlign:'center'}}>
+                    <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'16px',marginBottom:'16px'}}>
+                      <EscudoSVG nombre={eq1} size={56}/>
+                      {eq2 && <>
+                        <span style={{color:'#4e5a6e',fontSize:'22px',fontWeight:'800'}}>vs</span>
+                        <EscudoSVG nombre={eq2} size={56}/>
+                      </>}
+                    </div>
+                    <h2 style={{color:'#eef0f6',fontSize:'18px',fontWeight:'800',margin:'0 0 8px',letterSpacing:'-0.4px'}}>{ev.nombre}</h2>
+                    {fechaLarga && <p style={{color:'#6b93ff',fontSize:'13px',fontWeight:'600',margin:'0 0 4px',textTransform:'capitalize'}}>{fechaLarga}{ev.hora ? ` · ${ev.hora.slice(0,5)}` : ''}</p>}
+                    <p style={{color:'#4e5a6e',fontSize:'12px',margin:0}}>{ev.ciudad}{ev.estadio ? ` · ${ev.estadio}` : ''}</p>
+                  </div>
+                )
+              })()}
+
+              {/* Mapa del estadio */}
+              {(() => {
+                const ev = eventoSeleccionado
+                const esCampin = (ev.estadio||'').toLowerCase().includes('camp') || (ev.estadio||'').toLowerCase().includes('campin') || (ev.estadio||'').toLowerCase().includes('campín')
+                if (esCampin) {
+                  // Construir avail por sección a partir de boletas de este evento
+                  const boletasEvento = boletas.filter(b => b.evento_id === ev.id && b.estado === 'publicada')
+                  const avail = {}
+                  const mapTribuna = t => {
+                    const tl = (t||'').toLowerCase()
+                    if (tl.includes('norte')) return 'norte'
+                    if (tl.includes('sur')) return 'sur'
+                    if (tl.includes('orient')&&tl.includes('gen')) return 'or-gen'
+                    if (tl.includes('orient')&&(tl.includes('pref')||tl.includes('platea'))) return 'or-pref'
+                    if (tl.includes('occid')&&tl.includes('gen')) return 'occ-gen'
+                    if (tl.includes('occid')&&(tl.includes('pref')||tl.includes('platea'))) return 'occ-pref'
+                    return null
+                  }
+                  boletasEvento.forEach(b => {
+                    const sid = mapTribuna(b.tribuna)
+                    if (sid) { if (!avail[sid]) avail[sid]=[]; avail[sid].push(b) }
+                  })
+                  return (
+                    <div style={{marginBottom:'20px'}}>
+                      <p style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700',margin:'0 0 10px'}}>Mapa del estadio</p>
+                      <MapaElCampin avail={avail} selected={seccionMapa} onSelect={id=>setSeccionMapa(seccionMapa===id?null:id)}/>
+                      {seccionMapa && <p style={{color:'#6b93ff',fontSize:'12px',textAlign:'center',marginTop:'8px'}}>Sección seleccionada: <strong>{seccionMapa}</strong> — ver entradas abajo</p>}
+                    </div>
+                  )
+                }
+                return (
+                  <div style={{background:'#0d1521',border:'1px solid #1a2436',borderRadius:'14px',padding:'24px',marginBottom:'20px',textAlign:'center'}}>
+                    <p style={{color:'#4e5a6e',fontSize:'13px',margin:0}}>🗺 Mapa interactivo próximamente</p>
+                  </div>
+                )
+              })()}
+
+              {/* Boletas disponibles del evento */}
+              {(() => {
+                const ev = eventoSeleccionado
+                let boletasEvento = boletas.filter(b => b.evento_id === ev.id && b.estado === 'publicada')
+                // Si hay sección seleccionada en el mapa, filtrar por tribuna
+                if (seccionMapa) {
+                  const mapTribuna = t => {
+                    const tl = (t||'').toLowerCase()
+                    if (tl.includes('norte')) return 'norte'
+                    if (tl.includes('sur')) return 'sur'
+                    if (tl.includes('orient')&&tl.includes('gen')) return 'or-gen'
+                    if (tl.includes('orient')&&(tl.includes('pref')||tl.includes('platea'))) return 'or-pref'
+                    if (tl.includes('occid')&&tl.includes('gen')) return 'occ-gen'
+                    if (tl.includes('occid')&&(tl.includes('pref')||tl.includes('platea'))) return 'occ-pref'
+                    return null
+                  }
+                  boletasEvento = boletasEvento.filter(b => mapTribuna(b.tribuna) === seccionMapa)
+                }
+                // Agrupar por tribuna
+                const gruposTrib = {}
+                boletasEvento.forEach(b => {
+                  const tk = (b.tribuna||'sin tribuna').trim().toLowerCase()
+                  if (!gruposTrib[tk]) gruposTrib[tk] = { tribuna: b.tribuna, boletas: [], esAdmin: false }
+                  if (b.publicada_por_admin===true||b.usuarios?.es_admin===true) gruposTrib[tk].esAdmin = true
+                  gruposTrib[tk].boletas.push(b)
+                })
+                if (Object.keys(gruposTrib).length === 0) return (
+                  <p style={{color:'#4e5a6e',fontSize:'14px',textAlign:'center',padding:'24px 0'}}>{seccionMapa ? 'No hay entradas en esta sección.' : 'No hay entradas disponibles.'}</p>
+                )
+                const moneda = ev?.moneda || 'COP'
+                return (
+                  <div>
+                    <p style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700',margin:'0 0 12px'}}>Entradas disponibles</p>
+                    {Object.entries(gruposTrib).map(([tk, gt]) => {
+                      const disp = gt.boletas
+                      const precios2 = disp.map(b=>Number(b.precio)).filter(p=>p>0)
+                      const pMin = precios2.length>0 ? Math.min(...precios2) : 0
+                      const expandida2 = tribunaExpandida === ('evento__'+tk)
+                      const enCarritoGt = disp.filter(b=>carrito.some(ci=>ci.id===b.id))
+                      return (
+                        <div key={tk} style={{background:'#0d1521',border:'1px solid #1a2436',borderRadius:'14px',padding:'16px',marginBottom:'10px'}}>
+                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'12px'}}>
+                            <div style={{flex:1,minWidth:0}}>
+                              <p style={{color:'#93c5fd',fontSize:'13px',fontWeight:'700',margin:'0 0 3px'}}>🏟 {gt.tribuna}</p>
+                              <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                                <span style={{color:'#4f7eff',fontSize:'15px',fontWeight:'800'}}>desde {calcularTotal(pMin,moneda,gt.esAdmin)}</span>
+                                <span style={{color:'#4e5a6e',fontSize:'12px'}}>· {disp.length} asiento{disp.length!==1?'s':''}</span>
+                                {gt.esAdmin&&<span style={{background:'rgba(79,126,255,0.12)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'2px 7px',borderRadius:'20px'}}>✓ Verificado</span>}
+                              </div>
+                            </div>
+                            {disp.length===1 ? (
+                              <button onClick={()=>{const b=disp[0];const enC=carrito.some(ci=>ci.id===b.id);enC?setCarrito(carrito.filter(ci=>ci.id!==b.id)):setCarrito([...carrito,b])}} style={{background:carrito.some(ci=>ci.id===disp[0].id)?'#0f2d1e':'#4f7eff',border:carrito.some(ci=>ci.id===disp[0].id)?'1px solid #166534':'none',borderRadius:'10px',color:carrito.some(ci=>ci.id===disp[0].id)?'#4ade80':'#fff',fontSize:'13px',fontWeight:'700',cursor:'pointer',padding:'10px 16px',flexShrink:0}}>
+                                {carrito.some(ci=>ci.id===disp[0].id)?'✓ En carrito':'Añadir'}
+                              </button>
+                            ) : (
+                              <button onClick={()=>setTribunaExpandida(expandida2?null:'evento__'+tk)} style={{background:enCarritoGt.length>0?'#0a2a1a':'#4f7eff',border:enCarritoGt.length>0?'1px solid #166534':'none',borderRadius:'10px',color:enCarritoGt.length>0?'#4ade80':'#fff',fontSize:'13px',fontWeight:'700',cursor:'pointer',padding:'10px 16px',flexShrink:0}}>
+                                {expandida2?'Cerrar':enCarritoGt.length>0?`${enCarritoGt.length} selec.`:`Ver ${disp.length}`}
+                              </button>
+                            )}
+                          </div>
+                          {expandida2 && disp.length>1 && (
+                            <div style={{marginTop:'12px',borderTop:'1px solid #1a2436',paddingTop:'12px',display:'flex',flexDirection:'column',gap:'8px'}}>
+                              {disp.map(b=>{
+                                const enC=carrito.some(ci=>ci.id===b.id)
+                                return (
+                                  <div key={b.id} onClick={()=>enC?setCarrito(carrito.filter(ci=>ci.id!==b.id)):setCarrito([...carrito,b])} style={{display:'flex',justifyContent:'space-between',alignItems:'center',background:enC?'rgba(79,222,128,0.07)':'rgba(255,255,255,0.03)',border:enC?'1px solid #166534':'1px solid transparent',borderRadius:'10px',padding:'12px 14px',gap:'10px',cursor:'pointer'}}>
+                                    <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1,minWidth:0}}>
+                                      <div style={{width:'20px',height:'20px',borderRadius:'50%',border:enC?'none':'2px solid #2a3a4a',background:enC?'#4ade80':'transparent',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center'}}>
+                                        {enC&&<svg width='11' height='11' viewBox='0 0 12 12' fill='none'><path d='M2 6l3 3 5-5' stroke='#0a1a0a' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'/></svg>}
+                                      </div>
+                                      <div>
+                                        <p style={{color:enC?'#4ade80':'#eef0f6',fontSize:'13px',fontWeight:'600',margin:'0 0 1px'}}>{b.fila?`Fila ${b.fila}`:''}{b.fila&&b.silla?' · ':''}{b.silla?`Silla ${b.silla}`:''}</p>
+                                        <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>{calcularTotal(b.precio,moneda,b.publicada_por_admin===true||b.usuarios?.es_admin===true)}</p>
+                                      </div>
+                                    </div>
+                                    <span style={{fontSize:'12px',fontWeight:'700',color:enC?'#4ade80':'#4f7eff',flexShrink:0}}>{enC?'✓':'+Sel.'}</span>
+                                  </div>
+                                )
+                              })}
+                              {enCarritoGt.length>0&&(
+                                <button onClick={()=>setPaginaActual('carrito')} style={{marginTop:'4px',background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',fontSize:'13px',fontWeight:'700',cursor:'pointer',padding:'12px',width:'100%'}}>
+                                  Ver {enCarritoGt.length} asiento{enCarritoGt.length!==1?'s':''} en carrito →
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                )
+              })()}
+            </div>
+          </div>
+        )}
 
         {/* CARRITO */}
         {paginaActual === 'carrito' && (
