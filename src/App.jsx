@@ -1280,6 +1280,7 @@ function App() {
   const s = {
     pagina: { minHeight: '100vh', paddingTop: esMobile ? '52px' : '60px', background: '#080b12', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,126,255,0.07), transparent)' },
     nav: { background: 'rgba(13,17,23,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1e2a3a', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 400, padding: esMobile ? '0 12px' : '0 20px' },
+    navSec: { background: 'rgba(13,17,23,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1e2a3a', position: 'sticky', top: 0, zIndex: 10, padding: esMobile ? '0 12px' : '0 20px' },
     navInner: { maxWidth: '720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: esMobile ? '52px' : '60px' },
     logo: { color: '#eef0f6', fontSize: esMobile ? '15px' : '17px', fontWeight: '800', letterSpacing: '-0.5px', margin: 0, whiteSpace: 'nowrap' },
     logoPunto: { color: '#4f7eff' },
@@ -1427,6 +1428,31 @@ function App() {
       </div>
     )
   }
+
+
+  const faqFooterSeccion = (
+    <div style={{maxWidth:'680px',margin:'0 auto',padding:'40px 20px 48px'}}>
+      <h2 style={{color:'#eef0f6',fontSize:'20px',fontWeight:'900',textAlign:'center',margin:'0 0 24px',letterSpacing:'-0.3px',borderTop:'1px solid #1e2a3a',paddingTop:'40px'}}>Preguntas frecuentes</h2>
+      {[
+        {q:'¿Cómo sé que no me estafan?',a:'Tu dinero queda en custodia con Boletería CO hasta que tú confirmes que recibiste la boleta. Solo después de tu confirmación el vendedor cobra. Si algo sale mal, nosotros respondemos.'},
+        {q:'¿Cómo llega la boleta?',a:'Depende de la plataforma: en TuBoletaPass y Quentro te la transferimos por correo electrónico; en W Arena y DIM Plus por número de documento. Antes de pagar te mostramos exactamente los pasos.'},
+        {q:'¿Cuánto demora?',a:'En la mayoría de casos menos de 24 horas. Cuando tu pago se confirma, el vendedor recibe una notificación inmediata para transferirte la boleta.'},
+        {q:'¿Cuánto cobra Boletería CO?',a:'Al comprador se le suma aproximadamente un 15% sobre el precio publicado (redondeado a los $1.000 más cercanos). Al vendedor se le retiene un 8% del precio de venta. Sin cobros ocultos.'},
+      ].map(({q,a},i)=>(
+        <div key={i} style={{borderBottom:'1px solid #1e2a3a',overflow:'hidden'}}>
+          <button onClick={()=>setFaqAbierto(faqAbierto===i?null:i)} style={{width:'100%',background:'none',border:'none',padding:'16px 0',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',gap:'12px'}}>
+            <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',textAlign:'left',lineHeight:'1.4'}}>{q}</span>
+            <span style={{color:'#4f7eff',fontSize:'18px',flexShrink:0,transition:'transform 0.2s',transform:faqAbierto===i?'rotate(45deg)':'rotate(0deg)'}}>+</span>
+          </button>
+          {faqAbierto===i&&<p style={{color:'#8892a4',fontSize:'14px',lineHeight:'1.7',margin:'0 0 16px',paddingRight:'32px'}}>{a}</p>}
+        </div>
+      ))}
+      <footer style={{borderTop:'1px solid #1e2a3a',marginTop:'40px',paddingTop:'28px',paddingBottom:'32px',textAlign:'center'}}>
+        <p style={{color:'#4e5a6e',fontSize:'13px',margin:'0 0 8px',fontWeight:'700',letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#4f7eff'}}>CO</span></p>
+        <p style={{color:'#4e5a6e',fontSize:'12px',margin:0}}>© 2026 · <a href='/terminos.html' target='_blank' style={{color:'#8892a4',textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
+      </footer>
+    </div>
+  )
 
   return (
     <div style={s.pagina}>
@@ -1592,7 +1618,7 @@ function App() {
 
         {paginaActual === 'mis-boletas' && usuario && (
           <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-          <nav style={s.nav}>
+          <nav style={s.navSec}>
             <div style={s.navInner}>
               <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
               <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🎟 Mis boletas</p>
@@ -1855,6 +1881,7 @@ function App() {
                 )
               })()
             )}
+          {faqFooterSeccion}
           </div>
           </div>
         )}
@@ -1862,7 +1889,7 @@ function App() {
         {esAdmin && mostrarAdmin && (
           <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:350,background:'#080b12',overflowY:'auto'}}>
             {/* NAV ADMIN */}
-            <nav style={s.nav}>
+            <nav style={s.navSec}>
               <div style={s.navInner}>
                 <button onClick={()=>setMostrarAdmin(false)} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
                 <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>⚙️ Admin</span>
@@ -2659,7 +2686,7 @@ function App() {
           return (
             <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
               {/* NAV */}
-              <nav style={s.nav}>
+              <nav style={s.navSec}>
                 <div style={s.navInner}>
                   <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
                   <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>🏟 Evento</span>
@@ -2816,6 +2843,7 @@ function App() {
                     Ver carrito ({carrito.length} entrada{carrito.length!==1?'s':''}) →
                   </button>
                 )}
+              {faqFooterSeccion}
               </div>
             </div>
           )
@@ -2824,7 +2852,7 @@ function App() {
         {/* CARRITO */}
         {paginaActual === 'carrito' && (
           <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-            <nav style={s.nav}>
+            <nav style={s.navSec}>
               <div style={s.navInner}>
                 <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
                 <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>🛒 Carrito</span>
@@ -3038,9 +3066,7 @@ soporte@boleteriaco.com`},
             </div>
           ))}
 
-          <div style={{borderTop:'1px solid #1e2a3a',marginTop:'40px',paddingTop:'24px',textAlign:'center'}}>
-            <p style={{color:'#4e5a6e',fontSize:'13px',margin:0}}>¿Preguntas? Escríbenos a <a href='mailto:soporte@boleteriaco.com' style={{color:'#4f7eff',textDecoration:'none'}}>soporte@boleteriaco.com</a></p>
-          </div>
+          {faqFooterSeccion}
         </div>
       )}
 
