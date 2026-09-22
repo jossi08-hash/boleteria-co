@@ -140,7 +140,8 @@ function App() {
   const [tribunaExpandida, setTribunaExpandida] = useState(null)
   const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP', tribunas: [] })
   const [mensajeEvento, setMensajeEvento] = useState('')
-  const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '', tribunasEvento: [] })
+  const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
+  const [tribunasEvento, setTribunasEvento] = useState([])
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
   const [docModal, setCedModal] = useState(null)   // null | { tipo: 'boleta'|'carrito', boleta?: object }
@@ -441,7 +442,7 @@ function App() {
       const sugerida = ev ? sugerirPlataforma(ev.nombre) : ''
       if (sugerida) updated.plataforma = sugerida
       updated.tribuna = ''
-      updated.tribunasEvento = ev ? (ev.tribunas || []) : []
+      setTribunasEvento(ev ? (ev.tribunas || []) : [])
     }
     setForm(updated)
   }
@@ -507,7 +508,8 @@ function App() {
     if (exito) {
       const n = resultados.length
       setMensaje(n === 1 ? 'Boleta enviada. El equipo de Boletería CO la verificará pronto.' : n + ' boletas enviadas. El equipo de Boletería CO las verificará pronto.')
-      setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '', tribunasEvento: [] })
+      setTribunasEvento([])
+      setForm({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
       setSilasExtra([])
       cargarBoletas()
     } else { setMensaje('Hubo un error al publicar. Intenta de nuevo.') }
@@ -1766,10 +1768,10 @@ function App() {
               </p>
             )}
             <label style={s.label}>Tribuna</label>
-            {form.tribunasEvento.length > 0
+            {tribunasEvento.length > 0
               ? <select name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input}>
                   <option value="">Selecciona tribuna</option>
-                  {form.tribunasEvento.map(t => <option key={t} value={t}>{t}</option>)}
+                  {tribunasEvento.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
               : <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} placeholder="Ej: Occidental" />
             }
@@ -1788,10 +1790,10 @@ function App() {
                 <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
                   <div>
                     <label style={{...s.label,marginBottom:'4px'}}>Tribuna</label>
-                    {form.tribunasEvento.length > 0
+                    {tribunasEvento.length > 0
                       ? <select value={s2.tribuna} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:e.target.value}:x))} required style={{...s.input,marginBottom:0}}>
                           <option value="">Selecciona tribuna</option>
-                          {form.tribunasEvento.map(t => <option key={t} value={t}>{t}</option>)}
+                          {tribunasEvento.map(t => <option key={t} value={t}>{t}</option>)}
                         </select>
                       : <input value={s2.tribuna} onChange={e=>setSilasExtra(silasExtra.map((x,j)=>j===i?{...x,tribuna:e.target.value}:x))} required style={{...s.input,marginBottom:0}} />
                     }
