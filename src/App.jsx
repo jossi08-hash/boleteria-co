@@ -189,6 +189,7 @@ function App() {
   const [misVentas, setMisVentas] = useState([])
   const [cargandoMis, setCargandoMis] = useState(false)
   const [filtros, setFiltros] = useState({ ciudad: '', deporte: '', precioMax: '' })
+  const [busquedaPublica, setBusquedaPublica] = useState('')
   const [faqAbierto, setFaqAbierto] = useState(null)
   const [datosEntrega, setDatosEntrega] = useState({})
 
@@ -1892,7 +1893,15 @@ function App() {
           const ciudades = [...new Set(boletas.map(b => b.eventos?.ciudad).filter(Boolean))]
           const deportes = [...new Set(boletas.map(b => b.eventos?.deporte).filter(Boolean))]
           return (
-            <div style={{display:'flex',gap:'8px',marginBottom:'20px',flexWrap:'wrap'}}>
+            <div style={{marginBottom:'20px'}}>
+              <input
+                type="text"
+                placeholder="Buscar evento o equipo..."
+                value={busquedaPublica}
+                onChange={e => setBusquedaPublica(e.target.value)}
+                style={{width:'100%',boxSizing:'border-box',background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'20px',padding:'9px 18px',color:'#eef0f6',fontSize:'13px',outline:'none',marginBottom:'8px'}}
+              />
+              <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
               <select
                 value={filtros.ciudad}
                 onChange={e => setFiltros(f => ({...f, ciudad: e.target.value}))}
@@ -1916,12 +1925,13 @@ function App() {
                 onChange={e => setFiltros(f => ({...f, precioMax: e.target.value}))}
                 style={{flex:'1', minWidth:'120px', background:'rgba(255,255,255,0.04)', border:'1px solid #1e2a3a', borderRadius:'20px', padding:'8px 16px', color:'#eef0f6', fontSize:'13px', cursor:'pointer', outline:'none'}}
               />
-              {(filtros.ciudad || filtros.deporte || filtros.precioMax) && (
-                <button
-                  onClick={() => setFiltros({ ciudad: '', deporte: '', precioMax: '' })}
-                  style={{background:'transparent',border:'1px solid #1e2a3a',color:'#4e5a6e',borderRadius:'20px',padding:'8px 16px',cursor:'pointer',fontSize:'13px'}}
-                >Limpiar</button>
-              )}
+                {(filtros.ciudad || filtros.deporte || filtros.precioMax) && (
+                  <button
+                    onClick={() => setFiltros({ ciudad: '', deporte: '', precioMax: '' })}
+                    style={{background:'transparent',border:'1px solid #1e2a3a',color:'#4e5a6e',borderRadius:'20px',padding:'8px 16px',cursor:'pointer',fontSize:'13px'}}
+                  >Limpiar</button>
+                )}
+              </div>
             </div>
           )
         })()}
@@ -1931,6 +1941,10 @@ function App() {
             if (filtros.ciudad && b.eventos?.ciudad !== filtros.ciudad) return false
             if (filtros.deporte && b.eventos?.deporte !== filtros.deporte) return false
             if (filtros.precioMax && Number(b.precio) > Number(filtros.precioMax)) return false
+            if (busquedaPublica.trim()) {
+              const q = busquedaPublica.toLowerCase()
+              if (!(b.eventos?.nombre || '').toLowerCase().includes(q)) return false
+            }
             return true
           })
           if (!cargando && boletas.length === 0) return (
