@@ -1194,7 +1194,7 @@ function App() {
     const n = pagoInfo?.carritoCount || 1
     const ref = pagoInfo?.referencia || ''
     return (
-      <div style={{minHeight:'100vh',background:'#080b12',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:'system-ui,sans-serif',padding:'20px'}}>
+      <div style={{minHeight:'100vh',background:'#080b12',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Inter',system-ui,sans-serif",padding:'20px'}}>
         <div style={{maxWidth:'480px',width:'100%'}}>
           {/* Header */}
           <div style={{background:'#0f2d1e',border:'1px solid #166534',borderRadius:'20px',padding:'36px 32px',textAlign:'center',marginBottom:'16px'}}>
@@ -1259,7 +1259,7 @@ function App() {
 
   if (pagoStatus === 'fallido') {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter',system-ui,sans-serif" }}>
         <div style={{ background: '#1c0a0a', border: '1px solid #991b1b', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
           <div style={{ fontSize: '60px', marginBottom: '16px' }}>❌</div>
           <h2 style={{ color: '#f87171', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>Pago no completado</h2>
@@ -1277,7 +1277,7 @@ function App() {
 
   if (pagoStatus === 'pendiente') {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter',system-ui,sans-serif" }}>
         <div style={{ background: '#1a150a', border: '1px solid #854d0e', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
           <div style={{ fontSize: '60px', marginBottom: '16px' }}>⏳</div>
           <h2 style={{ color: '#facc15', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>Pago en proceso</h2>
@@ -2240,24 +2240,24 @@ function App() {
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#4f7eff'}
                 onMouseLeave={e=>e.currentTarget.style.borderColor='#1e2a3a'}
               >
-                {/* Top: escudos centrados, fecha y flecha en absolute */}
-                <div style={{position:'relative',display:'flex',alignItems:'center',justifyContent:'center',minHeight:'84px'}}>
-                  {fechaObj && (
-                    <div style={{position:'absolute',top:0,left:0,background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'10px',padding:'8px 12px',textAlign:'center',minWidth:'58px'}}>
+                {/* Top: grid 3 cols — fecha | escudos centrados | flecha */}
+                <div style={{display:'grid',gridTemplateColumns:'80px 1fr 24px',alignItems:'center',gap:'8px'}}>
+                  {fechaObj ? (
+                    <div style={{background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'10px',padding:'8px 12px',textAlign:'center'}}>
                       <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'800',margin:0,textTransform:'uppercase',letterSpacing:'0.8px'}}>{mesAbr}</p>
                       <p style={{color:'#eef0f6',fontSize:'22px',fontWeight:'900',margin:'2px 0',lineHeight:'1'}}>{diaN}</p>
                       <p style={{color:'#8892a4',fontSize:'10px',fontWeight:'600',margin:0}}>{anioN}</p>
                       {horaStr && <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'700',margin:'3px 0 0',background:'rgba(79,126,255,0.15)',borderRadius:'6px',padding:'1px 4px'}}>{horaStr}</p>}
                     </div>
-                  )}
-                  <div style={{display:'flex',alignItems:'center',gap:'16px'}}>
+                  ) : <div/>}
+                  <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'16px'}}>
                     <EscudoSVG nombre={equipo1} size={60} />
                     {equipo2 && <>
                       <span style={{color:'#2a3a52',fontSize:'13px',fontWeight:'800',letterSpacing:'1px'}}>VS</span>
                       <EscudoSVG nombre={equipo2} size={60} />
                     </>}
                   </div>
-                  <span style={{position:'absolute',top:'50%',right:0,transform:'translateY(-50%)',color:'#4e5a6e',fontSize:'20px'}}>›</span>
+                  <span style={{color:'#4e5a6e',fontSize:'18px',textAlign:'right'}}>›</span>
                 </div>
                 {/* Nombre + estadio centrados */}
                 <div style={{textAlign:'center'}}>
