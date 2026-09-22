@@ -172,8 +172,13 @@ function App() {
   const [eventoEditando, setEventoEditando] = useState(null)
   const [formEditar, setFormEditar] = useState({})
   const [tribunaInputTemp, setTribunaInputTemp] = useState('')
+  const [estadios, setEstadios] = useState([])
+  const [formEstadio, setFormEstadio] = useState({ nombre: '', ciudad: '', tribunas: [] })
+  const [estadioEditando, setEstadioEditando] = useState(null)
+  const [tribunaEstadioTemp, setTribunaEstadioTemp] = useState('')
+  const [confirmarEliminarEstadio, setConfirmarEliminarEstadio] = useState(null)
   const [tribunaExpandida, setTribunaExpandida] = useState(null)
-  const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP', tribunas: [] })
+  const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', estadioId: '', fechaHora: '', moneda: 'COP', tribunas: [] })
   const [mensajeEvento, setMensajeEvento] = useState('')
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
   const [tribunasEvento, setTribunasEvento] = useState([])
@@ -232,7 +237,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas(); cargarBoletasAdmin() }
+    if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas(); cargarBoletasAdmin(); cargarEstadios() }
   }, [esAdmin])
 
   useEffect(() => {
@@ -481,6 +486,39 @@ function App() {
     cargarBoletasPendientes()
   }
 
+  async function cargarEstadios() {
+    const { data } = await supabase.from('estadios').select('*').order('ciudad').order('nombre')
+    setEstadios(data || [])
+  }
+
+  async function crearEstadio(e) {
+    e.preventDefault()
+    const { nombre, ciudad, tribunas } = formEstadio
+    const { error } = await supabase.from('estadios').insert({ nombre: nombre.trim(), ciudad: ciudad.trim(), tribunas })
+    if (error) { toast('Error al crear estadio.'); return }
+    toast('Estadio creado.')
+    setFormEstadio({ nombre: '', ciudad: '', tribunas: [] })
+    setTribunaEstadioTemp('')
+    cargarEstadios()
+  }
+
+  async function guardarEstadio(e) {
+    e.preventDefault()
+    const { nombre, ciudad, tribunas } = formEstadio
+    const { error } = await supabase.from('estadios').update({ nombre: nombre.trim(), ciudad: ciudad.trim(), tribunas }).eq('id', estadioEditando)
+    if (error) { toast('Error al guardar estadio.'); return }
+    toast('Estadio actualizado.')
+    setEstadioEditando(null)
+    cargarEstadios()
+  }
+
+  async function eliminarEstadio(id) {
+    const { error } = await supabase.from('estadios').delete().eq('id', id)
+    if (error) { toast('Error al eliminar estadio.'); return }
+    setConfirmarEliminarEstadio(null)
+    cargarEstadios()
+  }
+
   async function cargarEventos() {
     const { data } = await supabase.from('eventos').select('id, nombre, deporte, ciudad, estadio, fecha, hora, moneda, tribunas')
     setEventos(data || [])
@@ -498,7 +536,17 @@ function App() {
     setForm(updated)
   }
   function manejarCambioAuth(e) { setFormAuth({ ...formAuth, [e.target.name]: e.target.value }) }
-  function manejarCambioEvento(e) { setFormEvento({ ...formEvento, [e.target.name]: e.target.value }) }
+  function manejarCambioEvento(e) {
+    const updated = { ...formEvento, [e.target.name]: e.target.value }
+    if (e.target.name === 'estadioId') {
+      const est = estadios.find(es => es.id === e.target.value)
+      updated.estadio = est ? est.nombre : ''
+      updated.ciudad = est ? est.ciudad : updated.ciudad
+      updated.tribunas = est ? [...est.tribunas] : []
+      updated.estadioId = e.target.value
+    }
+    setFormEvento(updated)
+  }
 
   async function manejarCrearEvento(e) {
     e.preventDefault()
@@ -512,7 +560,7 @@ function App() {
       tribunas: formEvento.tribunas
     })
     if (error) { setMensajeEvento('Error: ' + error.message) }
-    else { setMensajeEvento('Evento creado correctamente.'); setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', fechaHora: '', moneda: 'COP', tribunas: [] }); setTribunaInputTemp(''); cargarEventos() }
+    else { setMensajeEvento('Evento creado correctamente.'); setFormEvento({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', estadioId: '', fechaHora: '', moneda: 'COP', tribunas: [] }); setTribunaInputTemp(''); cargarEventos() }
   }
 
   async function eliminarEvento(eventoId) {
@@ -1525,6 +1573,101 @@ function App() {
                 <hr style={s.separador}/>
               </div>
             )}
+            <p style={s.tituloAdmin}>Estadios</p>
+            {estadios.length === 0
+              ? <p style={{color:'#4e5a6e',fontSize:'13px',marginBottom:'12px'}}>No hay estadios registrados.</p>
+              : <div style={{marginBottom:'16px',display:'flex',flexDirection:'column',gap:'8px'}}>
+                  {estadios.map(es => (
+                    <div key={es.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'10px 14px'}}>
+                      {estadioEditando === es.id
+                        ? <form onSubmit={guardarEstadio}>
+                            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+                              <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Nombre</label>
+                                <input value={formEstadio.nombre} onChange={e=>setFormEstadio(f=>({...f,nombre:e.target.value}))} required style={s.input} /></div>
+                              <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Ciudad</label>
+                                <input value={formEstadio.ciudad} onChange={e=>setFormEstadio(f=>({...f,ciudad:e.target.value}))} required style={s.input} /></div>
+                            </div>
+                            <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Tribunas</label>
+                            <div style={{display:'flex',gap:'8px',marginBottom:'8px'}}>
+                              <input value={tribunaEstadioTemp} onChange={e=>setTribunaEstadioTemp(e.target.value)}
+                                onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}}
+                                style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental General" />
+                              <button type="button" onClick={()=>{const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}
+                                style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+                            </div>
+                            {formEstadio.tribunas.length > 0 && (
+                              <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
+                                {formEstadio.tribunas.map(t => (
+                                  <span key={t} style={{background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#93c5fd',display:'flex',alignItems:'center',gap:'6px'}}>
+                                    {t}
+                                    <button type="button" onClick={()=>setFormEstadio(f=>({...f,tribunas:f.tribunas.filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
+                                  </span>
+                                ))}
+                              </div>
+                            )}
+                            <div style={{display:'flex',gap:'6px'}}>
+                              <button type="submit" style={{background:'#1e3a6a',border:'none',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'6px 14px'}}>Guardar</button>
+                              <button type="button" onClick={()=>setEstadioEditando(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
+                            </div>
+                          </form>
+                        : <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
+                            <div>
+                              <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{es.nombre}</p>
+                              <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 4px'}}>{es.ciudad}</p>
+                              {es.tribunas?.length > 0 && (
+                                <div style={{display:'flex',flexWrap:'wrap',gap:'4px'}}>
+                                  {es.tribunas.map(t => <span key={t} style={{background:'rgba(79,126,255,0.08)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'12px',padding:'2px 8px',fontSize:'11px',color:'#7aa2ff'}}>{t}</span>)}
+                                </div>
+                              )}
+                            </div>
+                            <div style={{display:'flex',gap:'6px',flexShrink:0}}>
+                              {confirmarEliminarEstadio === es.id
+                                ? <>
+                                    <button onClick={()=>eliminarEstadio(es.id)} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, eliminar</button>
+                                    <button onClick={()=>setConfirmarEliminarEstadio(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'6px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
+                                  </>
+                                : <>
+                                    <button onClick={()=>{setEstadioEditando(es.id);setFormEstadio({nombre:es.nombre,ciudad:es.ciudad,tribunas:[...(es.tribunas||[])]});setTribunaEstadioTemp('')}}
+                                      style={{background:'transparent',border:'1px solid #1e3a6a',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
+                                    <button onClick={()=>setConfirmarEliminarEstadio(es.id)} style={{background:'#3b0a0a',border:'none',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'5px 10px'}}>Eliminar</button>
+                                  </>
+                              }
+                            </div>
+                          </div>
+                      }
+                    </div>
+                  ))}
+                </div>
+            }
+            <form onSubmit={crearEstadio} style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'14px',marginBottom:'20px'}}>
+              <p style={{color:'#4f7eff',fontSize:'12px',fontWeight:'700',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'0.4px'}}>+ Agregar estadio</p>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
+                <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Nombre</label>
+                  <input value={formEstadio.nombre} onChange={e=>setFormEstadio(f=>({...f,nombre:e.target.value}))} required style={s.input} placeholder="El Campín" /></div>
+                <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Ciudad</label>
+                  <input value={formEstadio.ciudad} onChange={e=>setFormEstadio(f=>({...f,ciudad:e.target.value}))} required style={s.input} placeholder="Bogotá DC" /></div>
+              </div>
+              <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Tribunas</label>
+              <div style={{display:'flex',gap:'8px',marginBottom:'8px'}}>
+                <input value={tribunaEstadioTemp} onChange={e=>setTribunaEstadioTemp(e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}}
+                  style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental General" />
+                <button type="button" onClick={()=>{const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}
+                  style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+              </div>
+              {formEstadio.tribunas.length > 0 && (
+                <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
+                  {formEstadio.tribunas.map(t => (
+                    <span key={t} style={{background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#93c5fd',display:'flex',alignItems:'center',gap:'6px'}}>
+                      {t}
+                      <button type="button" onClick={()=>setFormEstadio(f=>({...f,tribunas:f.tribunas.filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <button type="submit" style={s.botonSubmitVerde}>Crear estadio</button>
+            </form>
+            <hr style={s.separador}/>
             <p style={s.tituloAdmin}>Eventos registrados</p>
             {eventos.length === 0
               ? <p style={{color:'#4e5a6e',fontSize:'13px',marginBottom:'16px'}}>No hay eventos.</p>
@@ -1609,7 +1752,20 @@ function App() {
               </div>
               <div style={s.row2}>
                 <div><label style={s.label}>Ciudad</label><input name="ciudad" value={formEvento.ciudad} onChange={manejarCambioEvento} required style={s.input} placeholder="Bogota" /></div>
-                <div><label style={s.label}>Estadio o lugar</label><input name="estadio" value={formEvento.estadio} onChange={manejarCambioEvento} required style={s.input} placeholder="El Campin" /></div>
+                <div>
+                  <label style={s.label}>Estadio o lugar</label>
+                  {estadios.length > 0
+                    ? <select name="estadioId" value={formEvento.estadioId || ''} onChange={manejarCambioEvento} style={s.input}>
+                        <option value="">Selecciona estadio...</option>
+                        {estadios.map(es => <option key={es.id} value={es.id}>{es.nombre} — {es.ciudad}</option>)}
+                        <option value="otro">Otro (escribir)</option>
+                      </select>
+                    : null
+                  }
+                  {(formEvento.estadioId === 'otro' || estadios.length === 0) && (
+                    <input name="estadio" value={formEvento.estadio} onChange={manejarCambioEvento} required style={{...s.input, marginTop: estadios.length > 0 ? '6px' : 0}} placeholder="El Campin" />
+                  )}
+                </div>
               </div>
               <div>
                 <label style={s.label}>Fecha y hora</label>
