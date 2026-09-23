@@ -3,6 +3,11 @@ export const config = { runtime: 'edge' }
 const SUPABASE_URL = 'https://ssyelddmusabkxwijghn.supabase.co'
 
 export default async function handler(req) {
+  const secret = req.headers.get('x-cron-secret')
+  if (!secret || secret !== process.env.CRON_SECRET) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!key) {
     return new Response(JSON.stringify({ error: 'Sin service role key' }), { status: 500 })

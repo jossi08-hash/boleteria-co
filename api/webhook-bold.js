@@ -11,20 +11,21 @@ export default async function handler(req) {
     return new Response('Invalid JSON', { status: 400 })
   }
 
-  // Verificar firma Bold (HMAC-SHA256) si hay secret configurado
+  // Verificar firma Bold (HMAC-SHA256) — obligatorio
   const secret = process.env.BOLD_WEBHOOK_SECRET
-  if (secret) {
-    const signature = req.headers.get('bold-signature') || ''
-    const key = await crypto.subtle.importKey(
-      'raw', new TextEncoder().encode(secret),
-      { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-    )
-    const mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body))
-    const computed = 'sha256=' + Array.from(new Uint8Array(mac))
-      .map(b => b.toString(16).padStart(2, '0')).join('')
-    if (signature !== computed) {
-      return new Response('Invalid signature', { status: 401 })
-    }
+  if (!secret) {
+    return new Response('Webhook secret not configured', { status: 500 })
+  }
+  const signature = req.headers.get('bold-signature') || ''
+  const key = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
+  )
+  const mac = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(body))
+  const computed = 'sha256=' + Array.from(new Uint8Array(mac))
+    .map(b => b.toString(16).padStart(2, '0')).join('')
+  if (signature !== computed) {
+    return new Response('Invalid signature', { status: 401 })
   }
 
   // Solo procesar pagos aprobados

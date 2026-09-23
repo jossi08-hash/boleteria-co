@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { obtenerBoletas, publicarBoleta, crearOrden, obtenerVentasDeUsuario, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
 import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword } from './lib/auth'
 import { supabase } from './lib/supabase'
@@ -476,6 +476,7 @@ function App() {
   const [silasExtra, setSilasExtra] = useState([])
   const [toasts, setToasts] = useState([])
   const [timerReserva, setTimerReserva] = useState(null) // segundos restantes
+  const timerIntervalRef = useRef(null)
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
   const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '', datosPago: '', documento: '' })
@@ -484,6 +485,9 @@ function App() {
   const [esRecuperacion, setEsRecuperacion] = useState(false)
   const [mensajeAuth, setMensajeAuth] = useState('')
   const [confirmarEliminarEvento, setConfirmarEliminarEvento] = useState(null)
+  const [confirmarRetirarBoleta, setConfirmarRetirarBoleta] = useState(null)
+  const [confirmarLiberar, setConfirmarLiberar] = useState(null)
+  const [subiendoArchivo, setSubiendoArchivo] = useState(null)
   const [confirmarEliminarBoleta, setConfirmarEliminarBoleta] = useState(null)
   const [boletaEditando, setBoletaEditando] = useState(null)
   const [busquedaBoleta, setBusquedaBoleta] = useState('')
@@ -615,38 +619,14 @@ function App() {
       const { data: orden } = await supabase
         .from('ordenes').select('id, boleta_id').eq('codigo_orden', referencia).single()
       if (orden) {
-        await supabase.from('ordenes').update({ estado_pago: 'pagada' }).eq('id', orden.id)
-        await supabase.from('boletas').update({ estado: 'vendida' }).eq('id', orden.boleta_id)
         cargarBoletas()
-        // Procesar órdenes extra del carrito
+        // Procesar órdenes extra del carrito (limpiar sessionStorage)
         try {
           const extraStr = sessionStorage.getItem('carrito_ordenes_extra')
           if (extraStr) {
-            const extras = JSON.parse(extraStr)
-            await Promise.all(extras.map(async o => {
-              await supabase.from('ordenes').update({ estado_pago: 'pagada' }).eq('id', o.id)
-              await supabase.from('boletas').update({ estado: 'vendida' }).eq('id', o.boleta_id)
-            }))
             sessionStorage.removeItem('carrito_ordenes_extra')
-            // Notificar al vendedor por cada extra
-            let datosEntregaSS = {}
-            try { datosEntregaSS = JSON.parse(sessionStorage.getItem('datos_entrega') || '{}'); sessionStorage.removeItem('datos_entrega') } catch(e) {}
-            extras.forEach(o => {
-              if (o.codigo_orden) fetch('/api/notificar-vendedor', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ referencia: o.codigo_orden, datosEntrega: datosEntregaSS })
-              })
-            })
           }
         } catch(e) { console.error('Error procesando extras carrito:', e) }
-        // Notificar al vendedor por email (boleta principal)
-        let datosEntregaMain = {}
-        try { datosEntregaMain = JSON.parse(sessionStorage.getItem('datos_entrega') || '{}'); sessionStorage.removeItem('datos_entrega') } catch(e) {}
-        fetch('/api/notificar-vendedor', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ referencia, datosEntrega: datosEntregaMain })
-        })
       }
       let carritoCount = 1
       try { carritoCount = parseInt(sessionStorage.getItem('carrito_count') || '1'); sessionStorage.removeItem('carrito_count') } catch(e) {}
@@ -660,9 +640,23 @@ function App() {
         // Liberar la boleta para que otros puedan comprarla
         const { data: ord } = await supabase.from('ordenes').select('boleta_id').eq('codigo_orden', referencia).single()
         if (ord) await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', ord.boleta_id)
+        // Liberar boletas extra del carrito si las hay
+        const extraStr = sessionStorage.getItem('carrito_ordenes_extra')
+        if (extraStr) {
+          try {
+            const extras = JSON.parse(extraStr)
+            for (const extra of extras) {
+              if (extra.boleta_id) {
+                await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', extra.boleta_id)
+              }
+            }
+          } catch(e) {}
+          sessionStorage.removeItem('carrito_ordenes_extra')
+        }
       }
       setPagoStatus('fallido')
     } else if (status === 'PENDING') {
+      setPagoInfo({ referencia: referencia || null, transaccionId: transaccionId || null })
       setPagoStatus('pendiente')
     }
   }
@@ -675,6 +669,12 @@ function App() {
       .eq('id', ordenId)
       .eq('comprador_id', usuario.id)
     if (error) { console.error('Error confirmando recibo:', error.message); toast('Hubo un error. Intenta de nuevo.'); return }
+    // Notificar al admin que el pago está listo para ser enviado al vendedor
+    fetch('/api/notificar-pago-admin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ordenId })
+    }).catch(() => {})
     cargarMisBoletas()
   }
 
@@ -753,7 +753,8 @@ function App() {
       .eq('id', ordenId)
     if (!error) {
       cargarOrdenesLiberadas()
-      fetch('/api/notificar-pago-admin', {
+      // Notificar al vendedor que su pago fue enviado
+      fetch('/api/notificar-vendedor-pago', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ordenId })
@@ -784,6 +785,13 @@ function App() {
     const { error } = await supabase.from('boletas').delete().eq('id', id)
     if (error) { toast('No se puede eliminar — tiene órdenes asociadas.'); return }
     cargarBoletas(); cargarBoletasAdmin()
+  }
+
+  async function retirarBoletaVendedor(id) {
+    const { error } = await supabase.from('boletas').delete().eq('id', id).eq('vendedor_id', usuario.id)
+    if (error) { toast('No se puede retirar — puede tener una compra en proceso.'); return }
+    cargarMisBoletas(); cargarBoletas()
+    toast('Boleta retirada del listado.', 'success')
   }
 
   async function guardarEdicionBoleta(e) {
@@ -1013,9 +1021,9 @@ function App() {
 
   async function cargarPerfil() {
     if (!usuario) return
-    const { data } = await supabase.from('usuarios').select('nombre, documento, telefono').eq('id', usuario.id).single()
+    const { data } = await supabase.from('usuarios').select('nombre, documento, telefono, datos_pago').eq('id', usuario.id).single()
     if (data) {
-      setPerfilData({ nombre: data.nombre || '', documento: data.documento || '', telefono: data.telefono || '' })
+      setPerfilData({ nombre: data.nombre || '', documento: data.documento || '', telefono: data.telefono || '', datosPago: data.datos_pago || '' })
       setPerfilCargado(true)
     }
   }
@@ -1028,12 +1036,14 @@ function App() {
       nombre: perfilData.nombre.trim(),
       documento: perfilData.documento.trim(),
       telefono: perfilData.telefono.trim(),
+      datos_pago: (perfilData.datosPago || '').trim(),
     }).eq('id', usuario.id)
     setPerfilGuardando(false)
     if (error) {
       setPerfilMensaje('❌ Error al guardar: ' + error.message)
     } else {
       setUsuario(u => ({...u, nombre: perfilData.nombre.trim()}))
+      setDatosPagoVendedor((perfilData.datosPago || '').trim())
       setPerfilMensaje('✅ Datos actualizados correctamente.')
       setTimeout(() => setPerfilMensaje(''), 3000)
     }
@@ -1081,10 +1091,11 @@ function App() {
   }
 
   function startTimer(segundos) {
+    if (timerIntervalRef.current) clearInterval(timerIntervalRef.current)
     setTimerReserva(segundos)
-    const iv = setInterval(() => {
+    timerIntervalRef.current = setInterval(() => {
       setTimerReserva(s => {
-        if (s <= 1) { clearInterval(iv); return null }
+        if (s <= 1) { clearInterval(timerIntervalRef.current); timerIntervalRef.current = null; return null }
         return s - 1
       })
     }, 1000)
@@ -1151,9 +1162,11 @@ function App() {
     ))
     const fallidas = reservaciones.filter(r => !r.data || r.data.length === 0)
     if (fallidas.length > 0) {
-      await Promise.all(reservaciones.filter(r => r.data?.length > 0).map((_, i) =>
-        supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', carrito[i].id)
-      ))
+      reservaciones.forEach((r, i) => {
+        if (r.data?.length > 0) {
+          supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', carrito[i].id)
+        }
+      })
       toast('Algunas boletas ya no están disponibles. Revisa tu carrito.')
       setBoldCargando(false)
       return
@@ -1299,9 +1312,11 @@ function App() {
     const fallidas = reservaciones.filter(r => !r.data || r.data.length === 0)
     if (fallidas.length > 0) {
       // Liberar las que sí se reservaron
-      await Promise.all(reservaciones.filter(r => r.data?.length > 0).map((_, i) =>
-        supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', carrito[i].id)
-      ))
+      reservaciones.forEach((r, i) => {
+        if (r.data?.length > 0) {
+          supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', carrito[i].id)
+        }
+      })
       toast('Algunas boletas ya no están disponibles. Revisa tu carrito.')
       setCarrito(prev => prev.filter((b, i) => reservaciones[i]?.data?.length > 0))
       setComprando(null)
@@ -1554,18 +1569,56 @@ function App() {
   }
 
   if (pagoStatus === 'pendiente') {
+    const refP = pagoInfo?.referencia
+    const txP = pagoInfo?.transaccionId
     return (
-      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter',system-ui,sans-serif" }}>
-        <div style={{ background: '#1a150a', border: '1px solid #854d0e', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
-          <div style={{ fontSize: '60px', marginBottom: '16px' }}>⏳</div>
-          <h2 style={{ color: '#facc15', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>Pago en proceso</h2>
-          <p style={{ color: '#fde68a', fontSize: '15px', margin: '0 0 24px' }}>Tu pago está siendo procesado. Te notificaremos cuando se confirme.</p>
-          <button
-            onClick={() => setPagoStatus(null)}
-            style={{ background: '#854d0e', color: '#fff', border: 'none', borderRadius: '8px', padding: '12px 28px', fontSize: '15px', fontWeight: '600', cursor: 'pointer' }}
-          >
-            Volver al inicio
-          </button>
+      <div style={{minHeight:'100vh',background:'#080b12',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Inter',system-ui,sans-serif",padding:'20px'}}>
+        <div style={{maxWidth:'480px',width:'100%'}}>
+          {/* Header */}
+          <div style={{background:'#1a1500',border:'1px solid #854d0e',borderRadius:'20px',padding:'32px',textAlign:'center',marginBottom:'16px'}}>
+            <div style={{fontSize:'56px',marginBottom:'16px',lineHeight:1}}>⏳</div>
+            <h2 style={{color:'#fbbf24',fontSize:'24px',fontWeight:'900',margin:'0 0 8px'}}>Pago en verificación</h2>
+            <p style={{color:'#fde68a',fontSize:'14px',margin:'0 0 20px',lineHeight:1.6}}>
+              Tu pago fue enviado pero aún está siendo procesado por el banco. Esto ocurre normalmente con PSE y algunos métodos de pago.
+            </p>
+            {refP && (
+              <div style={{background:'rgba(0,0,0,0.3)',borderRadius:'10px',padding:'10px 14px',display:'inline-flex',alignItems:'center',gap:'8px'}}>
+                <span style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.5px'}}>Ref.</span>
+                <span style={{color:'#fbbf24',fontSize:'13px',fontFamily:'monospace',fontWeight:'700'}}>{refP}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Qué hacer */}
+          <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'20px',marginBottom:'16px'}}>
+            <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 14px'}}>¿Qué hago ahora?</p>
+            {[
+              {icon:'📧', texto:'Revisa tu correo — Wompi te enviará confirmación cuando el pago se acredite.'},
+              {icon:'⏱', texto:'Puede demorar entre unos minutos y 24 horas dependiendo del banco.'},
+              {icon:'🔒', texto:'Tu boleta quedó reservada. Si el pago no se confirma, se libera automáticamente.'},
+            ].map((item, i) => (
+              <div key={i} style={{display:'flex',gap:'12px',marginBottom: i < 2 ? '14px' : '0',alignItems:'flex-start'}}>
+                <span style={{fontSize:'18px',flexShrink:0,marginTop:'1px'}}>{item.icon}</span>
+                <p style={{color:'#8892a4',fontSize:'13px',margin:'0',lineHeight:'1.6'}}>{item.texto}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Botones */}
+          <div style={{display:'flex',gap:'10px',flexDirection:'column'}}>
+            <button
+              onClick={() => { setPagoStatus(null); setPagoInfo(null); setPaginaActual('mis-boletas') }}
+              style={{background:'#4f7eff',color:'#fff',border:'none',borderRadius:'12px',padding:'14px',fontSize:'15px',fontWeight:'700',cursor:'pointer'}}
+            >
+              Ver mis boletas
+            </button>
+            <a
+              href={`mailto:soporte@boleteriaco.com?subject=Pago%20pendiente${refP ? '%20' + refP : ''}&body=Hola%2C%20mi%20pago%20quedó%20pendiente${refP ? '.%20Ref%3A%20' + refP : ''}${txP ? '%20%2F%20Transacción%3A%20' + txP : ''}.%20¿Qué%20debo%20hacer%3F`}
+              style={{display:'block',textAlign:'center',background:'#0f1623',color:'#8892a4',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'13px',fontSize:'14px',fontWeight:'700',textDecoration:'none'}}
+            >
+              ✉️ Contactar soporte
+            </a>
+          </div>
         </div>
       </div>
     )
@@ -1617,9 +1670,9 @@ function App() {
       <div style={{position:'fixed',bottom:'24px',left:'50%',transform:'translateX(-50%)',zIndex:9999,display:'flex',flexDirection:'column',gap:'10px',alignItems:'center',pointerEvents:'none'}}>
         {toasts.map(t => (
           <div key={t.id} style={{
-            background: t.tipo === 'info' ? '#0f1e3a' : '#1a0808',
-            border: `1px solid ${t.tipo === 'info' ? '#1e3a6a' : '#5a1e1e'}`,
-            color: t.tipo === 'info' ? '#93c5fd' : '#fca5a5',
+            background: t.tipo === 'success' ? '#052e16' : t.tipo === 'info' ? '#0f1e3a' : '#1a0808',
+            border: `1px solid ${t.tipo === 'success' ? '#166534' : t.tipo === 'info' ? '#1e3a6a' : '#5a1e1e'}`,
+            color: t.tipo === 'success' ? '#4ade80' : t.tipo === 'info' ? '#93c5fd' : '#fca5a5',
             borderRadius:'12px', padding:'12px 20px',
             fontSize:'14px', fontWeight:'600',
             boxShadow:'0 8px 32px rgba(0,0,0,0.5)',
@@ -1627,7 +1680,7 @@ function App() {
             animation:'fadeInUp 0.25s ease',
             pointerEvents:'auto'
           }}>
-            {t.tipo === 'info' ? 'ℹ️' : '⚠️'} {t.msg}
+            {t.tipo === 'success' ? '✅' : t.tipo === 'info' ? 'ℹ️' : '⚠️'} {t.msg}
           </div>
         ))}
       </div>
@@ -1858,7 +1911,15 @@ function App() {
                                 ) : (
                                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px',marginTop:'6px'}}>
                                     <p style={{color:'#8892a4',fontSize:'11px',margin:'0'}}>¿Ya la recibiste en la app? Se libera en {horas}h automáticamente.</p>
-                                    <button onClick={() => confirmarRecibo(o.id)} style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>Confirmar recibo</button>
+                                    {confirmarLiberar === o.id ? (
+                                      <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                                        <p style={{color:'#fbbf24',fontSize:'12px',margin:'0',flex:1}}>¿Ya recibiste la boleta? Esto libera el pago al vendedor.</p>
+                                        <button onClick={()=>{confirmarRecibo(o.id);setConfirmarLiberar(null)}} style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',cursor:'pointer'}}>Sí, confirmar</button>
+                                        <button onClick={()=>setConfirmarLiberar(null)} style={{background:'#374151',color:'#9ca3af',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',cursor:'pointer'}}>Cancelar</button>
+                                      </div>
+                                    ) : (
+                                      <button onClick={()=>setConfirmarLiberar(o.id)} style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>✅ Confirmar recibo</button>
+                                    )}
                                   </div>
                                 )}
                               </div>
@@ -1950,10 +2011,12 @@ function App() {
                                   )
                                 })()}
                                 <div style={{marginTop:'8px'}}>
-                                {liberadoOrden ? (
-                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Pago liberado — coordina el cobro con Boletería CO</p>
+                                {ordenPagada.pago_vendedor_enviado ? (
+                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>💸 Pago enviado — revisa tu {datosPagoVendedor ? datosPagoVendedor.split(' ')[0] : 'cuenta'}</p>
+                                ) : liberadoOrden ? (
+                                  <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>⏳ Pago listo — en proceso de transferencia a tu cuenta</p>
                                 ) : (
-                                  <p style={{color:'#8892a4',fontSize:'11px',margin:'0'}}>⏳ Pago bloqueado — el comprador tiene {hVenta}h para confirmar recibo</p>
+                                  <p style={{color:'#8892a4',fontSize:'11px',margin:'0'}}>🔒 En custodia — el comprador tiene {hVenta}h para confirmar recibo</p>
                                 )}
                                 </div>
                               </div>
@@ -1974,16 +2037,27 @@ function App() {
                       const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
                       return (
                         <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
-                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
-                            <div>
+                          <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}}>
+                            <div style={{flex:1,minWidth:0}}>
                               <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
                               <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}</p>
                               <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
                             </div>
-                            <div style={{textAlign:'right'}}>
+                            <div style={{textAlign:'right',flexShrink:0}}>
                               <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'16px',margin:'0 0 6px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
                               <span style={{background:'rgba(79,126,255,0.1)',color:'#6b93ff',fontSize:'11px',fontWeight:'700',padding:'3px 10px',borderRadius:'20px'}}>⏳ Esperando comprador</span>
                             </div>
+                          </div>
+                          <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
+                            {confirmarRetirarBoleta === b.id ? (
+                              <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                                <p style={{color:'#f87171',fontSize:'12px',margin:'0',flex:1}}>¿Seguro? Se eliminará del listado.</p>
+                                <button onClick={()=>retirarBoletaVendedor(b.id)} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, retirar</button>
+                                <button onClick={()=>setConfirmarRetirarBoleta(null)} style={{background:'transparent',color:'#6b7280',border:'1px solid #1e2a3a',borderRadius:'6px',padding:'5px 10px',fontSize:'12px',cursor:'pointer'}}>Cancelar</button>
+                              </div>
+                            ) : (
+                              <button onClick={()=>setConfirmarRetirarBoleta(b.id)} style={{background:'transparent',color:'#6b7280',border:'1px solid #1e2a3a',borderRadius:'6px',padding:'5px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>✕ Retirar del listado</button>
+                            )}
                           </div>
                         </div>
                       )
@@ -1993,24 +2067,35 @@ function App() {
             {!cargandoMis && pestanaMis === 'pagos' && (
               (() => {
                 const ordenesVentas = misVentas.flatMap(b => Array.isArray(b.ordenes) ? b.ordenes.filter(o => o.estado_pago === 'pagada').map(o => ({...o, precio: b.precio, moneda: b.eventos ? b.eventos.moneda : null})) : [])
-                const liberadas = ordenesVentas.filter(o => o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000))
-                const enEscrow = ordenesVentas.filter(o => !(o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)))
-                const totalLiberado = liberadas.reduce((s, o) => s + Math.round(Number(o.precio || 0) * 0.92), 0)
+                const pagadas = ordenesVentas.filter(o => o.pago_vendedor_enviado)
+                const enTransferencia = ordenesVentas.filter(o => !o.pago_vendedor_enviado && (o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)))
+                const enEscrow = ordenesVentas.filter(o => !o.pago_vendedor_enviado && !(o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)))
+                const totalPagado = pagadas.reduce((s, o) => s + Math.round(Number(o.precio || 0) * 0.92), 0)
+                const totalTransferencia = enTransferencia.reduce((s, o) => s + Math.round(Number(o.precio || 0) * 0.92), 0)
                 const totalEscrow = enEscrow.reduce((s, o) => s + Math.round(Number(o.precio || 0) * 0.92), 0)
                 return (
                   <>
-                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'20px'}}>
+                    <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom: enTransferencia.length > 0 ? '10px' : '20px'}}>
                       <div style={{background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.2)',borderRadius:'12px',padding:'16px'}}>
                         <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 4px'}}>Recibido</p>
-                        <p style={{color:'#22c55e',fontSize:'22px',fontWeight:'800',margin:'0'}}>${totalLiberado.toLocaleString('es-CO')}</p>
-                        <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>{liberadas.length} venta{liberadas.length !== 1 ? 's' : ''}</p>
+                        <p style={{color:'#22c55e',fontSize:'22px',fontWeight:'800',margin:'0'}}>${totalPagado.toLocaleString('es-CO')}</p>
+                        <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>{pagadas.length} venta{pagadas.length !== 1 ? 's' : ''}</p>
                       </div>
-                      <div style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.2)',borderRadius:'12px',padding:'16px'}}>
+                      <div style={{background:'rgba(78,90,110,0.1)',border:'1px solid rgba(78,90,110,0.25)',borderRadius:'12px',padding:'16px'}}>
                         <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 4px'}}>En custodia</p>
-                        <p style={{color:'#f59e0b',fontSize:'22px',fontWeight:'800',margin:'0'}}>${totalEscrow.toLocaleString('es-CO')}</p>
+                        <p style={{color:'#8892a4',fontSize:'22px',fontWeight:'800',margin:'0'}}>${totalEscrow.toLocaleString('es-CO')}</p>
                         <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>{enEscrow.length} venta{enEscrow.length !== 1 ? 's' : ''}</p>
                       </div>
                     </div>
+                    {enTransferencia.length > 0 && (
+                      <div style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.25)',borderRadius:'12px',padding:'16px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'12px'}}>
+                        <span style={{fontSize:'24px',flexShrink:0}}>⏳</span>
+                        <div>
+                          <p style={{color:'#fbbf24',fontSize:'14px',fontWeight:'700',margin:'0 0 2px'}}>En transferencia — ${totalTransferencia.toLocaleString('es-CO')}</p>
+                          <p style={{color:'#8892a4',fontSize:'12px',margin:'0'}}>Tu pago está siendo procesado. Llegará pronto a tu cuenta registrada.</p>
+                        </div>
+                      </div>
+                    )}
                     {ordenesVentas.length === 0
                       ? <p style={{color:'#6b7280',fontSize:'13px'}}>Aún no tienes ventas registradas.</p>
                       : ordenesVentas.map(function(o, i) {
@@ -2025,7 +2110,13 @@ function App() {
                               </div>
                               <div style={{textAlign:'right'}}>
                                 <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'15px',margin:'0 0 4px'}}>{moneda}{neto.toLocaleString('es-CO')} <span style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'400'}}>(92%)</span></p>
-                                <span style={{background:liberado?'rgba(34,197,94,0.1)':'rgba(245,158,11,0.1)',color:liberado?'#4ade80':'#fbbf24',fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>{liberado?'✅ Liberado':'⏳ En custodia'}</span>
+                                <span style={{
+                                  background: o.pago_vendedor_enviado ? 'rgba(34,197,94,0.15)' : liberado ? 'rgba(245,158,11,0.1)' : 'rgba(78,90,110,0.2)',
+                                  color: o.pago_vendedor_enviado ? '#4ade80' : liberado ? '#fbbf24' : '#6b7a94',
+                                  fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'
+                                }}>
+                                  {o.pago_vendedor_enviado ? '💸 Pagado' : liberado ? '⏳ En transferencia' : '🔒 En custodia'}
+                                </span>
                               </div>
                             </div>
                           )
@@ -3301,6 +3392,17 @@ function App() {
                 style={{width:'100%',background:'rgba(13,17,26,0.5)',border:'1px solid #131c28',borderRadius:'8px',color:'#4e5a6e',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',cursor:'not-allowed'}}
               />
               <p style={{color:'#2e3a4e',fontSize:'11px',margin:'4px 0 0'}}>El correo no se puede cambiar desde aquí.</p>
+            </div>
+
+            <div style={{marginBottom:'18px'}}>
+              <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>💳 Dato de pago (Nequi / cuenta bancaria)</label>
+              <input
+                value={perfilData.datosPago || ''}
+                onChange={e=>setPerfilData(d=>({...d,datosPago:e.target.value}))}
+                placeholder="Ej: 3001234567 Nequi · Bancolombia 123-456789"
+                style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+              />
+              <p style={{color:'#2e3a4e',fontSize:'11px',margin:'4px 0 0'}}>Aquí te enviamos el pago cuando vendes una boleta.</p>
             </div>
 
             {perfilMensaje && !perfilCambiandoPassword && (

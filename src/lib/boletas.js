@@ -65,7 +65,7 @@ export async function publicarBoleta({ eventoId, vendedorId, tribuna, fila, sill
 }
 
 export async function crearOrden({ boletaId, compradorId, subtotal, comision, total, metodoPago }) {
-  const codigoOrden = 'BCO-' + Math.floor(10000 + Math.random() * 90000)
+  const codigoOrden = 'BCO-' + Math.random().toString(36).substring(2, 9).toUpperCase()
 
   const { data, error } = await supabase
     .from('ordenes')
@@ -106,7 +106,7 @@ export async function obtenerMisVentas(usuarioId) {
     .select(`
       id, tribuna, fila, silla, precio, estado, creado_en, plataforma,
       eventos(nombre, ciudad, fecha, moneda),
-      ordenes(id, codigo_orden, total, estado_pago, liberado, liberado_en, creado_en, archivo_url)
+      ordenes(id, codigo_orden, total, estado_pago, liberado, liberado_en, creado_en, archivo_url, pago_vendedor_enviado)
     `)
     .eq('vendedor_id', usuarioId)
     .order('creado_en', { ascending: false })
