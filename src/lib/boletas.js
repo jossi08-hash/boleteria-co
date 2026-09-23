@@ -18,23 +18,6 @@ export async function obtenerBoletas() {
   return data
 }
 
-export async function obtenerBoletasPorDeporte(deporte) {
-  const { data, error } = await supabase
-    .from('boletas')
-    .select(`
-      id, tribuna, fila, silla, cantidad, precio, estado, vendedor_id, publicada_por_admin,
-      eventos!inner ( nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
-      usuarios ( nombre, correo, es_admin )
-    `)
-    .eq('eventos.deporte', deporte)
-    .eq('estado', 'publicada')
-
-  if (error) {
-    console.error('Error al filtrar boletas:', error.message)
-    return []
-  }
-  return data
-}
 
 export async function obtenerVentasDeUsuario(usuarioId) {
   const { count } = await supabase
@@ -106,7 +89,7 @@ export async function obtenerMisVentas(usuarioId) {
     .select(`
       id, tribuna, fila, silla, precio, estado, creado_en, plataforma,
       eventos(nombre, ciudad, fecha, moneda),
-      ordenes(id, codigo_orden, total, estado_pago, liberado, liberado_en, creado_en, archivo_url, pago_vendedor_enviado)
+      ordenes(id, codigo_orden, subtotal, comision, total, estado_pago, liberado, liberado_en, creado_en, archivo_url, pago_vendedor_enviado)
     `)
     .eq('vendedor_id', usuarioId)
     .order('creado_en', { ascending: false })

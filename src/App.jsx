@@ -3,7 +3,6 @@ import { obtenerBoletas, publicarBoleta, crearOrden, obtenerVentasDeUsuario, obt
 import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword } from './lib/auth'
 import { supabase } from './lib/supabase'
 
-const ADMIN_EMAIL = 'jossi08@icloud.com'
 
 const PLATAFORMAS = {
   'TuBoletaPass': {
@@ -476,6 +475,7 @@ function App() {
   const [silasExtra, setSilasExtra] = useState([])
   const [toasts, setToasts] = useState([])
   const [timerReserva, setTimerReserva] = useState(null) // segundos restantes
+  const [metodoPagoActivo, setMetodoPagoActivo] = useState('wompi')
   const timerIntervalRef = useRef(null)
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
@@ -707,12 +707,6 @@ function App() {
   }
 
   async function cargarBoletas() {
-    // Liberar reservas expiradas
-    await supabase
-      .from('boletas')
-      .update({ estado: 'publicada', reservada_hasta: null })
-      .eq('estado', 'reservada')
-      .lt('reservada_hasta', new Date().toISOString())
     const data = await obtenerBoletas()
     setBoletas(data)
     // Sync cart: refresh publicada_por_admin and remove unavailable boletas
@@ -1227,6 +1221,7 @@ function App() {
 
     setBoldCargando(false)
     try { sessionStorage.setItem('carrito_count', String(carrito.length)) } catch {}
+    setMetodoPagoActivo('bold')
     setQrModal({ qr, referencia, ordenes, carritoCount: carrito.length })
   }
 
@@ -1287,6 +1282,7 @@ function App() {
 
     setBoldCargando(false)
     try { sessionStorage.setItem('carrito_count', '1') } catch {}
+    setMetodoPagoActivo('bold')
     setQrModal({ qr, referencia: orden.codigo_orden, ordenes: [orden], carritoCount: 1 })
   }
 
@@ -1362,6 +1358,7 @@ function App() {
       reference: referencia, 'signature:integrity': signature,
       'redirect-url': window.location.origin
     })
+    setMetodoPagoActivo('wompi')
     startTimer(15 * 60)
     try { sessionStorage.setItem('carrito_count', String(carrito.length)) } catch(e) {}
     try { sessionStorage.setItem('datos_entrega', JSON.stringify(datosEntrega)) } catch(e) {}
@@ -1424,6 +1421,7 @@ function App() {
       'redirect-url': window.location.origin
     })
 
+    setMetodoPagoActivo('wompi')
     startTimer(15 * 60)
     try { sessionStorage.setItem('carrito_count', '1') } catch(e) {}
     window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
@@ -1661,7 +1659,7 @@ function App() {
             <span style={{color:'#4ade80',fontVariantNumeric:'tabular-nums'}}>
               {String(Math.floor(timerReserva/60)).padStart(2,'0')}:{String(timerReserva%60).padStart(2,'0')}
             </span>
-            {' '}— completa tu pago en Wompi
+            {' '}— {metodoPagoActivo === 'bold' ? 'Escanea el QR de Bold para completar tu pago' : 'Completa tu pago en Wompi'}
           </span>
         </div>
       )}
@@ -2070,9 +2068,9 @@ function App() {
                 const pagadas = ordenesVentas.filter(o => o.pago_vendedor_enviado)
                 const enTransferencia = ordenesVentas.filter(o => !o.pago_vendedor_enviado && (o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)))
                 const enEscrow = ordenesVentas.filter(o => !o.pago_vendedor_enviado && !(o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)))
-                const totalPagado = pagadas.reduce((s, o) => s + Math.round(Number(o.precio || 0) * 0.92), 0)
-                const totalTransferencia = enTransferencia.reduce((s, o) => s + Math.round(Number(o.precio || 0) * 0.92), 0)
-                const totalEscrow = enEscrow.reduce((s, o) => s + Math.round(Number(o.precio || 0) * 0.92), 0)
+                const totalPagado = pagadas.reduce((s, o) => s + (o.subtotal != null ? Number(o.subtotal) : Number(o.total || 0) - Number(o.comision || 0)), 0)
+                const totalTransferencia = enTransferencia.reduce((s, o) => s + (o.subtotal != null ? Number(o.subtotal) : Number(o.total || 0) - Number(o.comision || 0)), 0)
+                const totalEscrow = enEscrow.reduce((s, o) => s + (o.subtotal != null ? Number(o.subtotal) : Number(o.total || 0) - Number(o.comision || 0)), 0)
                 return (
                   <>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom: enTransferencia.length > 0 ? '10px' : '20px'}}>
@@ -2101,7 +2099,7 @@ function App() {
                       : ordenesVentas.map(function(o, i) {
                           const liberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
                           const moneda = o.moneda === 'USD' ? 'US$' : '$'
-                          const neto = Math.round(Number(o.precio || 0) * 0.92)
+                          const neto = o.subtotal != null ? Number(o.subtotal) : Number(o.total || 0) - Number(o.comision || 0)
                           return (
                             <div key={o.id || i} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'14px 16px',marginBottom:'10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
                               <div>
@@ -2109,7 +2107,7 @@ function App() {
                                 <p style={{color:'#4e5a6e',fontSize:'11px',margin:'0'}}>{new Date(o.creado_en).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}</p>
                               </div>
                               <div style={{textAlign:'right'}}>
-                                <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'15px',margin:'0 0 4px'}}>{moneda}{neto.toLocaleString('es-CO')} <span style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'400'}}>(92%)</span></p>
+                                <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'15px',margin:'0 0 4px'}}>{moneda}{neto.toLocaleString('es-CO')} <span style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'400'}}>(neto)</span></p>
                                 <span style={{
                                   background: o.pago_vendedor_enviado ? 'rgba(34,197,94,0.15)' : liberado ? 'rgba(245,158,11,0.1)' : 'rgba(78,90,110,0.2)',
                                   color: o.pago_vendedor_enviado ? '#4ade80' : liberado ? '#fbbf24' : '#6b7a94',
