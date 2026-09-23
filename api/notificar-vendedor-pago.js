@@ -16,7 +16,7 @@ export default async function handler(req) {
   }
   const token = authHeader.split(' ')[1]
   const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
-    headers: { 'Authorization': `Bearer ${token}`, 'apikey': process.env.SUPABASE_ANON_KEY }
+    headers: { 'Authorization': `Bearer ${token}`, 'apikey': process.env.VITE_SUPABASE_ANON_KEY }
   })
   if (!userRes.ok) return new Response('Unauthorized', { status: 401 })
 
