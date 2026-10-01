@@ -44,7 +44,7 @@ export default async function handler(req) {
     })
   }
 
-  const res = await fetch(SUPABASE_URL + '/rest/v1/ordenes?id=eq.' + ordenId + '&select=id,codigo_orden,total,boletas(precio,tribuna,fila,silla,eventos(nombre,ciudad,fecha),usuarios(nombre,correo,datos_pago))', {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/ordenes?id=eq.' + ordenId + '&select=id,codigo_orden,total,boletas(precio,publicada_por_admin,tribuna,fila,silla,eventos(nombre,ciudad,fecha),usuarios(nombre,correo,datos_pago))', {
     headers: { apikey: key, Authorization: 'Bearer ' + key }
   })
   const data = await res.json()
@@ -67,7 +67,8 @@ export default async function handler(req) {
     })
   }
 
-  const neto = Math.round(Number((boleta && boleta.precio) || 0) * 0.92)
+  const precio = Number((boleta && boleta.precio) || 0)
+  const neto = boleta && boleta.publicada_por_admin === true ? precio : Math.round(precio * 0.92)
   const netoFmt = '$' + neto.toLocaleString('es-CO')
   const nombreVendedor = (vendedor && vendedor.nombre) || 'Vendedor'
   const eventoNombre = (evento && evento.nombre) || 'Evento'

@@ -46,7 +46,7 @@ export default async function handler(req) {
   }
 
   // Obtener datos de la orden con vendedor, boleta y evento
-  const url = `${SUPABASE_URL}/rest/v1/ordenes?id=eq.${ordenId}&select=id,codigo_orden,total,boletas(precio,tribuna,fila,silla,plataforma,eventos(nombre,ciudad),usuarios(nombre,correo,datos_pago))`
+  const url = `${SUPABASE_URL}/rest/v1/ordenes?id=eq.${ordenId}&select=id,codigo_orden,total,boletas(precio,publicada_por_admin,tribuna,fila,silla,plataforma,eventos(nombre,ciudad),usuarios(nombre,correo,datos_pago))`
   const res = await fetch(url, {
     headers: { apikey: key, Authorization: `Bearer ${key}` }
   })
@@ -62,6 +62,13 @@ export default async function handler(req) {
   const boleta = orden.boletas
   const vendedor = boleta?.usuarios
   const evento = boleta?.eventos
+
+  // Boleta del admin: no hay vendedor externo a quien pagar
+  if (boleta?.publicada_por_admin === true) {
+    return new Response(JSON.stringify({ ok: true, omitido: 'boleta_admin' }), {
+      status: 200, headers: { 'Content-Type': 'application/json' }
+    })
+  }
 
   const neto = Math.round(Number(boleta?.precio || 0) * 0.92)
   const netoFmt = '$' + neto.toLocaleString('es-CO')
