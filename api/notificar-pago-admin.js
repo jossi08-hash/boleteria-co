@@ -19,6 +19,7 @@ export default async function handler(req) {
     headers: { 'Authorization': `Bearer ${token}`, 'apikey': process.env.VITE_SUPABASE_ANON_KEY }
   })
   if (!userRes.ok) return new Response('Unauthorized', { status: 401 })
+  const user = await userRes.json()
 
   let ordenId
   try {
@@ -30,7 +31,7 @@ export default async function handler(req) {
     })
   }
 
-  if (!ordenId) {
+  if (!ordenId || !/^[0-9a-f-]{36}$/i.test(ordenId)) {
     return new Response(JSON.stringify({ error: 'Falta ordenId' }), {
       status: 400, headers: { 'Content-Type': 'application/json' }
     })
@@ -46,7 +47,7 @@ export default async function handler(req) {
   }
 
   // Obtener datos de la orden con vendedor, boleta y evento
-  const url = `${SUPABASE_URL}/rest/v1/ordenes?id=eq.${ordenId}&select=id,codigo_orden,total,boletas(precio,publicada_por_admin,tribuna,fila,silla,plataforma,eventos(nombre,ciudad),usuarios(nombre,correo,datos_pago))`
+  const url = `${SUPABASE_URL}/rest/v1/ordenes?id=eq.${ordenId}&select=id,codigo_orden,total,comprador_id,liberado,boletas(precio,publicada_por_admin,tribuna,fila,silla,plataforma,eventos(nombre,ciudad),usuarios(nombre,correo,datos_pago))`
   const res = await fetch(url, {
     headers: { apikey: key, Authorization: `Bearer ${key}` }
   })
@@ -59,6 +60,12 @@ export default async function handler(req) {
   }
 
   const orden = data[0]
+  // Solo el comprador de la orden, y solo después de confirmar que recibió la boleta
+  if (orden.comprador_id !== user.id || orden.liberado !== true) {
+    return new Response(JSON.stringify({ error: 'Orden no encontrada' }), {
+      status: 404, headers: { 'Content-Type': 'application/json' }
+    })
+  }
   const boleta = orden.boletas
   const vendedor = boleta?.usuarios
   const evento = boleta?.eventos

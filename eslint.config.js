@@ -19,8 +19,8 @@ export default defineConfig([
     },
   },
   {
-    // Funciones serverless de Vercel: tienen acceso a process.env
-    files: ['api/**/*.js'],
+    // Funciones serverless de Vercel y sus pruebas: tienen acceso a process.env
+    files: ['api/**/*.js', 'tests/**/*.mjs'],
     languageOptions: { globals: { ...globals.browser, process: 'readonly' } },
   },
 ])

@@ -18,6 +18,7 @@ export default async function handler(req) {
     headers: { 'Authorization': 'Bearer ' + token, 'apikey': process.env.VITE_SUPABASE_ANON_KEY }
   })
   if (!userRes.ok) return new Response('Unauthorized', { status: 401 })
+  const user = await userRes.json()
 
   let ordenId
   try {
@@ -44,7 +45,20 @@ export default async function handler(req) {
     })
   }
 
-  const res = await fetch(SUPABASE_URL + '/rest/v1/ordenes?id=eq.' + ordenId + '&select=id,codigo_orden,total,boletas(precio,publicada_por_admin,tribuna,fila,silla,eventos(nombre,ciudad,fecha),usuarios(nombre,correo,datos_pago))', {
+  if (!/^[0-9a-f-]{36}$/i.test(ordenId)) {
+    return new Response(JSON.stringify({ error: 'ordenId inválido' }), {
+      status: 400, headers: { 'Content-Type': 'application/json' }
+    })
+  }
+
+  // Solo el admin envía este correo, y solo después de marcar la orden como pagada al vendedor
+  const adminRes = await fetch(SUPABASE_URL + '/rest/v1/usuarios?id=eq.' + user.id + '&select=es_admin', {
+    headers: { apikey: key, Authorization: 'Bearer ' + key }
+  })
+  const perfil = (await adminRes.json().catch(() => []))[0]
+  if (!perfil || perfil.es_admin !== true) return new Response('Forbidden', { status: 403 })
+
+  const res = await fetch(SUPABASE_URL + '/rest/v1/ordenes?id=eq.' + ordenId + '&select=id,codigo_orden,total,pago_vendedor_enviado,boletas(precio,publicada_por_admin,tribuna,fila,silla,eventos(nombre,ciudad,fecha),usuarios(nombre,correo,datos_pago))', {
     headers: { apikey: key, Authorization: 'Bearer ' + key }
   })
   const data = await res.json()
@@ -56,6 +70,11 @@ export default async function handler(req) {
   }
 
   const orden = data[0]
+  if (orden.pago_vendedor_enviado !== true) {
+    return new Response(JSON.stringify({ error: 'La orden no está marcada como pagada al vendedor' }), {
+      status: 409, headers: { 'Content-Type': 'application/json' }
+    })
+  }
   const boleta = orden.boletas
   const vendedor = boleta && boleta.usuarios
   const evento = boleta && boleta.eventos
