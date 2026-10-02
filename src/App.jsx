@@ -1,15 +1,21 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import { obtenerBoletas, publicarBoleta, crearOrden, generarCodigoOrden, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
 import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword } from './lib/auth'
 import { supabase } from './lib/supabase'
-import ComoFunciona from './ComoFunciona'
 import { PLATAFORMAS, sugerirPlataforma } from './datos/plataformas'
 import { extraerEquipos } from './lib/equipos'
 import { reclamoAbierto, pagoLiberado, horasParaLiberar } from './lib/ordenes'
 import { TITULO_BASE, RUTAS, paginaDesdeUrl, urlDePagina } from './rutas'
 import EscudoSVG from './componentes/EscudoSVG'
 import SillaExtraRow from './componentes/SillaExtraRow'
-import { MapaElCampin, MapaAtanasio, MapaPascualGuerrero, MapaEstadioTecho } from './componentes/MapasEstadios'
+
+// Se cargan solo al abrir la página que los usa
+const ComoFunciona = lazy(() => import('./ComoFunciona'))
+const mapas = () => import('./componentes/MapasEstadios')
+const MapaElCampin = lazy(() => mapas().then(m => ({ default: m.MapaElCampin })))
+const MapaAtanasio = lazy(() => mapas().then(m => ({ default: m.MapaAtanasio })))
+const MapaPascualGuerrero = lazy(() => mapas().then(m => ({ default: m.MapaPascualGuerrero })))
+const MapaEstadioTecho = lazy(() => mapas().then(m => ({ default: m.MapaEstadioTecho })))
 
 function App() {
   const [esMobile, setEsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 640)
@@ -2398,6 +2404,7 @@ function App() {
                     <p style={{color:'#4e5a6e',fontSize:'10px',fontWeight:'700',textAlign:'center',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'1px'}}>
                       🗺️ Toca una tribuna para ver las boletas
                     </p>
+                    <Suspense fallback={<div style={{height:'260px'}} />}>
                     {esElCampin ? (
                       <MapaElCampin
                         avail={porTribuna}
@@ -2423,6 +2430,7 @@ function App() {
                         onSelect={t => setSeccionMapa(seccionMapa === t ? null : t)}
                       />
                     )}
+                    </Suspense>
                     {/* Leyenda */}
                     <div style={{display:'flex',justifyContent:'center',gap:'16px',marginTop:'10px',flexWrap:'wrap'}}>
                       {[['rgba(61,219,122,0.7)','Disponible'],['rgba(79,126,255,0.8)','Seleccionado'],['rgba(255,255,255,0.15)','Sin disponibilidad']].map(([col,lbl])=>(
@@ -2898,6 +2906,7 @@ function App() {
 
       {paginaActual === 'como-funciona' && (
         <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <Suspense fallback={null}>
           <ComoFunciona
             onVolver={()=>setPaginaActual('inicio')}
             onEmpezar={(rol)=>{
@@ -2906,6 +2915,7 @@ function App() {
               if (rol === 'vendedor') setMostrarFormulario(true)
             }}
           />
+          </Suspense>
         </div>
       )}
 

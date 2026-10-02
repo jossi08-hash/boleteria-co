@@ -35,6 +35,10 @@
   ],
   "rewrites": [
     {
+      "source": "/evento/:id",
+      "destination": "/api/evento-html?id=:id"
+    },
+    {
       "source": "/((?!api/|assets/|.*\\..*).*)",
       "destination": "/index.html"
     }

@@ -15,10 +15,14 @@ function reset() {
     { id:'o3', codigo_orden:'BCO-ZZZ9999', total:1000, estado_pago:'pendiente', comprador_id:'c2', boleta_id:'b3', boletas:{ id:'b3', precio:80000, publicada_por_admin:false } },
   ]}
 }
+const EVENTO = '22222222-2222-2222-2222-222222222222'
+let PRECIOS_EVENTO = [{precio:100000, publicada_por_admin:false}, {precio:80000, publicada_por_admin:true}]
+const INDEX_HTML = '<html><head><title>Boletería CO — General</title><meta name="description" content="general" /><link rel="canonical" href="https://boleteriaco.com" /><meta property="og:url" content="https://boleteriaco.com" /><meta property="og:title" content="general" /><meta property="og:description" content="general" /><meta name="twitter:title" content="general" /><meta name="twitter:description" content="general" /></head><body><div id="root"></div></body></html>'
 const ok = d => new Response(JSON.stringify(d), { status:200, headers:{'Content-Type':'application/json'} })
 globalThis.fetch = async (url, opts={}) => {
   url = String(url); const m = opts.method || 'GET'; calls.push({url, m, body: opts.body})
   if (url.startsWith('https://api.resend.com')) return ok({id:'e'})
+  if (url.endsWith('/index.html')) return new Response(INDEX_HTML, { headers: {'Content-Type':'text/html'} })
   if (url.includes('/auth/v1/user')) {
     const tokens = { 'Bearer buen-token': {id:'c1', email:'comp@x.com'}, 'Bearer admin-token': {id:'admin1', email:'admin@x.com'} }
     const auth = opts.headers?.Authorization || opts.headers?.authorization
@@ -54,6 +58,8 @@ globalThis.fetch = async (url, opts={}) => {
     }
     if (m==='PATCH') return ok([{codigo_orden:'BCO-OLD', subtotal:100000, boletas:{precio:100000, publicada_por_admin:false, eventos:{nombre:'Ev'}, usuarios:{nombre:'V', datos_pago:'Nequi 300'}}}, {codigo_orden:'BCO-ADM', subtotal:50000, boletas:{publicada_por_admin:true}}])
   }
+  if (u.pathname.endsWith('/eventos')) return ok(u.searchParams.get('id') === 'eq.'+EVENTO ? [{nombre:'Santa Fe vs Millonarios', ciudad:'Bogotá', estadio:'El Campín', fecha:'2026-10-18', moneda:'COP'}] : [])
+  if (u.pathname.endsWith('/boletas') && m==='GET') return ok(PRECIOS_EVENTO)
   if (u.pathname.endsWith('/boletas')) return ok([])
   throw new Error('fetch no simulado: '+url)
 }
@@ -186,4 +192,22 @@ assert.equal((await pagoAdmin(post({ordenId:UUID}, {Authorization:'Bearer admin-
 assert.equal((await pagoAdmin(post({ordenId:UUID}, {Authorization:'Bearer buen-token'}))).status, 200)
 assert.ok(correos().some(c => c.to === 'admin@x.com'))
 console.log('✓ correos de pago: "pago en camino" solo admin tras marcar pagada; "pagar vendedor" solo el comprador tras confirmar')
+
+// 9. vista previa de eventos para WhatsApp y redes
+const eventoHtml = (await import(R+'evento-html.js')).default
+reset()
+let h = await (await eventoHtml(new Request('https://www.boleteriaco.com/api/evento-html?id='+EVENTO))).text()
+assert.ok(h.includes('<title>Santa Fe vs Millonarios · domingo, 18 de octubre · Boletería CO</title>') || h.includes('<title>Santa Fe vs Millonarios · domingo 18 de octubre · Boletería CO</title>'), h.match(/<title>[^<]*/)[0])
+assert.ok(h.includes('property="og:title" content="Santa Fe vs Millonarios'))
+assert.ok(h.includes('Boletas desde $80.000'))          // la del admin no paga comisión: 80.000 < 115.000
+assert.ok(h.includes('href="https://boleteriaco.com/evento/'+EVENTO+'"'))
+assert.ok(h.includes('<div id="root">'))                // sigue siendo la app
+PRECIOS_EVENTO = [{precio:100000, publicada_por_admin:false}]      // $115.000: "$1" no debe tomarse como grupo
+h = await (await eventoHtml(new Request('https://www.boleteriaco.com/api/evento-html?id='+EVENTO))).text()
+assert.ok(h.includes('<meta name="description" content="Boletas desde $115.000 para Santa Fe'), h.match(/name="description" content="[^"]*/)[0])
+h = await (await eventoHtml(new Request('https://www.boleteriaco.com/api/evento-html?id=no-existe'))).text()
+assert.ok(h.includes('<title>Boletería CO — General</title>'))
+h = await (await eventoHtml(new Request('https://www.boleteriaco.com/api/evento-html?id=33333333-3333-3333-3333-333333333333'))).text()
+assert.ok(h.includes('<title>Boletería CO — General</title>'))
+console.log('✓ vista previa de eventos: título, fecha y precio desde; eventos inválidos devuelven la página general')
 console.log('\nTODAS LAS PRUEBAS PASARON')
