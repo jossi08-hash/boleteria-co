@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' }
 
-import { confirmarPago, json } from './_lib/pagos.js'
+import { confirmarPago, rechazarPago, esRechazado, json } from './_lib/pagos.js'
 
 // Evento de Wompi: https://docs.wompi.co/docs/colombia/eventos/
 // Configurar en el panel de Wompi la URL https://www.boleteriaco.com/api/webhook-wompi
@@ -24,9 +24,9 @@ export default async function handler(req) {
   }
 
   const tx = evento.data?.transaction
-  if (evento.event !== 'transaction.updated' || tx?.status !== 'APPROVED') {
-    return json({ ok: true, omitido: true })
-  }
+  if (evento.event !== 'transaction.updated') return json({ ok: true, omitido: true })
+  if (esRechazado(tx?.status)) return json(await rechazarPago(tx.reference))
+  if (tx?.status !== 'APPROVED') return json({ ok: true, omitido: true })
 
   const resultado = await confirmarPago(tx.reference, tx.amount_in_cents)
   // Responder 200 aunque el monto no coincida: reintentar no lo arreglaría y el admin ya fue avisado

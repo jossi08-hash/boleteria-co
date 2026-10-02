@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { obtenerBoletas, publicarBoleta, crearOrden, generarCodigoOrden, filtroDisponible, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
+import { obtenerBoletas, publicarBoleta, crearOrden, generarCodigoOrden, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
 import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword } from './lib/auth'
 import { supabase } from './lib/supabase'
 import ComoFunciona from './ComoFunciona'
@@ -188,8 +188,9 @@ function App() {
 
   async function guardarDatosPago() {
     if (!usuario) return
-    const { error } = await supabase.from('usuarios').update({ datos_pago: datosPagoVendedor.trim() }).eq('id', usuario.id)
-    if (!error) { setEditandoPago(false); toast('✅ Dato de pago guardado', 'success') }
+    const { data, error } = await supabase.from('usuarios').update({ datos_pago: datosPagoVendedor.trim() }).eq('id', usuario.id).select('id')
+    if (!error && data?.length) { setEditandoPago(false); toast('✅ Dato de pago guardado', 'success') }
+    else toast('No se pudo guardar el dato de pago. Intenta de nuevo.')
   }
 
   async function procesarResultadoPago(params) {
@@ -216,14 +217,16 @@ function App() {
       }
     }
 
+    // El servidor consulta la transacción a Wompi: si se aprobó marca las órdenes como pagadas,
+    // y si se rechazó las marca como fallidas y devuelve las boletas a la venta
+    if (transaccionId) {
+      await fetch('/api/confirmar-pago', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ transaccionId })
+      }).catch(() => {})
+    }
+
     if (status === 'APPROVED' && referencia) {
-      // El servidor verifica la transacción con Wompi y marca las órdenes como pagadas
-      if (transaccionId) {
-        await fetch('/api/confirmar-pago', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transaccionId })
-        }).catch(() => {})
-      }
       const { data: orden } = await supabase
         .from('ordenes').select('id, boleta_id').eq('codigo_orden', referencia).single()
       if (orden) {
@@ -243,25 +246,7 @@ function App() {
       try { localStorage.removeItem('bco_carrito') } catch { /* almacenamiento no disponible */ }
       setPagoStatus('exitoso')
     } else if (status === 'DECLINED' || status === 'ERROR' || status === 'VOIDED') {
-      if (referencia) {
-        await supabase.from('ordenes').update({ estado_pago: 'fallida' }).eq('codigo_orden', referencia)
-        // Liberar la boleta para que otros puedan comprarla
-        const { data: ord } = await supabase.from('ordenes').select('boleta_id').eq('codigo_orden', referencia).single()
-        if (ord) await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', ord.boleta_id)
-        // Liberar boletas extra del carrito si las hay
-        const extraStr = sessionStorage.getItem('carrito_ordenes_extra')
-        if (extraStr) {
-          try {
-            const extras = JSON.parse(extraStr)
-            for (const extra of extras) {
-              if (extra.boleta_id) {
-                await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', extra.boleta_id)
-              }
-            }
-          } catch { /* datos del carrito ilegibles: no hay boletas extra que liberar */ }
-          sessionStorage.removeItem('carrito_ordenes_extra')
-        }
-      }
+      try { sessionStorage.removeItem('carrito_ordenes_extra') } catch { /* almacenamiento no disponible */ }
       setPagoStatus('fallido')
     } else if (status === 'PENDING') {
       setPagoInfo({ referencia: referencia || null, transaccionId: transaccionId || null })
@@ -271,12 +256,8 @@ function App() {
 
 
   async function confirmarRecibo(ordenId) {
-    const { error } = await supabase
-      .from('ordenes')
-      .update({ liberado: true, liberado_en: new Date().toISOString() })
-      .eq('id', ordenId)
-      .eq('comprador_id', usuario.id)
-    if (error) { console.error('Error confirmando recibo:', error.message); toast('Hubo un error. Intenta de nuevo.'); return }
+    const { data: confirmado, error } = await supabase.rpc('confirmar_recibo', { p_orden: ordenId })
+    if (error || !confirmado) { console.error('Error confirmando recibo:', error?.message); toast('Hubo un error. Intenta de nuevo.'); return }
     // Notificar al admin que el pago está listo para ser enviado al vendedor
     fetch('/api/notificar-pago-admin', {
       method: 'POST',
@@ -294,8 +275,8 @@ function App() {
       const { error: upErr } = await supabase.storage.from('boletas-entregadas').upload(path, file, { upsert: true })
       if (upErr) { toast('Error al subir el archivo: ' + upErr.message); return }
       const { data: { publicUrl } } = supabase.storage.from('boletas-entregadas').getPublicUrl(path)
-      const { error: dbErr } = await supabase.from('ordenes').update({ archivo_url: publicUrl }).eq('id', ordenId)
-      if (dbErr) { toast('Error al guardar la URL: ' + dbErr.message); return }
+      const { data: registrada, error: dbErr } = await supabase.rpc('registrar_entrega', { p_orden: ordenId, p_url: publicUrl })
+      if (dbErr || !registrada) { toast('Error al guardar el archivo: ' + (dbErr?.message || 'intenta de nuevo')); return }
       cargarMisBoletas()
     } finally {
       setSubiendoArchivo(null)
@@ -620,15 +601,15 @@ function App() {
     if (!usuario) return
     setPerfilGuardando(true)
     setPerfilMensaje('')
-    const { error } = await supabase.from('usuarios').update({
+    const { data: guardado, error } = await supabase.from('usuarios').update({
       nombre: perfilData.nombre.trim(),
       documento: perfilData.documento.trim(),
       telefono: perfilData.telefono.trim(),
       datos_pago: (perfilData.datosPago || '').trim(),
-    }).eq('id', usuario.id)
+    }).eq('id', usuario.id).select('id')
     setPerfilGuardando(false)
-    if (error) {
-      setPerfilMensaje('❌ Error al guardar: ' + error.message)
+    if (error || !guardado?.length) {
+      setPerfilMensaje('❌ Error al guardar: ' + (error?.message || 'intenta de nuevo'))
     } else {
       setUsuario(u => ({...u, nombre: perfilData.nombre.trim()}))
       setDatosPagoVendedor((perfilData.datosPago || '').trim())
@@ -721,22 +702,12 @@ function App() {
     }
     setComprando('carrito')
 
-    const reservadaHasta = new Date(Date.now() + 15 * 60 * 1000).toISOString()
-    const reservaciones = await Promise.all(carrito.map(b =>
-      supabase.from('boletas')
-        .update({ estado: 'reservada', reservada_hasta: reservadaHasta })
-        .eq('id', b.id).or(filtroDisponible()).select()
-    ))
-    const fallidas = reservaciones.filter(r => !r.data || r.data.length === 0)
-    if (fallidas.length > 0) {
-      // Liberar las que sí se reservaron
-      reservaciones.forEach((r, i) => {
-        if (r.data?.length > 0) {
-          supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', carrito[i].id)
-        }
-      })
+    // Reserva todas las boletas por 15 minutos, o ninguna si alguna ya no está disponible
+    const idsCarrito = carrito.map(b => b.id)
+    const { error: errReserva } = await supabase.rpc('reservar_boletas', { p_ids: idsCarrito })
+    if (errReserva) {
       toast('Algunas boletas ya no están disponibles. Revisa tu carrito.')
-      setCarrito(prev => prev.filter((b, i) => reservaciones[i]?.data?.length > 0))
+      cargarBoletas()  // sincroniza el carrito: quita las que ya no están disponibles
       setComprando(null)
       return
     }
@@ -752,9 +723,7 @@ function App() {
     }))
 
     if (ordenes.some(o => o === null)) {
-      await Promise.all(carrito.map(b =>
-        supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', b.id)
-      ))
+      await supabase.rpc('liberar_reservas', { p_ids: idsCarrito })
       toast('Error al crear órdenes. Intenta de nuevo.')
       setComprando(null)
       return
@@ -773,7 +742,10 @@ function App() {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reference: referencia, amount: totalCentavos, currency: moneda })
     })
-    if (!res.ok) { toast('Error al generar firma de pago. Intenta de nuevo.'); setComprando(null); return }
+    if (!res.ok) {
+      await supabase.rpc('liberar_reservas', { p_ids: idsCarrito })
+      toast('Error al generar firma de pago. Intenta de nuevo.'); setComprando(null); return
+    }
     const { signature } = await res.json()
 
     const params = new URLSearchParams({

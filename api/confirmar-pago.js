@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' }
 
-import { confirmarPago, json } from './_lib/pagos.js'
+import { confirmarPago, rechazarPago, esRechazado, json } from './_lib/pagos.js'
 
 // Llamado por el frontend cuando Wompi redirige de vuelta con ?id=<transacción>.
 // No confía en el cliente: consulta la transacción directamente a Wompi antes de confirmar.
@@ -18,6 +18,7 @@ export default async function handler(req) {
   const tx = (await res.json().catch(() => null))?.data
   if (!tx) return json({ error: 'Transacción no encontrada' }, 404)
 
+  if (esRechazado(tx.status)) return json({ ...(await rechazarPago(tx.reference)), status: tx.status })
   if (tx.status !== 'APPROVED') return json({ ok: false, status: tx.status })
   return json(await confirmarPago(tx.reference, tx.amount_in_cents))
 }
