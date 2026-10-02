@@ -1,482 +1,14 @@
 import { useEffect, useState, useRef } from 'react'
-import { obtenerBoletas, publicarBoleta, crearOrden, generarCodigoOrden, filtroDisponible, obtenerVentasDeUsuario, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
+import { obtenerBoletas, publicarBoleta, crearOrden, generarCodigoOrden, filtroDisponible, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
 import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword } from './lib/auth'
 import { supabase } from './lib/supabase'
 import ComoFunciona from './ComoFunciona'
-
-
-const PLATAFORMAS = {
-  'TuBoletaPass': {
-    equipos: ['santa fe','america','llaneros','tolima'],
-    color: '#e85d04',
-    instrVendedor: 'Abre TuBoletaPass → Mis entradas → selecciona la boleta → Enviar Entrada → ingresa boletas@boleteriaco.com.',
-    instrComprador: 'Descarga TuBoletaPass en App Store o Google Play. Regístrate con tu documento y correo. Boletería CO te transferirá la boleta; aparecerá en "Mis entradas".',
-    tipoEntrega: 'email',
-    requisitoReceptor: 'La persona que recibe la entrada debe tener una cuenta activa y registrada previamente en la App Tuboleta Pass.',
-    notaVendedor: 'El destinatario recibirá un correo con instrucciones para aceptar la entrada en su cuenta de Tuboleta Pass. Si aún no ha aceptado la boleta, puedes cancelar la transferencia desde el menú principal en la opción "Pendiente".',
-    emailAdmin: 'boletas@boleteriaco.com',
-    pasosVendedor: [
-      'Abre la aplicación Tuboleta Pass en tu celular.',
-      'Entra a la sección "Mis entradas" y selecciona el evento deseado.',
-      'Haz clic en la boleta que deseas transferir.',
-      'Toca el botón "Enviar Entrada" ubicado en la parte inferior.',
-      'Escribe el correo electrónico: boletas@boleteriaco.com.',
-      'Confirma la acción para finalizar el envío.',
-    ],
-    pasosComprador: [
-      'Descarga Tuboleta Pass en App Store o Google Play.',
-      'Regístrate con tu documento y correo electrónico.',
-      'Acepta la entrada cuando llegue la notificación o el correo de transferencia.',
-      'La boleta aparecerá en "Mis entradas".',
-    ],
-  },
-  'Quentro': {
-    equipos: ['millonarios','nacional','atletico nacional'],
-    color: '#2563eb',
-    instrVendedor: 'Abre Quentro → Mis Entradas → selecciona la entrada → icono de flecha → ingresa boletas@boleteriaco.com.',
-    instrComprador: 'Descarga Quentro en App Store o Google Play. Regístrate con tu correo y número de documento. Boletería CO te transferirá la entrada; recibirás una notificación en la app.',
-    tipoEntrega: 'email',
-    requisitoReceptor: 'La persona que recibe la entrada debe tener una cuenta activa y registrada previamente en la App Quentro.',
-    emailAdmin: 'boletas@boleteriaco.com',
-    pasosVendedor: [
-      'Abre la aplicación: Inicia sesión en Quentro con tu cuenta registrada.',
-      'Selecciona la entrada: Entra a "Mis Entradas" y presiona sobre el ticket específico.',
-      'Toca la flecha: Haz clic en el icono de la flecha (o botón "transferir" debajo del código QR) en la esquina superior derecha.',
-      'Elige el método: Selecciona "Ingresar correo electrónico" e ingresa boletas@boleteriaco.com.',
-      'Confirma el envío: Presiona transferir para completar el proceso.',
-    ],
-    pasosComprador: [
-      'Descarga Quentro en App Store o Google Play.',
-      'Crea tu cuenta con tu correo y número de documento.',
-      'Recibirás una notificación cuando Boletería CO te transfiera la entrada.',
-      'Acepta la transferencia desde la app para recibirla.',
-    ],
-  },
-  'Warena': {
-    equipos: ['cucuta','junior','atletico junior'],
-    color: '#7c3aed',
-    instrVendedor: 'Abre W Arena → perfil → entradas → Transferir → ingresa el documento de identidad registrado en la cuenta de boletas@boleteriaco.com.',
-    instrComprador: 'Descarga W Arena en App Store o Google Play. Regístrate con tu documento de identidad. Boletería CO te cederá la entrada a tu documento registrado en la app.',
-    tipoEntrega: 'documento',
-    requisitoReceptor: 'La persona que recibe la entrada debe tener una cuenta activa y registrada previamente en la App W Arena con su documento de identidad.',
-    pasosVendedor: [
-      'Descarga e ingresa a la aplicación oficial de W Arena en tu celular.',
-      'Inicia sesión con los datos de la cuenta con la que realizaste la compra de la boletería o abono.',
-      'Busca el evento o la sección de tus entradas almacenadas en el perfil.',
-      'Selecciona la opción de transferir entradas.',
-      'Ingresa el documento de identidad registrado en la cuenta de Boletería CO para completar el proceso.',
-    ],
-    pasosComprador: [
-      'Descarga W Arena en App Store o Google Play.',
-      'Regístrate con tu nombre y documento de identidad.',
-      'Boletería CO transferirá la entrada a tu documento registrado en la app.',
-      'La entrada aparecerá en tu perfil de W Arena.',
-    ],
-  },
-  'Dim Plus': {
-    equipos: ['independiente medellin','medellin','dim'],
-    color: '#dc2626',
-    instrVendedor: 'Abre DIM Plus → Mis boletas → Ver boleta → Ceder boleta → llena los datos de la cuenta boletas@boleteriaco.com.',
-    instrComprador: 'Descarga DIM Plus en App Store o Google Play. Regístrate con tus datos exactos (nombre y documento). Boletería CO te cederá la boleta a tus datos registrados.',
-    tipoEntrega: 'documento',
-    requisitoReceptor: 'La persona que recibe la entrada debe tener una cuenta activa y registrada previamente en la App DIM Plus.',
-    notaVendedor: 'Condiciones importantes: máximo 3 cesiones por boleta · la cuenta del receptor debe estar activa y registrada previamente · no se permiten descargas en PDF, capturas ni imágenes QR (código dinámico).',
-    pasosVendedor: [
-      'Entra a la App DIM Plus e inicia sesión con tu cuenta.',
-      'Dirígete a la sección "Mis boletas".',
-      'Selecciona la entrada que deseas transferir y haz clic en "Ver boleta".',
-      'Presiona el botón "Ceder boleta".',
-      'Llena los datos personales del receptor exactamente como los tiene registrados en su cuenta de la aplicación.',
-    ],
-    pasosComprador: [
-      'Descarga DIM Plus en App Store o Google Play.',
-      'Regístrate con tus datos personales exactos (nombre y documento).',
-      'Boletería CO cederá la boleta a tus datos registrados.',
-      'Importante: no se permiten descargas en PDF ni capturas del QR — el código es dinámico.',
-    ],
-  },
-}
-
-function sugerirPlataforma(nombreEvento) {
-  if (!nombreEvento) return ''
-  const lower = nombreEvento.toLowerCase()
-  for (const [nombre, data] of Object.entries(PLATAFORMAS)) {
-    if (data.equipos.some(eq => lower.includes(eq))) return nombre
-  }
-  return ''
-}
-
-
-function coloresEquipo(nombre) {
-  const n = (nombre||'').toLowerCase()
-  if (n.includes('santa fe')) return ['#c8102e','#ffffff']
-  if (n.includes('millonarios')) return ['#003fa0','#b8d4f5']
-  if (n.includes('atletico nacional')||(n.includes('nacional')&&!n.includes('santa'))) return ['#006400','#ffffff']
-  if (n.includes('america')||n.includes('américa')) return ['#dd0000','#ffffff']
-  if (n.includes('aguilas')||n.includes('águilas')||n.includes('doradas')) return ['#f0a500','#1a1a1a']
-  if (n.includes('junior')) return ['#cc0000','#f5c518']
-  if (n.includes('medellin')||n.includes('medellín')||n.includes('dim')) return ['#cc0000','#ffffff']
-  if (n.includes('deportivo cali')||n.includes('dep. cali')) return ['#006400','#ffffff']
-  if (n.includes('tolima')) return ['#cc0000','#1a1a1a']
-  if (n.includes('cucuta')||n.includes('cúcuta')) return ['#1a1a1a','#f0f0f0']
-  if (n.includes('peñarol')) return ['#f5c518','#1a1a1a']
-  if (n.includes('boca')) return ['#003fa0','#f5c518']
-  if (n.includes('river')) return ['#cc0000','#f0f0f0']
-  if (n.includes('flamengo')) return ['#cc0000','#1a1a1a']
-  return ['#4f7eff','#ffffff']
-}
-function extraerEquipos(nombre) {
-  const p = (nombre||'').split(/\s+vs\.?\s*/i)
-  return p.length>=2 ? [p[0].trim(), p.slice(1).join(' vs ').trim()] : [nombre||'', null]
-}
-function EscudoSVG({nombre, size=44}) {
-  const [c1,c2] = coloresEquipo(nombre)
-  const ini = (nombre||'').split(/\s+/).filter(w=>w.length>2).slice(0,2).map(w=>w[0].toUpperCase()).join('')||'?'
-  return (
-    <svg width={size} height={size} viewBox="0 0 44 50" xmlns="http://www.w3.org/2000/svg" style={{flexShrink:0}}>
-      <path d="M22 2 L40 9 L40 28 Q40 44 22 50 Q4 44 4 28 L4 9 Z" fill={c1}/>
-      <path d="M22 2 L40 9 L40 28 Q40 44 22 50 Q4 44 4 28 L4 9 Z" fill="none" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
-      <text x="22" y="32" textAnchor="middle" dominantBaseline="middle" fill={c2} fontSize="13" fontWeight="800" fontFamily="system-ui,sans-serif" letterSpacing="-0.3">{ini}</text>
-    </svg>
-  )
-}
-function MapaElCampin({avail, selected, onSelect}) {
-  // avail: { 'Nombre Tribuna': [boletas], ... }
-  // Pitch horizontal (landscape). Goals a izq/der → Norte izq, Sur der.
-  // Occidental=arco SUPERIOR (amplio, 120°, 4 anillos), Oriental=arco INFERIOR (amplio, 120°, 3 anillos)
-  // Norte=D-shape IZQUIERDA (60°), Sur=D-shape DERECHA (60°)
-  const CX=210, CY=195
-  const r2d = d => d*Math.PI/180
-  const ptx = (rx,ry,d) => CX+rx*Math.cos(r2d(d))
-  const pty = (rx,ry,d) => CY+ry*Math.sin(r2d(d))
-  const f = n => +n.toFixed(2)
-  function ringPath({oRx,oRy,iRx,iRy,s,e}) {
-    const span=((e-s)%360+360)%360, lg=span>180?1:0
-    return `M${f(ptx(oRx,oRy,s))} ${f(pty(oRx,oRy,s))} A${oRx} ${oRy} 0 ${lg} 1 ${f(ptx(oRx,oRy,e))} ${f(pty(oRx,oRy,e))} L${f(ptx(iRx,iRy,e))} ${f(pty(iRx,iRy,e))} A${iRx} ${iRy} 0 ${lg} 0 ${f(ptx(iRx,iRy,s))} ${f(pty(iRx,iRy,s))}Z`
-  }
-  function midPt({oRx,oRy,iRx,iRy,s,e}) {
-    const span=((e-s)%360+360)%360, mid=s+span/2
-    return [f(CX+(oRx+iRx)/2*Math.cos(r2d(mid))), f(CY+(oRy+iRy)/2*Math.sin(r2d(mid)))]
-  }
-  const SECS=[
-    // Fondos (detrás de los arcos): arcos pequeños izq/der
-    {id:'Norte', name:'Norte', oRx:170,oRy:110,iRx:95,iRy:50, s:150,e:210},
-    {id:'Sur',   name:'Sur',   oRx:170,oRy:110,iRx:95,iRy:50, s:330,e:30 },
-    // Occidental (arriba, 210°→330°): 4 anillos de adentro a afuera
-    {id:'Occidental General',      name:'Occ.Gen',  oRx:114,oRy:65, iRx:95, iRy:50, s:210,e:330},
-    {id:'Occidental Platea Baja',  name:'Occ.Pl.B', oRx:133,oRy:80, iRx:114,iRy:65, s:210,e:330},
-    {id:'Occidental Platea Alta',  name:'Occ.Pl.A', oRx:152,oRy:95, iRx:133,iRy:80, s:210,e:330},
-    {id:'Occidental Preferencial', name:'Occ.Pref', oRx:170,oRy:110,iRx:152,iRy:95, s:210,e:330},
-    // Oriental (abajo, 30°→150°): 3 anillos de adentro a afuera
-    {id:'Oriental General',        name:'Ori.Gen',  oRx:114,oRy:65, iRx:95, iRy:50, s:30, e:150},
-    {id:'Oriental Preferencial',   name:'Ori.Pref', oRx:137,oRy:84, iRx:114,iRy:65, s:30, e:150},
-    {id:'Oriental Platea',         name:'Ori.Plata',oRx:170,oRy:110,iRx:137,iRy:84, s:30, e:150},
-  ]
-  const fw=190, fh=100, fx=CX-95, fy=CY-50
-  const stripes = Array.from({length:9},(_,i)=>({x:f(fx+i*(fw/9)),fill:i%2===0?'#1e5c28':'#226630'}))
-  return (
-    <svg viewBox="0 0 420 380" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'auto',display:'block',borderRadius:'8px'}}>
-      <defs><clipPath id="fcc"><rect x={fx} y={fy} width={fw} height={fh} rx="8"/></clipPath></defs>
-      <rect width="420" height="380" fill="#06101c" rx="10"/>
-      {SECS.map(sec=>{
-        const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
-        return (
-          <path key={sec.id} d={ringPath(sec)}
-            fill={isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'}
-            stroke={isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'}
-            strokeWidth={isSel?2:1}
-            style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}
-            onClick={()=>isAvail&&onSelect(sec.id)}
-          />
-        )
-      })}
-      <ellipse cx={CX} cy={CY} rx="91" ry="46" fill="#0a1827"/>
-      {stripes.map((s,i)=><rect key={i} x={s.x} y={fy} width={f(fw/9)} height={fh} fill={s.fill} clipPath="url(#fcc)"/>)}
-      <g clipPath="url(#fcc)">
-        <rect x={f(fx+1.5)} y={f(fy+1.5)} width={f(fw-3)} height={f(fh-3)} rx="6" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
-        <line x1={CX} y1={f(fy+1.5)} x2={CX} y2={f(fy+fh-1.5)} stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
-        <circle cx={CX} cy={CY} r="15" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
-        <circle cx={CX} cy={CY} r="2" fill="rgba(255,255,255,.4)"/>
-        <rect x={f(fx+1.5)} y={f(CY-18)} width="28" height="36" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
-        <rect x={f(fx+fw-29.5)} y={f(CY-18)} width="28" height="36" fill="none" stroke="rgba(255,255,255,.32)" strokeWidth="1.2"/>
-      </g>
-      {SECS.filter(sec=>(avail[sec.id]||[]).length>0||selected===sec.id).map(sec=>{
-        const [lx,ly]=midPt(sec)
-        return (
-          <text key={sec.id+'l'} x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
-            fontSize="8.5" fontWeight="700"
-            fill={selected===sec.id?'#fff':'rgba(255,255,255,0.9)'}
-            style={{pointerEvents:'none'}}>{sec.name}</text>
-        )
-      })}
-      {/* Compass markers */}
-      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
-      <text x="210" y="372" textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
-      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
-      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
-    </svg>
-  )
-}
-
-function MapaAtanasio({avail, selected, onSelect}) {
-  // Horizontal: Norte=left, Sur=right, Occidental=top, Oriental=bottom
-  const CX=210, CY=195
-  const r2d = d => d*Math.PI/180
-  const ptx = (rx,ry,d) => CX+rx*Math.cos(r2d(d))
-  const pty = (rx,ry,d) => CY+ry*Math.sin(r2d(d))
-  const f = n => +n.toFixed(2)
-  function ringPath({oRx,oRy,iRx,iRy,s,e}) {
-    const span=((e-s)%360+360)%360, lg=span>180?1:0
-    return `M${f(ptx(oRx,oRy,s))} ${f(pty(oRx,oRy,s))} A${oRx} ${oRy} 0 ${lg} 1 ${f(ptx(oRx,oRy,e))} ${f(pty(oRx,oRy,e))} L${f(ptx(iRx,iRy,e))} ${f(pty(iRx,iRy,e))} A${iRx} ${iRy} 0 ${lg} 0 ${f(ptx(iRx,iRy,s))} ${f(pty(iRx,iRy,s))}Z`
-  }
-  function midPt({oRx,oRy,iRx,iRy,s,e}) {
-    const span=((e-s)%360+360)%360, mid=s+span/2
-    return [f(CX+(oRx+iRx)/2*Math.cos(r2d(mid))), f(CY+(oRy+iRy)/2*Math.sin(r2d(mid)))]
-  }
-  const SECS=[
-    {id:'Norte',           lbl:['Norte'],        oRx:170,oRy:110,iRx:95, iRy:50, s:150,e:210},
-    {id:'Sur',             lbl:['Sur'],           oRx:170,oRy:110,iRx:95, iRy:50, s:330,e:30 },
-    {id:'Occidental Baja', lbl:['Occ.','Baja'],  oRx:115,oRy:67, iRx:95, iRy:50, s:210,e:330},
-    {id:'Occidental Alta', lbl:['Occ.','Alta'],  oRx:143,oRy:88, iRx:115,iRy:67, s:210,e:330},
-    {id:'Platea',          lbl:['Platea'],        oRx:170,oRy:110,iRx:143,iRy:88, s:210,e:330},
-    {id:'Oriental Baja',   lbl:['Ori.','Baja'],  oRx:130,oRy:78, iRx:95, iRy:50, s:30, e:150},
-    {id:'Oriental Alta',   lbl:['Ori.','Alta'],  oRx:170,oRy:110,iRx:130,iRy:78, s:30, e:150},
-  ]
-  const fw=190, fh=100, fx=CX-95, fy=CY-50
-  return (
-    <svg viewBox="0 0 420 390" style={{width:'100%',maxWidth:'540px',display:'block',margin:'0 auto'}} aria-label="Estadio Atanasio Girardot">
-      <defs>
-        <clipPath id="atc"><ellipse cx={CX} cy={CY} rx={95} ry={50}/></clipPath>
-      </defs>
-      <ellipse cx={CX} cy={CY} rx={170} ry={110} fill="#0f172a" opacity="0.5"/>
-      {SECS.map(sec=>{
-        const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
-        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
-        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
-        const [lx,ly]=midPt(sec)
-        return (
-          <g key={sec.id} onClick={()=>isAvail&&onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}>
-            <path d={ringPath(sec)} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.9:0.5}/>
-            <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
-              fontSize={sec.lbl.length>1?'8':'11'} fontWeight="700"
-              fill={isSel?'#fff':isAvail?'#4ade80':'rgba(255,255,255,0.3)'}
-              style={{pointerEvents:'none',letterSpacing:'0.2px'}}>
-              {sec.lbl.length===1
-                ? sec.lbl[0]
-                : <><tspan x={lx} dy="-0.5em">{sec.lbl[0]}</tspan><tspan x={lx} dy="1.1em">{sec.lbl[1]}</tspan></>
-              }
-            </text>
-          </g>
-        )
-      })}
-      <g clipPath="url(#atc)">
-        {Array.from({length:10},(_,i)=>(
-          <rect key={i} x={fx} y={fy+i*10} width={fw} height={5} fill={i%2===0?'#166534':'#15803d'} opacity="0.9"/>
-        ))}
-        <rect x={fx} y={fy} width={fw} height={fh} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <line x1={CX} y1={fy} x2={CX} y2={fy+fh} stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <circle cx={CX} cy={CY} r={22} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <circle cx={CX} cy={CY} r={2} fill="#4ade80" opacity="0.5"/>
-        <rect x={fx} y={CY-18} width={28} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <rect x={fx+fw-28} y={CY-18} width={28} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <circle cx={fx+38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
-        <circle cx={fx+fw-38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
-      </g>
-      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
-      <text x="210" y="378" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
-      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
-      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
-    </svg>
-  )
-}
-
-function MapaPascualGuerrero({avail, selected, onSelect}) {
-  // Horizontal oval: Norte=left cap, Sur=right cap, Oriental=TOP (2 rings), Occidental=BOTTOM (3 rings)
-  const CX=210, CY=195
-  const r2d = d => d*Math.PI/180
-  const ptx = (rx,ry,d) => CX+rx*Math.cos(r2d(d))
-  const pty = (rx,ry,d) => CY+ry*Math.sin(r2d(d))
-  const f = n => +n.toFixed(2)
-  function ringPath({oRx,oRy,iRx,iRy,s,e}) {
-    const span=((e-s)%360+360)%360, lg=span>180?1:0
-    return `M${f(ptx(oRx,oRy,s))} ${f(pty(oRx,oRy,s))} A${oRx} ${oRy} 0 ${lg} 1 ${f(ptx(oRx,oRy,e))} ${f(pty(oRx,oRy,e))} L${f(ptx(iRx,iRy,e))} ${f(pty(iRx,iRy,e))} A${iRx} ${iRy} 0 ${lg} 0 ${f(ptx(iRx,iRy,s))} ${f(pty(iRx,iRy,s))}Z`
-  }
-  function midPt({oRx,oRy,iRx,iRy,s,e}) {
-    const span=((e-s)%360+360)%360, mid=s+span/2
-    return [f(CX+(oRx+iRx)/2*Math.cos(r2d(mid))), f(CY+(oRy+iRy)/2*Math.sin(r2d(mid)))]
-  }
-  const SECS=[
-    // End caps
-    {id:'Norte',                   lbl:['Norte'],        oRx:170,oRy:110,iRx:95,iRy:50, s:150,e:210},
-    {id:'Sur',                     lbl:['Sur'],          oRx:170,oRy:110,iRx:95,iRy:50, s:330,e:30 },
-    // Oriental (top, 30°→150°) — 2 rings inner→outer
-    {id:'Oriental Baja',           lbl:['Ori.','Baja'],  oRx:132,oRy:80, iRx:95,iRy:50, s:30, e:150},
-    {id:'Oriental Alta',           lbl:['Ori.','Alta'],  oRx:170,oRy:110,iRx:132,iRy:80,s:30, e:150},
-    // Occidental (bottom, 210°→330°) — 3 rings inner→outer
-    {id:'Occidental 1.er Piso',    lbl:['Occ.','1.er P'],oRx:113,oRy:65, iRx:95,iRy:50, s:210,e:330},
-    {id:'Occidental 2.º Piso',     lbl:['Occ.','2.º P'], oRx:132,oRy:80, iRx:113,iRy:65,s:210,e:330},
-    {id:'Occidental 3.er Piso',    lbl:['Occ.','3.er P'],oRx:170,oRy:110,iRx:132,iRy:80,s:210,e:330},
-  ]
-  const fw=190, fh=100, fx=CX-95, fy=CY-50
-  return (
-    <svg viewBox="0 0 420 390" style={{width:'100%',maxWidth:'540px',display:'block',margin:'0 auto'}} aria-label="Estadio Pascual Guerrero">
-      <defs>
-        <clipPath id="pgc"><ellipse cx={CX} cy={CY} rx={95} ry={50}/></clipPath>
-      </defs>
-      <rect width="420" height="390" fill="#06101c" rx="10"/>
-      {SECS.map(sec=>{
-        const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
-        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
-        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
-        const [lx,ly]=midPt(sec)
-        return (
-          <g key={sec.id} onClick={()=>isAvail&&onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}>
-            <path d={ringPath(sec)} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.9:0.5}/>
-            <text x={lx} y={ly} textAnchor="middle" dominantBaseline="middle"
-              fontSize={sec.lbl.length>1?'8':'11'} fontWeight="700"
-              fill={isSel?'#fff':isAvail?'#4ade80':'rgba(255,255,255,0.3)'}
-              style={{pointerEvents:'none',letterSpacing:'0.2px'}}>
-              {sec.lbl.length===1
-                ? sec.lbl[0]
-                : <><tspan x={lx} dy="-0.5em">{sec.lbl[0]}</tspan><tspan x={lx} dy="1.1em">{sec.lbl[1]}</tspan></>
-              }
-            </text>
-          </g>
-        )
-      })}
-      <g clipPath="url(#pgc)">
-        {Array.from({length:10},(_,i)=>(
-          <rect key={i} x={fx} y={fy+i*10} width={fw} height={5} fill={i%2===0?'#166534':'#15803d'} opacity="0.9"/>
-        ))}
-        <rect x={fx} y={fy} width={fw} height={fh} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <line x1={CX} y1={fy} x2={CX} y2={fy+fh} stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <circle cx={CX} cy={CY} r={22} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <circle cx={CX} cy={CY} r={2} fill="#4ade80" opacity="0.5"/>
-        <rect x={fx} y={CY-18} width={28} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <rect x={fx+fw-28} y={CY-18} width={28} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <circle cx={fx+38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
-        <circle cx={fx+fw-38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
-      </g>
-      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
-      <text x="210" y="378" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
-      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
-      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
-    </svg>
-  )
-}
-
-function MapaEstadioTecho({avail, selected, onSelect}) {
-  /* Rectangular asymmetric stadium — polygon-based (not arc-based) */
-  const SECS=[
-    {id:'Norte',                name:'Norte',     d:'M170,42 L365,42 L365,115 L170,115Z',         lx:267, ly:78 },
-    {id:'Oriental Norte',       name:'Ori.Norte', d:'M365,42 L445,62 L445,178 L365,115Z',         lx:407, ly:115},
-    {id:'Oriental',             name:'Oriental',  d:'M365,115 L445,178 L445,412 L365,412Z',       lx:406, ly:295},
-    {id:'Occidental Norte',     name:'Occ.Norte', d:'M42,12 L170,12 L170,258 L42,292Z',          lx:80,  ly:152},
-    {id:'Occidental Norte VIP', name:'VIP',       d:'M112,58 L170,58 L170,212 L112,212Z',        lx:139, ly:135},
-    {id:'Occidental Sur',       name:'Occ.Sur',   d:'M42,292 L170,258 L170,412 L42,448Z',        lx:98,  ly:367},
-  ]
-  /* Field bounds */
-  const fx=170,fy=115,fw=195,fh=297
-  return (
-    <svg viewBox="0 0 490 505" style={{width:'100%',maxWidth:'490px',display:'block',margin:'0 auto'}} aria-label="Estadio de Techo">
-      <defs>
-        <clipPath id="tec"><rect x={fx} y={fy} width={fw} height={fh}/></clipPath>
-      </defs>
-      {SECS.map((sec,i)=>{
-        const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
-        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
-        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
-        return (
-          <g key={sec.id} onClick={()=>isAvail && onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default'}}>
-            <path d={sec.d} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.85:0.4}/>
-            <text x={sec.lx} y={sec.ly} textAnchor="middle" dominantBaseline="middle" fontSize="7.5" fontWeight="700"
-              fill={isSel?'#fff':isAvail?'#4ade80':'rgba(255,255,255,0.3)'} style={{pointerEvents:'none',letterSpacing:'0.3px'}}>
-              {sec.name}
-            </text>
-          </g>
-        )
-      })}
-      {/* Field */}
-      <g clipPath="url(#tec)">
-        {Array.from({length:10},(_,i)=>(
-          <rect key={i} x={fx} y={fy+i*(fh/10)} width={fw} height={fh/20} fill={i%2===0?'#166534':'#15803d'} opacity="0.9"/>
-        ))}
-        <rect x={fx} y={fy} width={fw} height={fh} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <line x1={fx} y1={fy+fh/2} x2={fx+fw} y2={fy+fh/2} stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <circle cx={fx+fw/2} cy={fy+fh/2} r={28} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <circle cx={fx+fw/2} cy={fy+fh/2} r={2} fill="#4ade80" opacity="0.5"/>
-        <rect x={fx+47} y={fy} width={101} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <rect x={fx+47} y={fy+fh-36} width={101} height={36} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <rect x={fx+66} y={fy} width={63} height={15} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <rect x={fx+66} y={fy+fh-15} width={63} height={15} fill="none" stroke="#4ade80" strokeWidth="0.8" opacity="0.5"/>
-        <circle cx={fx+fw/2} cy={fy+50} r={2} fill="#4ade80" opacity="0.5"/>
-        <circle cx={fx+fw/2} cy={fy+fh-50} r={2} fill="#4ade80" opacity="0.5"/>
-      </g>
-      {/* Compass */}
-      <text x="267" y="18" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>NORTE</text>
-      <text x="267" y="490" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>SUR</text>
-      <text x="16" y="262" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,16,262)">OCCIDENTAL</text>
-      <text x="474" y="262" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,474,262)">ORIENTAL</text>
-    </svg>
-  )
-}
-
-function SillaExtraRow({ silla, indice, tribunas, onChangeTribuna, onChangeFila, onChangeSilla, onRemove, inputStyle, labelStyle }) {
-  const hasTribunas = Array.isArray(tribunas) && tribunas.length > 0
-  return (
-    <div style={{background:'rgba(79,126,255,0.04)',border:'1px solid rgba(79,126,255,0.15)',borderRadius:'10px',padding:'12px',marginBottom:'12px'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'8px'}}>
-        <span style={{color:'#6b93ff',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.4px'}}>Silla {indice+2}</span>
-        <button type="button" onClick={onRemove} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'16px',lineHeight:1,padding:'0 4px'}}>×</button>
-      </div>
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px'}}>
-        <div>
-          <label style={{...labelStyle,marginBottom:'4px'}}>Tribuna</label>
-          {hasTribunas
-            ? <select value={silla.tribuna} onChange={e=>onChangeTribuna(e.target.value)} required style={{...inputStyle,marginBottom:0}}>
-                <option value="">Selecciona tribuna</option>
-                {tribunas.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            : <input value={silla.tribuna} onChange={e=>onChangeTribuna(e.target.value)} required style={{...inputStyle,marginBottom:0}} />
-          }
-        </div>
-        <div>
-          <label style={{...labelStyle,marginBottom:'4px'}}>Fila</label>
-          <input value={silla.fila} onChange={e=>onChangeFila(e.target.value)} style={{...inputStyle,marginBottom:0}} />
-        </div>
-        <div>
-          <label style={{...labelStyle,marginBottom:'4px'}}>Silla</label>
-          <input value={silla.silla} onChange={e=>onChangeSilla(e.target.value)} style={{...inputStyle,marginBottom:0}} />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ── Direcciones (URL) de cada página ──
-const TITULO_BASE = 'Boletería CO'
-const RUTAS = {
-  'como-funciona': { url: '/como-funciona', titulo: 'Cómo funciona' },
-  'privacidad': { url: '/privacidad', titulo: 'Política de privacidad' },
-  'carrito': { url: '/carrito', titulo: 'Carrito' },
-  'mis-boletas': { url: '/mis-boletas', titulo: 'Mis boletas', requiereSesion: true },
-  'mi-perfil': { url: '/mi-perfil', titulo: 'Mi perfil', requiereSesion: true },
-  'login': { url: '/login', titulo: 'Iniciar sesión' },
-  'registro': { url: '/registro', titulo: 'Crear cuenta' },
-  'recuperar': { url: '/recuperar', titulo: 'Recuperar contraseña' },
-}
-
-function paginaDesdeUrl() {
-  const path = window.location.pathname.replace(/\/+$/, '') || '/'
-  const evento = path.match(/^\/evento\/([^/]+)$/)
-  if (evento) return { pagina: 'evento', eventoId: decodeURIComponent(evento[1]) }
-  return { pagina: Object.keys(RUTAS).find(k => RUTAS[k].url === path) || 'inicio' }
-}
-
-function urlDePagina(pagina, evento) {
-  if (pagina === 'evento') return evento ? `/evento/${encodeURIComponent(evento.eid)}` : null
-  return RUTAS[pagina]?.url || '/'
-}
+import { PLATAFORMAS, sugerirPlataforma } from './datos/plataformas'
+import { extraerEquipos } from './lib/equipos'
+import { TITULO_BASE, RUTAS, paginaDesdeUrl, urlDePagina } from './rutas'
+import EscudoSVG from './componentes/EscudoSVG'
+import SillaExtraRow from './componentes/SillaExtraRow'
+import { MapaElCampin, MapaAtanasio, MapaPascualGuerrero, MapaEstadioTecho } from './componentes/MapasEstadios'
 
 function App() {
   const [esMobile, setEsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 640)
@@ -484,7 +16,6 @@ function App() {
   const [boletasPendientes, setBoletasPendientes] = useState([])
   const [boletasAdmin, setBoletasAdmin] = useState([])
   const [ordenesLiberadas, setOrdenesLiberadas] = useState([])
-  const [ventasPorVendedor, setVentasPorVendedor] = useState({})
   const [cargando, setCargando] = useState(true)
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [mostrarAdmin, setMostrarAdmin] = useState(false)
@@ -507,7 +38,6 @@ function App() {
   const [formAuth, setFormAuth] = useState({ nombre: '', correo: '', password: '', nuevaPassword: '', datosPago: '', documento: '' })
   const [datosPagoVendedor, setDatosPagoVendedor] = useState('')
   const [editandoPago, setEditandoPago] = useState(false)
-  const [esRecuperacion, setEsRecuperacion] = useState(false)
   const [mensajeAuth, setMensajeAuth] = useState('')
   const [confirmarEliminarEvento, setConfirmarEliminarEvento] = useState(null)
   const [confirmarRetirarBoleta, setConfirmarRetirarBoleta] = useState(null)
@@ -525,7 +55,6 @@ function App() {
   const [estadioEditando, setEstadioEditando] = useState(null)
   const [tribunaEstadioTemp, setTribunaEstadioTemp] = useState('')
   const [confirmarEliminarEstadio, setConfirmarEliminarEstadio] = useState(null)
-  const [tribunaExpandida, setTribunaExpandida] = useState(null)
   const [formEvento, setFormEvento] = useState({ nombre: '', deporte: 'Futbol', ciudad: '', estadio: '', estadioId: '', fechaHora: '', moneda: 'COP', tribunas: [] })
   const [mensajeEvento, setMensajeEvento] = useState('')
   const [form, setForm] = useState({ eventoId: '', tribuna: '', fila: '', silla: '', cantidad: 1, precio: '', plataforma: '' })
@@ -533,11 +62,9 @@ function App() {
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
   const [perfilData, setPerfilData] = useState({ nombre: '', documento: '', telefono: '' })
-  const [perfilCargado, setPerfilCargado] = useState(false)
   const [perfilGuardando, setPerfilGuardando] = useState(false)
   const [perfilMensaje, setPerfilMensaje] = useState('')
   const [perfilCambiandoPassword, setPerfilCambiandoPassword] = useState(false)
-  const [perfilPassActual, setPerfilPassActual] = useState('')
   const [perfilPassNueva, setPerfilPassNueva] = useState('')
   const [perfilPassConfirm, setPerfilPassConfirm] = useState('')
   const [paginaActual, setPaginaActual] = useState(() => paginaDesdeUrl().pagina)
@@ -568,7 +95,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    try { localStorage.setItem('bco_carrito', JSON.stringify(carrito)) } catch {}
+    try { localStorage.setItem('bco_carrito', JSON.stringify(carrito)) } catch { /* almacenamiento no disponible */ }
   }, [carrito])
 
   useEffect(() => {
@@ -591,11 +118,12 @@ function App() {
         setMensajeAuth('')
       }
       if (event === 'PASSWORD_RECOVERY') {
-        setEsRecuperacion(true)
         setVistaAuth('nueva-password')
       }
     })
     return () => authListener.subscription.unsubscribe()
+  // Solo al montar la app
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
@@ -631,6 +159,7 @@ function App() {
     if (paginaActual !== 'evento' || eventoSeleccionado || cargando) return
     const eid = eventoDeUrl.current
     const delEvento = boletas.filter(b => String(b.evento_id || b.eventos?.id || b.id) === eid)
+    // Se arma aquí porque depende de las boletas, que llegan después de abrir el enlace
     if (delEvento.length) setEventoSeleccionado({ eid, ev: { info: delEvento[0].eventos, boletas: delEvento } })
     else { reemplazarUrl.current = true; setPaginaActual('inicio') }
   }, [paginaActual, eventoSeleccionado, cargando, boletas])
@@ -641,9 +170,13 @@ function App() {
     if (!sesionVerificada || rutaInicialCargada.current) return
     rutaInicialCargada.current = true
     if (!RUTAS[paginaActual]?.requiereSesion) return
+    // Redirige al login si la página exige sesión y no la hay
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!usuario) { reemplazarUrl.current = true; setPaginaActual('login'); return }
     if (paginaActual === 'mis-boletas') cargarMisBoletas()
     if (paginaActual === 'mi-perfil') cargarPerfil()
+  // Solo una vez, cuando se sabe si hay sesión
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sesionVerificada])
 
   useEffect(() => {
@@ -651,7 +184,7 @@ function App() {
       supabase.from('usuarios').select('datos_pago').eq('id', usuario.id).single()
         .then(({ data }) => { if (data) setDatosPagoVendedor(data.datos_pago || '') })
     }
-  }, [usuario])
+  }, [usuario, esAdmin])
 
   async function guardarDatosPago() {
     if (!usuario) return
@@ -704,10 +237,10 @@ function App() {
         } catch(e) { console.error('Error procesando extras carrito:', e) }
       }
       let carritoCount = 1
-      try { carritoCount = parseInt(sessionStorage.getItem('carrito_count') || '1'); sessionStorage.removeItem('carrito_count') } catch(e) {}
+      try { carritoCount = parseInt(sessionStorage.getItem('carrito_count') || '1'); sessionStorage.removeItem('carrito_count') } catch { /* almacenamiento no disponible */ }
       setPagoInfo({ referencia, transaccionId, carritoCount })
       setCarrito([])
-      try { localStorage.removeItem('bco_carrito') } catch {}
+      try { localStorage.removeItem('bco_carrito') } catch { /* almacenamiento no disponible */ }
       setPagoStatus('exitoso')
     } else if (status === 'DECLINED' || status === 'ERROR' || status === 'VOIDED') {
       if (referencia) {
@@ -725,7 +258,7 @@ function App() {
                 await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', extra.boleta_id)
               }
             }
-          } catch(e) {}
+          } catch { /* datos del carrito ilegibles: no hay boletas extra que liberar */ }
           sessionStorage.removeItem('carrito_ordenes_extra')
         }
       }
@@ -787,18 +320,6 @@ function App() {
     // Sync cart: refresh publicada_por_admin and remove unavailable boletas
     setCarrito(prev => prev.length === 0 ? prev : prev.map(item => data.find(b => b.id === item.id) || item).filter(item => data.some(b => b.id === item.id)))
     setCargando(false)
-    const ventas = {}
-    for (const b of data) {
-      if (b.vendedor_id && !(b.vendedor_id in ventas)) {
-        const { count } = await supabase
-          .from('boletas')
-          .select('id', { count: 'exact' })
-          .eq('vendedor_id', b.vendedor_id)
-          .eq('estado', 'vendida')
-        ventas[b.vendedor_id] = count || 0
-      }
-    }
-    setVentasPorVendedor(ventas)
   }
 
   async function cargarOrdenesLiberadas() {
@@ -1071,7 +592,6 @@ function App() {
     if (resultado.exito) {
       setMensajeAuth('✅ Contraseña actualizada. Ya puedes iniciar sesión.')
       setVistaAuth('login')
-      setEsRecuperacion(false)
       window.history.replaceState({}, '', window.location.pathname)
     } else {
       setMensajeAuth('Error: ' + resultado.mensaje)
@@ -1093,7 +613,6 @@ function App() {
     const { data } = await supabase.from('usuarios').select('nombre, documento, telefono, datos_pago').eq('id', usuario.id).single()
     if (data) {
       setPerfilData({ nombre: data.nombre || '', documento: data.documento || '', telefono: data.telefono || '', datosPago: data.datos_pago || '' })
-      setPerfilCargado(true)
     }
   }
 
@@ -1129,7 +648,7 @@ function App() {
       setPerfilMensaje('❌ ' + error.message)
     } else {
       setPerfilMensaje('✅ Contraseña actualizada.')
-      setPerfilPassActual(''); setPerfilPassNueva(''); setPerfilPassConfirm('')
+      setPerfilPassNueva(''); setPerfilPassConfirm('')
       setPerfilCambiandoPassword(false)
       setTimeout(() => setPerfilMensaje(''), 3000)
     }
@@ -1246,7 +765,7 @@ function App() {
     const referencia = ordenes[0].codigo_orden
 
     if (ordenes.length > 1) {
-      try { sessionStorage.setItem('carrito_ordenes_extra', JSON.stringify(ordenes.slice(1).map(o => ({ id: o.id, boleta_id: o.boleta_id, codigo_orden: o.codigo_orden })))) } catch(e) {}
+      try { sessionStorage.setItem('carrito_ordenes_extra', JSON.stringify(ordenes.slice(1).map(o => ({ id: o.id, boleta_id: o.boleta_id, codigo_orden: o.codigo_orden })))) } catch { /* almacenamiento no disponible */ }
     }
 
     const totalCentavos = totalCombinado * 100
@@ -1264,69 +783,8 @@ function App() {
       'redirect-url': window.location.origin
     })
     startTimer(15 * 60)
-    try { sessionStorage.setItem('carrito_count', String(carrito.length)) } catch(e) {}
-    try { sessionStorage.setItem('datos_entrega', JSON.stringify(datosEntrega)) } catch(e) {}
-    window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
-  }
-
-  async function manejarCompra(boleta) {
-    if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return }
-    setComprando(boleta.id)
-
-    // Intentar reservar atómicamente (solo si sigue publicada)
-    const reservadaHasta = new Date(Date.now() + 15 * 60 * 1000).toISOString()
-    const { data: reservada } = await supabase
-      .from('boletas')
-      .update({ estado: 'reservada', reservada_hasta: reservadaHasta })
-      .eq('id', boleta.id)
-      .or(filtroDisponible())
-      .select()
-
-    if (!reservada || reservada.length === 0) {
-      toast('Esta boleta ya fue reservada. Intenta con otra.')
-      setComprando(null)
-      cargarBoletas()
-      return
-    }
-
-    const subtotal = Number(boleta.precio)
-    const esBoletaAdmin = boleta.publicada_por_admin === true
-    const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 1.15 / 1000) * 1000 - subtotal
-    const total = subtotal + comision
-    const moneda = boleta.eventos ? boleta.eventos.moneda : 'COP'
-
-    const orden = await crearOrden({ boletaId: boleta.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'wompi' })
-    if (!orden) {
-      await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', boleta.id)
-      toast('Hubo un error al crear la orden. Intenta de nuevo.')
-      setComprando(null)
-      return
-    }
-
-    const totalCentavos = total * 100
-    const referencia = orden.codigo_orden
-
-    const res = await fetch('/api/integrity', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reference: referencia, amount: totalCentavos, currency: moneda })
-    })
-
-    if (!res.ok) { toast('Error al generar la firma de pago. Intenta de nuevo.'); setComprando(null); return }
-
-    const { signature } = await res.json()
-
-    const params = new URLSearchParams({
-      'public-key': import.meta.env.VITE_WOMPI_PUBLIC_KEY,
-      'currency': moneda,
-      'amount-in-cents': totalCentavos,
-      'reference': referencia,
-      'signature:integrity': signature,
-      'redirect-url': window.location.origin
-    })
-
-    startTimer(15 * 60)
-    try { sessionStorage.setItem('carrito_count', '1') } catch(e) {}
+    try { sessionStorage.setItem('carrito_count', String(carrito.length)) } catch { /* almacenamiento no disponible */ }
+    try { sessionStorage.setItem('datos_entrega', JSON.stringify(datosEntrega)) } catch { /* almacenamiento no disponible */ }
     window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
   }
 
@@ -1749,7 +1207,6 @@ function App() {
                     const ev = b && b.eventos
                     const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
                     const fecha = ev && ev.fecha ? new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : ''
-                    const esBoletaAdmin = b?.usuarios?.es_admin === true
                     const yaLiberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
                     const msRestantes = (new Date(o.creado_en).getTime() + 72 * 60 * 60 * 1000) - Date.now()
                     const horas = Math.max(0, Math.floor(msRestantes / 3600000))
@@ -2817,7 +2274,7 @@ function App() {
 
         {/* ── PÁGINA DE EVENTO ── */}
         {paginaActual === 'evento' && eventoSeleccionado && (() => {
-          const {eid, ev} = eventoSeleccionado
+          const { ev } = eventoSeleccionado
           const info = ev.info
           const [equipo1, equipo2] = extraerEquipos(info?.nombre || '')
           const fechaStr = info?.fecha ? new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}) : ''
@@ -3112,7 +2569,6 @@ function App() {
                   {/* Resumen total */}
                   {(() => {
                     const monC = carrito[0]?.eventos?.moneda || 'COP'
-                    const subtotalC = carrito.reduce((s, b) => s + Number(b.precio), 0)
                     const totalC = carrito.reduce((s, b) => s + (b.publicada_por_admin === true ? Number(b.precio) : Math.round(Number(b.precio) * 1.15 / 1000) * 1000), 0)
                     return (
                       <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginTop:'8px',marginBottom:'24px'}}>
