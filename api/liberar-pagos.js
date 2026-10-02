@@ -3,7 +3,7 @@ export const config = { runtime: 'edge' }
 import { supa, json, correoAdmin, enviarCorreo } from './_lib/pagos.js'
 
 // Corre una vez al día (cron en vercel.json). Libera las órdenes pagadas hace más de 72 h
-// que el comprador no confirmó, avisa al admin qué vendedores hay que pagar
+// que el comprador no confirmó ni reclamó, avisa al admin qué vendedores hay que pagar
 // y devuelve a la venta las boletas con reservas vencidas.
 export default async function handler(req) {
   // Vercel Cron envía "Authorization: Bearer <CRON_SECRET>"; x-cron-secret se mantiene para llamados manuales
@@ -16,7 +16,7 @@ export default async function handler(req) {
 
   const limite = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString()
   const res = await supa(
-    `ordenes?estado_pago=eq.pagada&liberado=eq.false&creado_en=lt.${limite}` +
+    `ordenes?estado_pago=eq.pagada&liberado=eq.false&reclamo_en=is.null&creado_en=lt.${limite}` +
     '&select=codigo_orden,subtotal,boletas(precio,publicada_por_admin,eventos(nombre),usuarios(nombre,correo,datos_pago))',
     {
       method: 'PATCH',
