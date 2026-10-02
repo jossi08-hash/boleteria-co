@@ -453,6 +453,31 @@ function SillaExtraRow({ silla, indice, tribunas, onChangeTribuna, onChangeFila,
   )
 }
 
+// ── Direcciones (URL) de cada página ──
+const TITULO_BASE = 'Boletería CO'
+const RUTAS = {
+  'como-funciona': { url: '/como-funciona', titulo: 'Cómo funciona' },
+  'privacidad': { url: '/privacidad', titulo: 'Política de privacidad' },
+  'carrito': { url: '/carrito', titulo: 'Carrito' },
+  'mis-boletas': { url: '/mis-boletas', titulo: 'Mis boletas', requiereSesion: true },
+  'mi-perfil': { url: '/mi-perfil', titulo: 'Mi perfil', requiereSesion: true },
+  'login': { url: '/login', titulo: 'Iniciar sesión' },
+  'registro': { url: '/registro', titulo: 'Crear cuenta' },
+  'recuperar': { url: '/recuperar', titulo: 'Recuperar contraseña' },
+}
+
+function paginaDesdeUrl() {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/'
+  const evento = path.match(/^\/evento\/([^/]+)$/)
+  if (evento) return { pagina: 'evento', eventoId: decodeURIComponent(evento[1]) }
+  return { pagina: Object.keys(RUTAS).find(k => RUTAS[k].url === path) || 'inicio' }
+}
+
+function urlDePagina(pagina, evento) {
+  if (pagina === 'evento') return evento ? `/evento/${encodeURIComponent(evento.eid)}` : null
+  return RUTAS[pagina]?.url || '/'
+}
+
 function App() {
   const [esMobile, setEsMobile] = useState(typeof window !== 'undefined' && window.innerWidth < 640)
   const [boletas, setBoletas] = useState([])
@@ -515,7 +540,10 @@ function App() {
   const [perfilPassActual, setPerfilPassActual] = useState('')
   const [perfilPassNueva, setPerfilPassNueva] = useState('')
   const [perfilPassConfirm, setPerfilPassConfirm] = useState('')
-  const [paginaActual, setPaginaActual] = useState('inicio')
+  const [paginaActual, setPaginaActual] = useState(() => paginaDesdeUrl().pagina)
+  const eventoDeUrl = useRef(paginaDesdeUrl().eventoId)
+  const reemplazarUrl = useRef(false)  // true en redirecciones, para no dejar la URL inválida en el historial
+  const [sesionVerificada, setSesionVerificada] = useState(false)
   const [pestanaMis, setPestanaMis] = useState('pedidos')
   const [pestanaAdmin, setPestanaAdmin] = useState('pendientes')
   const [misCompras, setMisCompras] = useState([])
@@ -547,7 +575,7 @@ function App() {
     cargarBoletas()
     cargarEventos()
     cargarEstadios()
-    obtenerUsuarioActual().then(u => setUsuario(u))
+    obtenerUsuarioActual().then(u => { setUsuario(u); setSesionVerificada(true) })
 
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get('id') || urlParams.get('status') || urlParams.get('pago') === 'exitoso') {
@@ -573,6 +601,50 @@ function App() {
   useEffect(() => {
     if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas(); cargarBoletasAdmin(); cargarEstadios() }
   }, [esAdmin])
+
+  // Mantener la URL y el título de la pestaña sincronizados con la página actual
+  useEffect(() => {
+    const url = urlDePagina(paginaActual, eventoSeleccionado)
+    if (!url) return
+    if (url !== window.location.pathname) {
+      if (reemplazarUrl.current) window.history.replaceState(null, '', url)
+      else window.history.pushState(null, '', url)
+    }
+    reemplazarUrl.current = false
+    const titulo = paginaActual === 'evento' ? eventoSeleccionado?.ev?.info?.nombre : RUTAS[paginaActual]?.titulo
+    document.title = titulo ? `${titulo} · ${TITULO_BASE}` : `${TITULO_BASE} — Compra y vende boletas de fútbol en Colombia`
+  }, [paginaActual, eventoSeleccionado])
+
+  // Botones atrás / adelante del navegador
+  useEffect(() => {
+    const onPopState = () => {
+      const { pagina, eventoId } = paginaDesdeUrl()
+      if (pagina === 'evento') { eventoDeUrl.current = eventoId; setEventoSeleccionado(null) }
+      setPaginaActual(pagina)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [])
+
+  // Abrir /evento/<id> directamente: armar el evento con las boletas cargadas
+  useEffect(() => {
+    if (paginaActual !== 'evento' || eventoSeleccionado || cargando) return
+    const eid = eventoDeUrl.current
+    const delEvento = boletas.filter(b => String(b.evento_id || b.eventos?.id || b.id) === eid)
+    if (delEvento.length) setEventoSeleccionado({ eid, ev: { info: delEvento[0].eventos, boletas: delEvento } })
+    else { reemplazarUrl.current = true; setPaginaActual('inicio') }
+  }, [paginaActual, eventoSeleccionado, cargando, boletas])
+
+  // Páginas que requieren sesión, abiertas desde un enlace
+  const rutaInicialCargada = useRef(false)
+  useEffect(() => {
+    if (!sesionVerificada || rutaInicialCargada.current) return
+    rutaInicialCargada.current = true
+    if (!RUTAS[paginaActual]?.requiereSesion) return
+    if (!usuario) { reemplazarUrl.current = true; setPaginaActual('login'); return }
+    if (paginaActual === 'mis-boletas') cargarMisBoletas()
+    if (paginaActual === 'mi-perfil') cargarPerfil()
+  }, [sesionVerificada])
 
   useEffect(() => {
     if (usuario && !esAdmin) {
