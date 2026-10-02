@@ -32,5 +32,11 @@
       "path": "/api/liberar-pagos",
       "schedule": "0 13 * * *"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!api/|assets/|.*\\..*).*)",
+      "destination": "/index.html"
+    }
   ]
 }

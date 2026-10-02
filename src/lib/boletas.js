@@ -29,15 +29,6 @@ export async function obtenerBoletas() {
 }
 
 
-export async function obtenerVentasDeUsuario(usuarioId) {
-  const { count } = await supabase
-    .from('boletas')
-    .select('id', { count: 'exact' })
-    .eq('vendedor_id', usuarioId)
-    .eq('estado', 'vendida')
-  return count || 0
-}
-
 export async function publicarBoleta({ eventoId, vendedorId, tribuna, fila, silla, cantidad, precio, plataforma, publicadaPorAdmin = false }) {
   const { data, error } = await supabase
     .from('boletas')
