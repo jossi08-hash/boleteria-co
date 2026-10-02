@@ -1,38 +1,53 @@
 export const config = { runtime: 'edge' }
 
-const SUPABASE_URL = 'https://ssyelddmusabkxwijghn.supabase.co'
+import { supa, json, correoAdmin, enviarCorreo } from './_lib/pagos.js'
 
+// Corre una vez al día (cron en vercel.json). Libera las órdenes pagadas hace más de 72 h
+// que el comprador no confirmó, y avisa al admin qué vendedores hay que pagar.
 export default async function handler(req) {
-  const secret = req.headers.get('x-cron-secret')
-  if (!secret || secret !== process.env.CRON_SECRET) {
+  // Vercel Cron envía "Authorization: Bearer <CRON_SECRET>"; x-cron-secret se mantiene para llamados manuales
+  const secret = process.env.CRON_SECRET
+  const auth = req.headers.get('authorization')
+  if (!secret || (auth !== `Bearer ${secret}` && req.headers.get('x-cron-secret') !== secret)) {
     return new Response('Unauthorized', { status: 401 })
   }
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return json({ error: 'Sin service role key' }, 500)
 
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!key) {
-    return new Response(JSON.stringify({ error: 'Sin service role key' }), { status: 500 })
-  }
-
-  // Actualizar órdenes pagadas, no liberadas, con más de 72h de antigüedad
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/ordenes?estado_pago=eq.pagada&liberado=eq.false&creado_en=lt.${new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString()}`,
+  const limite = new Date(Date.now() - 72 * 60 * 60 * 1000).toISOString()
+  const res = await supa(
+    `ordenes?estado_pago=eq.pagada&liberado=eq.false&creado_en=lt.${limite}` +
+    '&select=codigo_orden,subtotal,boletas(precio,publicada_por_admin,eventos(nombre),usuarios(nombre,correo,datos_pago))',
     {
       method: 'PATCH',
-      headers: {
-        apikey: key,
-        Authorization: `Bearer ${key}`,
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation'
-      },
+      headers: { Prefer: 'return=representation' },
       body: JSON.stringify({ liberado: true, liberado_en: new Date().toISOString() })
     }
   )
+  const liberadas = await res.json().catch(() => [])
+  if (!Array.isArray(liberadas)) return json({ error: 'Error liberando órdenes', detalle: liberadas }, 500)
 
-  const data = await res.json()
-  const count = Array.isArray(data) ? data.length : 0
+  // Las boletas del admin no tienen vendedor externo a quien pagar
+  const porPagar = liberadas.filter(o => o.boletas?.publicada_por_admin !== true)
+  if (porPagar.length > 0 && process.env.RESEND_API_KEY) {
+    const filas = porPagar.map(o => {
+      const b = o.boletas || {}
+      const v = b.usuarios || {}
+      const neto = Math.round(Number(o.subtotal ?? b.precio ?? 0) * 0.92)
+      return `<tr><td style="padding:6px;border-bottom:1px solid #e5e7eb;">${o.codigo_orden}</td>` +
+        `<td style="padding:6px;border-bottom:1px solid #e5e7eb;">${b.eventos?.nombre || ''}</td>` +
+        `<td style="padding:6px;border-bottom:1px solid #e5e7eb;">${v.nombre || ''}<br><small>${v.correo || ''}</small><br><small>${v.datos_pago || 'Sin datos de pago'}</small></td>` +
+        `<td style="padding:6px;border-bottom:1px solid #e5e7eb;text-align:right;"><strong>$${neto.toLocaleString('es-CO')}</strong></td></tr>`
+    }).join('')
+    await enviarCorreo(await correoAdmin(), `💸 ${porPagar.length} pago${porPagar.length !== 1 ? 's' : ''} a vendedores listos (72 h)`,
+      `<div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+        <h1 style="color:#15803d;font-size:20px;">Pagos listos para enviar</h1>
+        <p style="color:#374151;">Pasaron 72 horas sin reclamos en estas ventas. Envía el pago a cada vendedor y márcalo como pagado en el panel de admin.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <tr><th align="left">Ref</th><th align="left">Evento</th><th align="left">Vendedor</th><th align="right">Enviar (92%)</th></tr>
+          ${filas}
+        </table>
+      </div>`)
+  }
 
-  return new Response(JSON.stringify({ ok: true, liberadas: count }), {
-    status: 200,
-    headers: { 'Content-Type': 'application/json' }
-  })
+  return json({ ok: true, liberadas: liberadas.length, porPagar: porPagar.length })
 }

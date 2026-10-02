@@ -47,8 +47,13 @@ export async function publicarBoleta({ eventoId, vendedorId, tribuna, fila, sill
   return data[0]
 }
 
-export async function crearOrden({ boletaId, compradorId, subtotal, comision, total, metodoPago }) {
-  const codigoOrden = 'BCO-' + Math.random().toString(36).substring(2, 9).toUpperCase()
+export function generarCodigoOrden() {
+  return 'BCO-' + Math.random().toString(36).substring(2, 9).toUpperCase()
+}
+
+// En el carrito, las órdenes extra usan el código de la principal con sufijo (-2, -3...)
+// para que el servidor sepa qué órdenes cubre un mismo pago de Wompi.
+export async function crearOrden({ boletaId, compradorId, subtotal, comision, total, metodoPago, codigoOrden = generarCodigoOrden() }) {
 
   const { data, error } = await supabase
     .from('ordenes')

@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' };
 
-const SUPABASE_URL = 'https://ssyelddmusabkxwijghn.supabase.co'
+import { ordenesDelPago, montoEsperadoCentavos } from './_lib/pagos.js'
 
 export default async function handler(req) {
   if (req.method !== 'POST') {
@@ -37,26 +37,15 @@ export default async function handler(req) {
     });
   }
 
-  // Validar monto contra la BD antes de generar la firma
-  const dbRes = await fetch(
-    `${SUPABASE_URL}/rest/v1/ordenes?codigo_orden=eq.${reference}&select=total`,
-    {
-      headers: {
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`
-      }
-    }
-  )
-  const dbData = await dbRes.json()
-  if (!Array.isArray(dbData) || dbData.length === 0) {
+  // Validar el monto contra el precio real de las boletas (no contra el total que escribió el navegador)
+  const ordenes = await ordenesDelPago(reference)
+  if (ordenes.length === 0) {
     return new Response(JSON.stringify({ error: 'Orden no encontrada' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' }
     });
   }
-  // Wompi maneja montos en centavos (enteros)
-  const totalCentavos = Math.round(Number(dbData[0].total) * 100)
-  if (Number(amount) !== totalCentavos) {
+  if (Number(amount) !== montoEsperadoCentavos(ordenes)) {
     return new Response(JSON.stringify({ error: 'Monto no coincide con el total de la orden' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' }

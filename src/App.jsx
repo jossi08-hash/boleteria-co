@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { obtenerBoletas, publicarBoleta, crearOrden, obtenerVentasDeUsuario, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
+import { obtenerBoletas, publicarBoleta, crearOrden, generarCodigoOrden, obtenerVentasDeUsuario, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
 import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword } from './lib/auth'
 import { supabase } from './lib/supabase'
 import ComoFunciona from './ComoFunciona'
@@ -476,7 +476,6 @@ function App() {
   const [silasExtra, setSilasExtra] = useState([])
   const [toasts, setToasts] = useState([])
   const [timerReserva, setTimerReserva] = useState(null) // segundos restantes
-  const [metodoPagoActivo, setMetodoPagoActivo] = useState('wompi')
   const timerIntervalRef = useRef(null)
   const [usuario, setUsuario] = useState(null)
   const [vistaAuth, setVistaAuth] = useState(null)
@@ -508,8 +507,6 @@ function App() {
   const [tribunasEvento, setTribunasEvento] = useState([])
   const [pagoStatus, setPagoStatus] = useState(null)
   const [pagoInfo, setPagoInfo] = useState(null)
-  const [docModal, setCedModal] = useState(null)   // null | { tipo: 'boleta'|'carrito', boleta?: object }
-  const [documentoInput, setDocumentoInput] = useState('')
   const [perfilData, setPerfilData] = useState({ nombre: '', documento: '', telefono: '' })
   const [perfilCargado, setPerfilCargado] = useState(false)
   const [perfilGuardando, setPerfilGuardando] = useState(false)
@@ -518,8 +515,6 @@ function App() {
   const [perfilPassActual, setPerfilPassActual] = useState('')
   const [perfilPassNueva, setPerfilPassNueva] = useState('')
   const [perfilPassConfirm, setPerfilPassConfirm] = useState('')
-  const [qrModal, setQrModal] = useState(null)      // null | { qr, referencia, ordenes, carritoCount }
-  const [boldCargando, setBoldCargando] = useState(false)
   const [paginaActual, setPaginaActual] = useState('inicio')
   const [pestanaMis, setPestanaMis] = useState('pedidos')
   const [pestanaAdmin, setPestanaAdmin] = useState('pendientes')
@@ -617,6 +612,13 @@ function App() {
     }
 
     if (status === 'APPROVED' && referencia) {
+      // El servidor verifica la transacción con Wompi y marca las órdenes como pagadas
+      if (transaccionId) {
+        await fetch('/api/confirmar-pago', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transaccionId })
+        }).catch(() => {})
+      }
       const { data: orden } = await supabase
         .from('ordenes').select('id, boleta_id').eq('codigo_orden', referencia).single()
       if (orden) {
@@ -673,7 +675,7 @@ function App() {
     // Notificar al admin que el pago está listo para ser enviado al vendedor
     fetch('/api/notificar-pago-admin', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: await headersConSesion(),
       body: JSON.stringify({ ordenId })
     }).catch(() => {})
     cargarMisBoletas()
@@ -751,7 +753,7 @@ function App() {
       // Notificar al vendedor que su pago fue enviado
       fetch('/api/notificar-vendedor-pago', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await headersConSesion(),
         body: JSON.stringify({ ordenId })
       }).catch(() => {})
     }
@@ -1079,6 +1081,12 @@ function App() {
     return '$' + valor.toLocaleString('es-CO')
   }
 
+  // Las APIs de correos de pago exigen el token de sesión de Supabase
+  async function headersConSesion() {
+    const { data: { session } } = await supabase.auth.getSession()
+    return { 'Content-Type': 'application/json', Authorization: `Bearer ${session?.access_token || ''}` }
+  }
+
   // Lo que recibe el vendedor: precio de venta menos 8% de comisión (las boletas del admin no pagan comisión)
   function netoVendedor(orden) {
     const subtotal = orden.subtotal != null ? Number(orden.subtotal) : Number(orden.total || 0) - Number(orden.comision || 0)
@@ -1108,190 +1116,6 @@ function App() {
     setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4000)
   }
 
-
-  // ── Polling Bold: cuando hay QR abierto, verificar estado cada 3 s ──
-  useEffect(() => {
-    if (!qrModal) return
-    const iv = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/estado-bold?referencia=${encodeURIComponent(qrModal.referencia)}`)
-        const data = await res.json()
-        if (data.status === 'APPROVED') {
-          clearInterval(iv)
-          // Notificar al vendedor (same as Wompi success)
-          fetch('/api/notificar-vendedor', {
-            method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ referencia: qrModal.referencia })
-          })
-          // Procesar órdenes extra del carrito si hay
-          try {
-            const extraStr = sessionStorage.getItem('carrito_ordenes_extra')
-            if (extraStr) {
-              const extras = JSON.parse(extraStr)
-              extras.forEach(o => {
-                if (o.codigo_orden) fetch('/api/notificar-vendedor', {
-                  method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ referencia: o.codigo_orden })
-                })
-              })
-              sessionStorage.removeItem('carrito_ordenes_extra')
-            }
-          } catch {}
-          setCarrito([])
-          try { localStorage.removeItem('bco_carrito') } catch {}
-          setPagoInfo({ referencia: qrModal.referencia, carritoCount: qrModal.carritoCount || 1 })
-          setQrModal(null)
-          cargarBoletas()
-          setPagoStatus('exitoso')
-        }
-      } catch {}
-    }, 3000)
-    return () => clearInterval(iv)
-  }, [qrModal?.referencia])
-
-  // ── Iniciar pago Bold Bre-B (carrito) ──
-  async function iniciarBoldCarrito(documento) {
-    if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return }
-    setBoldCargando(true)
-    setCedModal(null)
-
-    // Reservar todas las boletas
-    const reservadaHasta = new Date(Date.now() + 15 * 60 * 1000).toISOString()
-    const reservaciones = await Promise.all(carrito.map(b =>
-      supabase.from('boletas').update({ estado: 'reservada', reservada_hasta: reservadaHasta })
-        .eq('id', b.id).eq('estado', 'publicada').select()
-    ))
-    const fallidas = reservaciones.filter(r => !r.data || r.data.length === 0)
-    if (fallidas.length > 0) {
-      reservaciones.forEach((r, i) => {
-        if (r.data?.length > 0) {
-          supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', carrito[i].id)
-        }
-      })
-      toast('Algunas boletas ya no están disponibles. Revisa tu carrito.')
-      setBoldCargando(false)
-      return
-    }
-
-    // Crear órdenes
-    const ordenes = await Promise.all(carrito.map(b => {
-      const subtotal = Number(b.precio)
-      const esBoletaAdmin = b.publicada_por_admin === true
-      const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 1.15 / 1000) * 1000 - subtotal
-      const total = subtotal + comision
-      return crearOrden({ boletaId: b.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'bold_breb' })
-    }))
-
-    if (ordenes.some(o => o === null)) {
-      await Promise.all(carrito.map(b =>
-        supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', b.id)
-      ))
-      toast('Error al crear órdenes. Intenta de nuevo.')
-      setBoldCargando(false)
-      return
-    }
-
-    const moneda = carrito[0].eventos?.moneda || 'COP'
-    const totalCombinado = ordenes.reduce((sum, o) => sum + o.total, 0)
-    const referencia = ordenes[0].codigo_orden
-
-    if (ordenes.length > 1) {
-      try { sessionStorage.setItem('carrito_ordenes_extra', JSON.stringify(ordenes.slice(1).map(o => ({ id: o.id, boleta_id: o.boleta_id, codigo_orden: o.codigo_orden })))) } catch {}
-    }
-
-    // Llamar API Bold
-    const res = await fetch('/api/pago-bold', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        referencia, total: totalCombinado, moneda,
-        comprador: { nombre: usuario.nombre || usuario.email, correo: usuario.email, documento }
-      })
-    })
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      toast('Error generando QR Bold: ' + (err.detalle || err.error || 'Intenta de nuevo'))
-      // Liberar boletas
-      await Promise.all(carrito.map(b =>
-        supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', b.id)
-      ))
-      setBoldCargando(false)
-      return
-    }
-
-    const { qr } = await res.json()
-    if (!qr) {
-      toast('No se pudo generar el QR. Intenta de nuevo.')
-      setBoldCargando(false)
-      return
-    }
-
-    setBoldCargando(false)
-    try { sessionStorage.setItem('carrito_count', String(carrito.length)) } catch {}
-    setMetodoPagoActivo('bold')
-    setQrModal({ qr, referencia, ordenes, carritoCount: carrito.length })
-  }
-
-  // ── Iniciar pago Bold Bre-B (boleta individual) ──
-  async function iniciarBold(boleta, documento) {
-    if (!usuario) { toast('Debes iniciar sesión para comprar.', 'info'); return }
-    setBoldCargando(true)
-    setCedModal(null)
-
-    const reservadaHasta = new Date(Date.now() + 15 * 60 * 1000).toISOString()
-    const { data: reservada } = await supabase
-      .from('boletas').update({ estado: 'reservada', reservada_hasta: reservadaHasta })
-      .eq('id', boleta.id).eq('estado', 'publicada').select()
-
-    if (!reservada || reservada.length === 0) {
-      toast('Esta boleta ya fue reservada. Intenta con otra.')
-      setBoldCargando(false)
-      cargarBoletas()
-      return
-    }
-
-    const subtotal = Number(boleta.precio)
-    const esBoletaAdmin = boleta.publicada_por_admin === true
-    const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 1.15 / 1000) * 1000 - subtotal
-    const total = subtotal + comision
-    const moneda = boleta.eventos?.moneda || 'COP'
-
-    const orden = await crearOrden({ boletaId: boleta.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'bold_breb' })
-    if (!orden) {
-      await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', boleta.id)
-      toast('Error al crear la orden. Intenta de nuevo.')
-      setBoldCargando(false)
-      return
-    }
-
-    const res = await fetch('/api/pago-bold', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        referencia: orden.codigo_orden, total, moneda,
-        comprador: { nombre: usuario.nombre || usuario.email, correo: usuario.email, documento }
-      })
-    })
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}))
-      toast('Error generando QR Bold: ' + (err.detalle || err.error || 'Intenta de nuevo'))
-      await supabase.from('boletas').update({ estado: 'publicada', reservada_hasta: null }).eq('id', boleta.id)
-      setBoldCargando(false)
-      return
-    }
-
-    const { qr } = await res.json()
-    if (!qr) {
-      toast('No se pudo generar el QR. Intenta de nuevo.')
-      setBoldCargando(false)
-      return
-    }
-
-    setBoldCargando(false)
-    try { sessionStorage.setItem('carrito_count', '1') } catch {}
-    setMetodoPagoActivo('bold')
-    setQrModal({ qr, referencia: orden.codigo_orden, ordenes: [orden], carritoCount: 1 })
-  }
 
   async function manejarCompraCarrito() {
     if (carrito.length === 0) return
@@ -1326,12 +1150,14 @@ function App() {
       return
     }
 
-    const ordenes = await Promise.all(carrito.map(b => {
+    const codigoBase = generarCodigoOrden()
+    const ordenes = await Promise.all(carrito.map((b, i) => {
       const subtotal = Number(b.precio)
       const esBoletaAdmin = b.publicada_por_admin === true
       const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 1.15 / 1000) * 1000 - subtotal
       const total = subtotal + comision
-      return crearOrden({ boletaId: b.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'wompi' })
+      const codigoOrden = i === 0 ? codigoBase : `${codigoBase}-${i + 1}`
+      return crearOrden({ boletaId: b.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'wompi', codigoOrden })
     }))
 
     if (ordenes.some(o => o === null)) {
@@ -1365,7 +1191,6 @@ function App() {
       reference: referencia, 'signature:integrity': signature,
       'redirect-url': window.location.origin
     })
-    setMetodoPagoActivo('wompi')
     startTimer(15 * 60)
     try { sessionStorage.setItem('carrito_count', String(carrito.length)) } catch(e) {}
     try { sessionStorage.setItem('datos_entrega', JSON.stringify(datosEntrega)) } catch(e) {}
@@ -1428,7 +1253,6 @@ function App() {
       'redirect-url': window.location.origin
     })
 
-    setMetodoPagoActivo('wompi')
     startTimer(15 * 60)
     try { sessionStorage.setItem('carrito_count', '1') } catch(e) {}
     window.location.href = `https://checkout.wompi.co/p/?${params.toString()}`
@@ -1666,7 +1490,7 @@ function App() {
             <span style={{color:'#4ade80',fontVariantNumeric:'tabular-nums'}}>
               {String(Math.floor(timerReserva/60)).padStart(2,'0')}:{String(timerReserva%60).padStart(2,'0')}
             </span>
-            {' '}— {metodoPagoActivo === 'bold' ? 'Escanea el QR de Bold para completar tu pago' : 'Completa tu pago en Wompi'}
+            {' '}— Completa tu pago en Wompi
           </span>
         </div>
       )}
@@ -3535,74 +3359,6 @@ soporte@boleteriaco.com`},
         </div>
       )}
 
-
-      {/* ── Modal Documento (antes de mostrar QR Bold) ── */}
-      {docModal && (
-        <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
-          <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'32px 28px',width:'100%',maxWidth:'360px'}}>
-            <h3 style={{color:'#eef0f6',fontSize:'18px',fontWeight:'900',margin:'0 0 6px'}}>📱 Pagar con Bre-B</h3>
-            <p style={{color:'#8892a4',fontSize:'13px',margin:'0 0 24px',lineHeight:'1.5'}}>Necesitamos tu documento para generar el QR de pago de acuerdo con las normas de Bancolombia.</p>
-            <label style={{display:'block',color:'#8892a4',fontSize:'12px',fontWeight:'700',marginBottom:'6px',textTransform:'uppercase',letterSpacing:'0.5px'}}>Número de documento</label>
-            <input
-              type="number"
-              value={documentoInput}
-              onChange={e => setDocumentoInput(e.target.value)}
-              placeholder="Ej: 1234567890"
-              onKeyDown={e => { if (e.key === 'Enter' && documentoInput.trim().length >= 6) {
-                if (docModal.tipo === 'carrito') iniciarBoldCarrito(documentoInput.trim())
-                else iniciarBold(docModal.boleta, documentoInput.trim())
-              }}}
-              style={{width:'100%',boxSizing:'border-box',background:'#080b12',border:'1px solid #2d3f55',borderRadius:'8px',padding:'11px 14px',color:'#eef0f6',fontSize:'15px',outline:'none',marginBottom:'16px'}}
-            />
-            <button
-              onClick={() => {
-                if (documentoInput.trim().length < 6) { return }
-                if (docModal.tipo === 'carrito') iniciarBoldCarrito(documentoInput.trim())
-                else iniciarBold(docModal.boleta, documentoInput.trim())
-              }}
-              disabled={documentoInput.trim().length < 6}
-              style={{width:'100%',background:documentoInput.trim().length < 6?'#1a2a1a':'#064e3b',border:'1px solid #065f46',borderRadius:'10px',padding:'13px',color:'#fff',fontSize:'15px',fontWeight:'700',cursor:documentoInput.trim().length < 6?'not-allowed':'pointer',marginBottom:'10px'}}
-            >
-              Generar QR →
-            </button>
-            <button
-              onClick={() => { setCedModal(null); setDocumentoInput('') }}
-              style={{width:'100%',background:'transparent',border:'none',color:'#4e5a6e',fontSize:'13px',cursor:'pointer',padding:'6px'}}
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* ── Modal QR Bre-B ── */}
-      {qrModal && (
-        <div style={{position:'fixed',inset:0,zIndex:500,background:'rgba(0,0,0,0.92)',display:'flex',alignItems:'center',justifyContent:'center',padding:'20px'}}>
-          <div style={{background:'#0f1623',border:'1px solid #065f46',borderRadius:'16px',padding:'28px 24px',width:'100%',maxWidth:'380px',textAlign:'center'}}>
-            <h3 style={{color:'#4ade80',fontSize:'18px',fontWeight:'900',margin:'0 0 4px'}}>📱 Escanea con tu app bancaria</h3>
-            <p style={{color:'#8892a4',fontSize:'13px',margin:'0 0 20px'}}>Abre tu app del banco → Bre-B → Escanear QR</p>
-            <div style={{background:'#fff',borderRadius:'12px',padding:'16px',display:'inline-block',marginBottom:'16px'}}>
-              <img
-                src={`data:image/png;base64,${qrModal.qr}`}
-                alt="QR Bre-B"
-                style={{width:'200px',height:'200px',display:'block'}}
-              />
-            </div>
-            <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 4px'}}>Referencia: <span style={{color:'#eef0f6',fontWeight:'700'}}>{qrModal.referencia}</span></p>
-            <p style={{color:'#4e5a6e',fontSize:'12px',margin:'0 0 20px'}}>El QR expira en 10 minutos · Verificando pago automáticamente...</p>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'8px',marginBottom:'20px'}}>
-              <div style={{width:'8px',height:'8px',borderRadius:'50%',background:'#4ade80',animation:'pulse 1.5s infinite'}}/>
-              <span style={{color:'#4ade80',fontSize:'13px',fontWeight:'600'}}>Esperando pago...</span>
-            </div>
-            <button
-              onClick={() => setQrModal(null)}
-              style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',padding:'8px 20px',color:'#4e5a6e',fontSize:'13px',cursor:'pointer'}}
-            >
-              Cancelar
-            </button>
-          </div>
-        </div>
-      )}
 
         {/* SECCIÓN DE SEGURIDAD */}
         <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 0'}}>
