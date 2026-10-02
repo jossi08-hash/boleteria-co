@@ -79,11 +79,11 @@ export async function obtenerMisCompras(usuarioId) {
     .from('ordenes')
     .select(`
       id, codigo_orden, total, estado_pago, creado_en, liberado, liberado_en, archivo_url,
-      boletas(tribuna, fila, silla, precio, plataforma, vendedor_id, eventos(nombre, ciudad, estadio, fecha, moneda),
-        usuarios(correo))
+      reclamo_motivo, reclamo_en, reclamo_resuelto_en,
+      boletas(tribuna, fila, silla, precio, plataforma, vendedor_id, eventos(nombre, ciudad, estadio, fecha, moneda))
     `)
     .eq('comprador_id', usuarioId)
-    .eq('estado_pago', 'pagada')
+    .in('estado_pago', ['pagada', 'reembolsada'])
     .order('creado_en', { ascending: false })
   if (error) { console.error('Error misCompras:', error.message); return [] }
   return data || []
@@ -95,7 +95,7 @@ export async function obtenerMisVentas(usuarioId) {
     .select(`
       id, tribuna, fila, silla, precio, estado, reservada_hasta, creado_en, plataforma, publicada_por_admin,
       eventos(nombre, ciudad, fecha, moneda),
-      ordenes(id, codigo_orden, subtotal, comision, total, estado_pago, liberado, liberado_en, creado_en, archivo_url, pago_vendedor_enviado)
+      ordenes(id, codigo_orden, subtotal, comision, total, estado_pago, liberado, liberado_en, creado_en, archivo_url, pago_vendedor_enviado, reclamo_en, reclamo_resuelto_en)
     `)
     .eq('vendedor_id', usuarioId)
     .order('creado_en', { ascending: false })

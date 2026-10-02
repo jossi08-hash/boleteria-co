@@ -5,6 +5,7 @@ import { supabase } from './lib/supabase'
 import ComoFunciona from './ComoFunciona'
 import { PLATAFORMAS, sugerirPlataforma } from './datos/plataformas'
 import { extraerEquipos } from './lib/equipos'
+import { reclamoAbierto, pagoLiberado, horasParaLiberar } from './lib/ordenes'
 import { TITULO_BASE, RUTAS, paginaDesdeUrl, urlDePagina } from './rutas'
 import EscudoSVG from './componentes/EscudoSVG'
 import SillaExtraRow from './componentes/SillaExtraRow'
@@ -71,6 +72,10 @@ function App() {
   const eventoDeUrl = useRef(paginaDesdeUrl().eventoId)
   const reemplazarUrl = useRef(false)  // true en redirecciones, para no dejar la URL inválida en el historial
   const [sesionVerificada, setSesionVerificada] = useState(false)
+  const [reclamoFormulario, setReclamoFormulario] = useState(null)  // id de la orden con el formulario abierto
+  const [reclamoTexto, setReclamoTexto] = useState('')
+  const [enviandoReclamo, setEnviandoReclamo] = useState(false)
+  const [reclamosAbiertos, setReclamosAbiertos] = useState([])
   const [pestanaMis, setPestanaMis] = useState('pedidos')
   const [pestanaAdmin, setPestanaAdmin] = useState('pendientes')
   const [misCompras, setMisCompras] = useState([])
@@ -127,7 +132,7 @@ function App() {
   }, [])
 
   useEffect(() => {
-    if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas(); cargarBoletasAdmin(); cargarEstadios() }
+    if (esAdmin) { cargarBoletasPendientes(); cargarOrdenesLiberadas(); cargarBoletasAdmin(); cargarEstadios(); cargarReclamosAbiertos() }
   }, [esAdmin])
 
   // Mantener la URL y el título de la pestaña sincronizados con la página actual
@@ -265,6 +270,50 @@ function App() {
       body: JSON.stringify({ ordenId })
     }).catch(() => {})
     cargarMisBoletas()
+  }
+
+  async function reportarProblema(ordenId) {
+    setEnviandoReclamo(true)
+    const { data: reportado, error } = await supabase.rpc('reportar_problema', { p_orden: ordenId, p_motivo: reclamoTexto })
+    setEnviandoReclamo(false)
+    if (error || !reportado) { toast('No pudimos registrar el reclamo. Escríbenos a soporte@boleteriaco.com.'); return }
+    fetch('/api/notificar-reclamo', {
+      method: 'POST',
+      headers: await headersConSesion(),
+      body: JSON.stringify({ ordenId })
+    }).catch(() => {})
+    setReclamoFormulario(null)
+    setReclamoTexto('')
+    toast('Recibimos tu reclamo. El pago al vendedor quedó congelado mientras lo revisamos.', 'success')
+    cargarMisBoletas()
+  }
+
+  async function cargarReclamosAbiertos() {
+    const { data, error } = await supabase
+      .from('ordenes')
+      .select('id, codigo_orden, total, comprador_id, reclamo_motivo, reclamo_en, boletas(precio, tribuna, fila, silla, plataforma, eventos(nombre), usuarios(nombre, correo))')
+      .not('reclamo_en', 'is', null)
+      .is('reclamo_resuelto_en', null)
+      .eq('estado_pago', 'pagada')
+      .order('reclamo_en', { ascending: true })
+    if (error) { console.error('Error reclamos:', error.message); return }
+    const ids = [...new Set((data || []).map(o => o.comprador_id).filter(Boolean))]
+    const { data: compradores } = ids.length
+      ? await supabase.from('usuarios').select('id, nombre, correo').in('id', ids)
+      : { data: [] }
+    setReclamosAbiertos((data || []).map(o => ({ ...o, comprador: (compradores || []).find(c => c.id === o.comprador_id) })))
+  }
+
+  // El admin resuelve un reclamo: liberar el pago al vendedor, o reembolsar al comprador (desde el panel de Wompi)
+  async function resolverReclamo(ordenId, decision) {
+    const ahora = new Date().toISOString()
+    const cambios = decision === 'liberar'
+      ? { reclamo_resuelto_en: ahora, liberado: true, liberado_en: ahora }
+      : { reclamo_resuelto_en: ahora, estado_pago: 'reembolsada' }
+    const { data, error } = await supabase.from('ordenes').update(cambios).eq('id', ordenId).select('id')
+    if (error || !data?.length) { toast('No se pudo resolver el reclamo.'); return }
+    toast(decision === 'liberar' ? 'Reclamo cerrado: pago liberado al vendedor.' : 'Reclamo cerrado: recuerda hacer el reembolso en Wompi.', 'success')
+    cargarReclamosAbiertos(); cargarOrdenesLiberadas()
   }
 
   async function entregarBoleta(ordenId, file) {
@@ -1179,9 +1228,9 @@ function App() {
                     const ev = b && b.eventos
                     const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
                     const fecha = ev && ev.fecha ? new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'}) : ''
-                    const yaLiberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
-                    const msRestantes = (new Date(o.creado_en).getTime() + 72 * 60 * 60 * 1000) - Date.now()
-                    const horas = Math.max(0, Math.floor(msRestantes / 3600000))
+                    const reembolsada = o.estado_pago === 'reembolsada'
+                    const yaLiberado = pagoLiberado(o)
+                    const horas = horasParaLiberar(o)
                     return (
                           <div key={o.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
@@ -1193,7 +1242,7 @@ function App() {
                               </div>
                               <div style={{textAlign:'right'}}>
                                 <p style={{color:'#22c55e',fontWeight:'800',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(o.total).toLocaleString('es-CO')}</p>
-                                <span style={{background:'rgba(34,197,94,0.1)',color:'#4ade80',fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>Pagada</span>
+                                <span style={{background:reembolsada?'rgba(245,158,11,0.1)':'rgba(34,197,94,0.1)',color:reembolsada?'#fbbf24':'#4ade80',fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>{reembolsada ? 'Reembolsada' : 'Pagada'}</span>
                               </div>
                             </div>
                             {!esAdmin && (
@@ -1240,13 +1289,38 @@ function App() {
                                     <p style={{color:'#f59e0b',fontSize:'12px',margin:'0 0 8px'}}>⏳ Esperando que el vendedor transfiera la boleta</p>
                                   )
                                 })()}
-                                {o.liberado ? (
+                                {reembolsada ? (
+                                  <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>💸 Revisamos tu reclamo: te devolvemos el dinero por el mismo medio de pago. Puede tardar unos días hábiles.</p>
+                                ) : reclamoAbierto(o) ? (
+                                  <div style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.25)',borderRadius:'8px',padding:'10px 12px'}}>
+                                    <p style={{color:'#fbbf24',fontSize:'12px',fontWeight:'700',margin:'0 0 4px'}}>🛑 Reportaste un problema — lo estamos revisando</p>
+                                    <p style={{color:'#8892a4',fontSize:'12px',margin:0,lineHeight:1.5}}>El pago al vendedor quedó congelado hasta resolverlo. Te escribiremos al correo de tu cuenta.</p>
+                                  </div>
+                                ) : o.liberado ? (
                                   <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Recibo confirmado — pago liberado al vendedor</p>
                                 ) : yaLiberado ? (
                                   <p style={{color:'#4e5a6e',fontSize:'12px',margin:'0'}}>✅ Pago liberado automáticamente al vendedor</p>
                                 ) : (
                                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px',marginTop:'6px'}}>
                                     <p style={{color:'#8892a4',fontSize:'11px',margin:'0'}}>¿Ya la recibiste en la app? Se libera en {horas}h automáticamente.</p>
+                                    {reclamoFormulario === o.id ? (
+                                      <div style={{width:'100%'}}>
+                                        <textarea value={reclamoTexto} onChange={e=>setReclamoTexto(e.target.value)} maxLength={1000} rows={3}
+                                          placeholder="Cuéntanos qué pasó: no llegó la boleta, llegó otra tribuna, la app no la muestra..."
+                                          style={{width:'100%',boxSizing:'border-box',background:'#080b12',border:'1px solid #2d3f55',borderRadius:'8px',padding:'10px',color:'#eef0f6',fontSize:'13px',fontFamily:'inherit',resize:'vertical'}} />
+                                        <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
+                                          <button onClick={()=>reportarProblema(o.id)} disabled={reclamoTexto.trim().length < 10 || enviandoReclamo}
+                                            style={{background:reclamoTexto.trim().length < 10?'#374151':'#d97706',color:'#fff',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:reclamoTexto.trim().length < 10?'not-allowed':'pointer'}}>
+                                            {enviandoReclamo ? 'Enviando...' : 'Enviar reclamo'}
+                                          </button>
+                                          <button onClick={()=>{setReclamoFormulario(null);setReclamoTexto('')}} style={{background:'#374151',color:'#9ca3af',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',cursor:'pointer'}}>Cancelar</button>
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <button onClick={()=>{setReclamoFormulario(o.id);setReclamoTexto('')}} style={{background:'transparent',color:'#fbbf24',border:'1px solid rgba(245,158,11,0.35)',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>
+                                        Tengo un problema
+                                      </button>
+                                    )}
                                     {confirmarLiberar === o.id ? (
                                       <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
                                         <p style={{color:'#fbbf24',fontSize:'12px',margin:'0',flex:1}}>¿Ya recibiste la boleta? Esto libera el pago al vendedor.</p>
@@ -1290,8 +1364,8 @@ function App() {
                     const ev = b.eventos
                     const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
                     const ordenPagada = Array.isArray(b.ordenes) ? b.ordenes.find(o => o.estado_pago === 'pagada') : null
-                    const liberadoOrden = ordenPagada && (ordenPagada.liberado || (Date.now() - new Date(ordenPagada.creado_en).getTime() > 72 * 60 * 60 * 1000))
-                    const hVenta = ordenPagada ? Math.max(0, Math.floor(((new Date(ordenPagada.creado_en).getTime() + 72*3600000) - Date.now()) / 3600000)) : 0
+                    const liberadoOrden = pagoLiberado(ordenPagada)
+                    const hVenta = ordenPagada ? horasParaLiberar(ordenPagada) : 0
                     return (
                           <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
@@ -1349,6 +1423,8 @@ function App() {
                                 <div style={{marginTop:'8px'}}>
                                 {ordenPagada.pago_vendedor_enviado ? (
                                   <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>💸 Pago enviado — revisa tu {datosPagoVendedor ? datosPagoVendedor.split(' ')[0] : 'cuenta'}</p>
+                                ) : reclamoAbierto(ordenPagada) ? (
+                                  <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>🛑 El comprador reportó un problema. El pago queda en revisión; te contactaremos por correo.</p>
                                 ) : liberadoOrden ? (
                                   <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>⏳ Pago listo — en proceso de transferencia a tu cuenta</p>
                                 ) : (
@@ -1404,8 +1480,8 @@ function App() {
               (() => {
                 const ordenesVentas = misVentas.flatMap(b => Array.isArray(b.ordenes) ? b.ordenes.filter(o => o.estado_pago === 'pagada').map(o => ({...o, precio: b.precio, moneda: b.eventos ? b.eventos.moneda : null, publicada_por_admin: b.publicada_por_admin})) : [])
                 const pagadas = ordenesVentas.filter(o => o.pago_vendedor_enviado)
-                const enTransferencia = ordenesVentas.filter(o => !o.pago_vendedor_enviado && (o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)))
-                const enEscrow = ordenesVentas.filter(o => !o.pago_vendedor_enviado && !(o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)))
+                const enTransferencia = ordenesVentas.filter(o => !o.pago_vendedor_enviado && pagoLiberado(o))
+                const enEscrow = ordenesVentas.filter(o => !o.pago_vendedor_enviado && !pagoLiberado(o))
                 const totalPagado = pagadas.reduce((s, o) => s + netoVendedor(o), 0)
                 const totalTransferencia = enTransferencia.reduce((s, o) => s + netoVendedor(o), 0)
                 const totalEscrow = enEscrow.reduce((s, o) => s + netoVendedor(o), 0)
@@ -1435,7 +1511,8 @@ function App() {
                     {ordenesVentas.length === 0
                       ? <p style={{color:'#6b7280',fontSize:'13px'}}>Aún no tienes ventas registradas.</p>
                       : ordenesVentas.map(function(o, i) {
-                          const liberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
+                          const liberado = pagoLiberado(o)
+                          const enRevision = reclamoAbierto(o)
                           const moneda = o.moneda === 'USD' ? 'US$' : '$'
                           const neto = netoVendedor(o)
                           return (
@@ -1451,7 +1528,7 @@ function App() {
                                   color: o.pago_vendedor_enviado ? '#4ade80' : liberado ? '#fbbf24' : '#6b7a94',
                                   fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'
                                 }}>
-                                  {o.pago_vendedor_enviado ? '💸 Pagado' : liberado ? '⏳ En transferencia' : '🔒 En custodia'}
+                                  {o.pago_vendedor_enviado ? '💸 Pagado' : enRevision ? '🛑 En revisión' : liberado ? '⏳ En transferencia' : '🔒 En custodia'}
                                 </span>
                               </div>
                             </div>
@@ -1480,7 +1557,7 @@ function App() {
               {/* PESTAÑAS ADMIN */}
               <div style={{display:'flex',gap:'3px',marginBottom:'24px',background:'rgba(255,255,255,0.03)',borderRadius:'10px',padding:'4px',overflowX:'auto'}}>
                 {[
-                  {key:'pendientes', label:'🔴 Pendientes', badge: boletasPendientes.length + ordenesLiberadas.filter(o=>!o.boletas?.usuarios?.es_admin).length},
+                  {key:'pendientes', label:'🔴 Pendientes', badge: boletasPendientes.length + ordenesLiberadas.filter(o=>!o.boletas?.usuarios?.es_admin).length + reclamosAbiertos.length},
                   {key:'mis-boletas', label:'🎟 Mis boletas', badge: boletasAdmin.length},
                   {key:'estadios', label:'🏟 Estadios', badge: 0},
                   {key:'eventos', label:'📅 Eventos', badge: 0},
@@ -1514,6 +1591,29 @@ function App() {
               </div>
             )}
             {boletasPendientes.length === 0 && <p style={{ color: c.textoSec, fontSize: '13px', marginBottom: '16px' }}>No hay boletas pendientes.</p>}
+            {reclamosAbiertos.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <p style={{color:'#f87171',fontSize:'14px',fontWeight:'600',margin:'0 0 12px'}}>
+                  🛑 Reclamos de compradores ({reclamosAbiertos.length})
+                </p>
+                {reclamosAbiertos.map(o => {
+                  const b = o.boletas
+                  return (
+                    <div key={o.id} style={{background:'rgba(248,113,113,0.06)',border:'1px solid rgba(248,113,113,0.3)',borderRadius:'10px',padding:'14px',marginBottom:'10px'}}>
+                      <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>{b?.eventos?.nombre || 'Evento'} · Trib. {b?.tribuna}{b?.fila ? ' F.' + b.fila : ''}{b?.silla ? ' S.' + b.silla : ''}</p>
+                      <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Ref: {o.codigo_orden} · Pagado ${Number(o.total || 0).toLocaleString('es-CO')} · {b?.plataforma || ''}</p>
+                      <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Comprador: {o.comprador?.nombre || 'N/A'} — {o.comprador?.correo || ''}</p>
+                      <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 8px'}}>Vendedor: {b?.usuarios?.nombre || 'N/A'} — {b?.usuarios?.correo || ''}</p>
+                      <p style={{color:'#fca5a5',fontSize:'13px',margin:'0 0 12px',whiteSpace:'pre-wrap',lineHeight:1.5}}>“{o.reclamo_motivo}”</p>
+                      <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
+                        <button onClick={() => resolverReclamo(o.id, 'liberar')} style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'8px',padding:'7px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Resuelto: liberar pago al vendedor</button>
+                        <button onClick={() => resolverReclamo(o.id, 'reembolsar')} style={{background:'#b45309',color:'#fff',border:'none',borderRadius:'8px',padding:'7px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Reembolsar al comprador</button>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
             {ordenesLiberadas.length > 0 && (
               <div style={{ marginBottom: '20px' }}>
                 <p style={{color:'#fbbf24',fontSize:'14px',fontWeight:'600',margin:'0 0 12px'}}>
