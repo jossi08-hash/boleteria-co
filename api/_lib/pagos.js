@@ -29,7 +29,7 @@ export function totalEsperado(boleta) {
 }
 
 const SELECT_ORDEN = 'id,codigo_orden,total,estado_pago,comprador_id,boleta_id,' +
-  'boletas(id,precio,tribuna,fila,silla,plataforma,publicada_por_admin,eventos(nombre,ciudad,fecha),usuarios(correo,nombre))'
+  'boletas(id,precio,estado,tribuna,fila,silla,plataforma,publicada_por_admin,eventos(nombre,ciudad,fecha),usuarios(correo,nombre))'
 
 // Órdenes cubiertas por un pago: la principal y las extra del carrito (referencia-2, referencia-3...)
 export async function ordenesDelPago(referencia) {
@@ -73,8 +73,20 @@ export async function confirmarPago(referencia, montoCentavos) {
     return { ok: false, error: 'Monto no coincide' }
   }
 
-  const pendientes = ordenes.filter(o => o.estado_pago !== 'pagada')
+  let pendientes = ordenes.filter(o => o.estado_pago !== 'pagada')
   if (!pendientes.length) return { ok: true, yaConfirmado: true }
+
+  // Si la reserva venció y otra persona alcanzó a comprar la boleta, este pago hay que reembolsarlo
+  const yaVendidas = pendientes.filter(o => o.boletas?.estado === 'vendida')
+  if (yaVendidas.length) {
+    await enviarCorreo(await correoAdmin(), `⚠️ Reembolso necesario — ${referencia}`,
+      `<p>Wompi aprobó el pago <strong>${referencia}</strong>, pero estas boletas ya se habían vendido a otro comprador ` +
+      `(la reserva de 15 minutos venció antes de que pagara):</p><ul>` +
+      yaVendidas.map(o => `<li>${o.codigo_orden} · ${o.boletas?.eventos?.nombre || ''} · ${fmt(totalEsperado(o.boletas))}</li>`).join('') +
+      `</ul><p>Reembolsa ese valor al comprador desde el panel de Wompi. Las demás boletas del pago se confirmaron normalmente.</p>`)
+    pendientes = pendientes.filter(o => o.boletas?.estado !== 'vendida')
+    if (!pendientes.length) return { ok: false, error: 'Boletas ya vendidas', reembolso: true }
+  }
 
   // Solo actualiza las que siguen sin pagar; las que devuelve son las que este llamado confirmó
   const upd = await supa(`ordenes?id=in.(${pendientes.map(o => o.id).join(',')})&estado_pago=neq.pagada`, {

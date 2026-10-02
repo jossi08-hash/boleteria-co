@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { obtenerBoletas, publicarBoleta, crearOrden, generarCodigoOrden, obtenerVentasDeUsuario, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
+import { obtenerBoletas, publicarBoleta, crearOrden, generarCodigoOrden, filtroDisponible, obtenerVentasDeUsuario, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
 import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword } from './lib/auth'
 import { supabase } from './lib/supabase'
 import ComoFunciona from './ComoFunciona'
@@ -1134,7 +1134,7 @@ function App() {
     const reservaciones = await Promise.all(carrito.map(b =>
       supabase.from('boletas')
         .update({ estado: 'reservada', reservada_hasta: reservadaHasta })
-        .eq('id', b.id).eq('estado', 'publicada').select()
+        .eq('id', b.id).or(filtroDisponible()).select()
     ))
     const fallidas = reservaciones.filter(r => !r.data || r.data.length === 0)
     if (fallidas.length > 0) {
@@ -1207,7 +1207,7 @@ function App() {
       .from('boletas')
       .update({ estado: 'reservada', reservada_hasta: reservadaHasta })
       .eq('id', boleta.id)
-      .eq('estado', 'publicada')
+      .or(filtroDisponible())
       .select()
 
     if (!reservada || reservada.length === 0) {
@@ -3310,7 +3310,8 @@ function App() {
       )}
 
       {paginaActual === 'privacidad' && (
-        <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 60px'}}>
+        <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+        <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 60px',textAlign:'left'}}>
           <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:'0 0 28px'}}>← Volver</button>
           <h1 style={{fontSize:'26px',fontWeight:'900',color:'#eef0f6',margin:'0 0 6px'}}>Política de Privacidad</h1>
           <p style={{color:'#4e5a6e',fontSize:'13px',margin:'0 0 36px'}}>Última actualización: septiembre 2026</p>
@@ -3356,6 +3357,7 @@ soporte@boleteriaco.com`},
           ))}
 
           {faqFooterSeccion}
+        </div>
         </div>
       )}
 
