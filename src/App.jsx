@@ -3477,8 +3477,9 @@ function App() {
           <ComoFunciona
             onVolver={()=>setPaginaActual('inicio')}
             onEmpezar={(rol)=>{
+              if (rol === 'vendedor' && !usuario) { setPaginaActual('registro'); return }
               setPaginaActual('inicio')
-              if (rol === 'vendedor') { if (!usuario) { setVistaAuth('registro'); return } setMostrarFormulario(true) }
+              if (rol === 'vendedor') setMostrarFormulario(true)
             }}
           />
         </div>

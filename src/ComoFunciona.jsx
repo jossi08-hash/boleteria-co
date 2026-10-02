@@ -19,7 +19,7 @@ export default function ComoFunciona({ onVolver, onEmpezar }) {
   const [rol, setRol] = useState('comprador')
 
   return (
-    <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 60px'}}>
+    <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 60px',textAlign:'left'}}>
       <button onClick={onVolver} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:'0 0 28px'}}>← Volver</button>
       <h1 style={{fontSize:'26px',fontWeight:'900',color:'#eef0f6',margin:'0 0 6px',letterSpacing:'-0.3px'}}>¿Cómo funciona Boletería CO?</h1>
       <p style={{color:'#8892a4',fontSize:'14px',margin:'0 0 28px',lineHeight:1.6}}>Compra y vende boletas entre personas, con tu dinero protegido hasta que la boleta llega a tus manos.</p>
