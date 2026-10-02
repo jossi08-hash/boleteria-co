@@ -3,7 +3,8 @@ export const config = { runtime: 'edge' }
 import { supa, json, correoAdmin, enviarCorreo } from './_lib/pagos.js'
 
 // Corre una vez al día (cron en vercel.json). Libera las órdenes pagadas hace más de 72 h
-// que el comprador no confirmó, y avisa al admin qué vendedores hay que pagar.
+// que el comprador no confirmó, avisa al admin qué vendedores hay que pagar
+// y devuelve a la venta las boletas con reservas vencidas.
 export default async function handler(req) {
   // Vercel Cron envía "Authorization: Bearer <CRON_SECRET>"; x-cron-secret se mantiene para llamados manuales
   const secret = process.env.CRON_SECRET
@@ -49,5 +50,14 @@ export default async function handler(req) {
       </div>`)
   }
 
-  return json({ ok: true, liberadas: liberadas.length, porPagar: porPagar.length })
+  // Reservas vencidas (el comprador no terminó de pagar): devolver las boletas a la venta.
+  // La app ya las muestra como disponibles; esto deja la base de datos al día.
+  const resReservas = await supa(`boletas?estado=eq.reservada&reservada_hasta=lt.${new Date().toISOString()}&select=id`, {
+    method: 'PATCH',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify({ estado: 'publicada', reservada_hasta: null })
+  })
+  const reservas = await resReservas.json().catch(() => [])
+
+  return json({ ok: true, liberadas: liberadas.length, porPagar: porPagar.length, reservasVencidas: Array.isArray(reservas) ? reservas.length : 0 })
 }

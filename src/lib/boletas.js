@@ -1,21 +1,31 @@
 import { supabase } from './supabase'
 
+// Las reservas duran 15 minutos. Si el comprador no terminó de pagar, la boleta vuelve a estar disponible.
+export function filtroDisponible() {
+  return `estado.eq.publicada,and(estado.eq.reservada,reservada_hasta.lt."${new Date().toISOString()}")`
+}
+
+function liberarReservaVencida(b) {
+  const vencida = b.estado === 'reservada' && b.reservada_hasta && new Date(b.reservada_hasta) < new Date()
+  return vencida ? { ...b, estado: 'publicada' } : b
+}
+
 export async function obtenerBoletas() {
   const { data, error } = await supabase
     .from('boletas')
     .select(`
-      id, evento_id, tribuna, fila, silla, cantidad, precio, estado, vendedor_id, publicada_por_admin,
+      id, evento_id, tribuna, fila, silla, cantidad, precio, estado, reservada_hasta, vendedor_id, publicada_por_admin,
       eventos ( id, nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
       usuarios ( nombre, correo, es_admin )
     `)
-    .eq('estado', 'publicada')
+    .or(filtroDisponible())
     .order('creado_en', { ascending: false })
 
   if (error) {
     console.error('Error al obtener boletas:', error.message)
     return []
   }
-  return data
+  return data.map(liberarReservaVencida)
 }
 
 
@@ -92,12 +102,12 @@ export async function obtenerMisVentas(usuarioId) {
   const { data, error } = await supabase
     .from('boletas')
     .select(`
-      id, tribuna, fila, silla, precio, estado, creado_en, plataforma, publicada_por_admin,
+      id, tribuna, fila, silla, precio, estado, reservada_hasta, creado_en, plataforma, publicada_por_admin,
       eventos(nombre, ciudad, fecha, moneda),
       ordenes(id, codigo_orden, subtotal, comision, total, estado_pago, liberado, liberado_en, creado_en, archivo_url, pago_vendedor_enviado)
     `)
     .eq('vendedor_id', usuarioId)
     .order('creado_en', { ascending: false })
   if (error) { console.error('Error misVentas:', error.message); return [] }
-  return data || []
+  return (data || []).map(liberarReservaVencida)
 }
