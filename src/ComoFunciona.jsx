@@ -3,14 +3,14 @@ import { useState } from 'react'
 const PASOS = {
   comprador: [
     { icon: '🔎', titulo: 'Busca tu evento', desc: 'Explora los partidos disponibles, elige tu tribuna en el mapa del estadio y revisa el precio final antes de pagar.' },
-    { icon: '💳', titulo: 'Paga seguro', desc: 'Pagas con Wompi o Bre-B. Tu dinero queda en custodia con Boletería CO: el vendedor todavía no lo recibe.' },
+    { icon: '💳', titulo: 'Paga seguro', desc: 'Pagas de forma segura con Wompi. Tu dinero queda en custodia con Boletería CO: el vendedor todavía no lo recibe.' },
     { icon: '📲', titulo: 'Recibe tu boleta', desc: 'Te transferimos la boleta por la plataforma oficial del evento (TuBoletaPass, Quentro, W Arena o DIM Plus). Antes de pagar te mostramos los pasos exactos.' },
     { icon: '✅', titulo: 'Confirma la entrega', desc: 'Cuando la boleta aparezca en tu app, confírmalo en "Mis boletas". Solo entonces liberamos el pago al vendedor.' },
   ],
   vendedor: [
     { icon: '📝', titulo: 'Publica tu boleta', desc: 'Crea tu cuenta gratis, elige el evento, tu tribuna y el precio. Revisamos cada publicación antes de mostrarla.' },
     { icon: '🔔', titulo: 'Recibe la venta', desc: 'Cuando alguien compra, te notificamos al instante. El pago del comprador ya está asegurado en custodia.' },
-    { icon: '📤', titulo: 'Transfiere la boleta', desc: 'Envía la boleta por la app oficial a boletas@boleteriaco.com siguiendo los pasos que te mostramos para cada plataforma.' },
+    { icon: '📤', titulo: 'Transfiere la boleta', desc: 'Transfiere la boleta a la cuenta de Boletería CO desde la app oficial, siguiendo los pasos que te mostramos para cada plataforma.' },
     { icon: '💰', titulo: 'Cobra tu dinero', desc: 'Cuando el comprador confirma (o a las 72 horas sin reclamos), te transferimos el precio de venta menos el 8% de comisión.' },
   ],
 }
