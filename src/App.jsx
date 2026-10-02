@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from 'react'
 import { obtenerBoletas, publicarBoleta, crearOrden, obtenerVentasDeUsuario, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
 import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword } from './lib/auth'
 import { supabase } from './lib/supabase'
+import ComoFunciona from './ComoFunciona'
 
 
 const PLATAFORMAS = {
@@ -1078,6 +1079,12 @@ function App() {
     return '$' + valor.toLocaleString('es-CO')
   }
 
+  // Lo que recibe el vendedor: precio de venta menos 8% de comisión (las boletas del admin no pagan comisión)
+  function netoVendedor(orden) {
+    const subtotal = orden.subtotal != null ? Number(orden.subtotal) : Number(orden.total || 0) - Number(orden.comision || 0)
+    return orden.publicada_por_admin === true ? subtotal : Math.round(subtotal * 0.92)
+  }
+
   function calcularTotal(precio, moneda, esAdmin = false) {
     if (esAdmin) return formatearPrecio(Number(precio), moneda)
     const redondeado = Math.round(Number(precio) * 1.15 / 1000) * 1000
@@ -1642,7 +1649,7 @@ function App() {
       ))}
       <footer style={{borderTop:'1px solid #1e2a3a',marginTop:'40px',paddingTop:'28px',paddingBottom:'32px',textAlign:'center'}}>
         <p style={{color:'#4e5a6e',fontSize:'13px',margin:'0 0 8px',fontWeight:'700',letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#4f7eff'}}>CO</span></p>
-        <p style={{color:'#4e5a6e',fontSize:'12px',margin:0}}>© 2026 · <a href='/terminos.html' target='_blank' style={{color:'#8892a4',textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
+        <p style={{color:'#4e5a6e',fontSize:'12px',margin:0}}>© 2026 · <button onClick={()=>setPaginaActual('como-funciona')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0}}>Cómo funciona</button> · <a href='/terminos.html' target='_blank' style={{color:'#8892a4',textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
       </footer>
     </div>
   )
@@ -1749,6 +1756,11 @@ function App() {
                 style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
                 <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🏠</span> Inicio
               </button>
+              {/* Cómo funciona */}
+              <button onClick={()=>{setPaginaActual('como-funciona');cerrarOverlays()}}
+                style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>ℹ️</span> Cómo funciona
+              </button>
               {/* Vender */}
               {usuario && (
                 <button onClick={()=>{cerrarOverlays();setMostrarFormulario(true);setPaginaActual('inicio')}}
@@ -1812,6 +1824,7 @@ function App() {
             <h2 style={s.heroTitle}>Tu boleta al precio<br/>que realmente vale</h2>
             <p style={s.heroSub}>Compra y vende boletas para eventos deportivos en Colombia. Pagos seguros con Wompi.</p>
             <button style={s.botonVender} onClick={() => setVistaAuth('registro')}>Empieza gratis</button>
+            <button onClick={()=>setPaginaActual('como-funciona')} style={{display:'block',margin:'14px auto 0',background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'13px',fontWeight:'600',textDecoration:'underline'}}>¿Cómo funciona?</button>
           </div>
         )}
 
@@ -2064,13 +2077,13 @@ function App() {
             )}
             {!cargandoMis && pestanaMis === 'pagos' && (
               (() => {
-                const ordenesVentas = misVentas.flatMap(b => Array.isArray(b.ordenes) ? b.ordenes.filter(o => o.estado_pago === 'pagada').map(o => ({...o, precio: b.precio, moneda: b.eventos ? b.eventos.moneda : null})) : [])
+                const ordenesVentas = misVentas.flatMap(b => Array.isArray(b.ordenes) ? b.ordenes.filter(o => o.estado_pago === 'pagada').map(o => ({...o, precio: b.precio, moneda: b.eventos ? b.eventos.moneda : null, publicada_por_admin: b.publicada_por_admin})) : [])
                 const pagadas = ordenesVentas.filter(o => o.pago_vendedor_enviado)
                 const enTransferencia = ordenesVentas.filter(o => !o.pago_vendedor_enviado && (o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)))
                 const enEscrow = ordenesVentas.filter(o => !o.pago_vendedor_enviado && !(o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)))
-                const totalPagado = pagadas.reduce((s, o) => s + (o.subtotal != null ? Number(o.subtotal) : Number(o.total || 0) - Number(o.comision || 0)), 0)
-                const totalTransferencia = enTransferencia.reduce((s, o) => s + (o.subtotal != null ? Number(o.subtotal) : Number(o.total || 0) - Number(o.comision || 0)), 0)
-                const totalEscrow = enEscrow.reduce((s, o) => s + (o.subtotal != null ? Number(o.subtotal) : Number(o.total || 0) - Number(o.comision || 0)), 0)
+                const totalPagado = pagadas.reduce((s, o) => s + netoVendedor(o), 0)
+                const totalTransferencia = enTransferencia.reduce((s, o) => s + netoVendedor(o), 0)
+                const totalEscrow = enEscrow.reduce((s, o) => s + netoVendedor(o), 0)
                 return (
                   <>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom: enTransferencia.length > 0 ? '10px' : '20px'}}>
@@ -2099,7 +2112,7 @@ function App() {
                       : ordenesVentas.map(function(o, i) {
                           const liberado = o.liberado || (Date.now() - new Date(o.creado_en).getTime() > 72 * 60 * 60 * 1000)
                           const moneda = o.moneda === 'USD' ? 'US$' : '$'
-                          const neto = o.subtotal != null ? Number(o.subtotal) : Number(o.total || 0) - Number(o.comision || 0)
+                          const neto = netoVendedor(o)
                           return (
                             <div key={o.id || i} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'14px 16px',marginBottom:'10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
                               <div>
@@ -3459,6 +3472,19 @@ function App() {
         </div>
       )}
 
+      {paginaActual === 'como-funciona' && (
+        <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <ComoFunciona
+            onVolver={()=>setPaginaActual('inicio')}
+            onEmpezar={(rol)=>{
+              if (rol === 'vendedor' && !usuario) { setPaginaActual('registro'); return }
+              setPaginaActual('inicio')
+              if (rol === 'vendedor') setMostrarFormulario(true)
+            }}
+          />
+        </div>
+      )}
+
       {paginaActual === 'privacidad' && (
         <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 60px'}}>
           <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:'0 0 28px'}}>← Volver</button>
@@ -3636,7 +3662,7 @@ soporte@boleteriaco.com`},
       </section>
       <footer style={{borderTop:'1px solid #1e2a3a', marginTop:'48px', paddingTop:'28px', paddingBottom:'32px', textAlign:'center'}}>
         <p style={{color:'#4e5a6e', fontSize:'13px', margin:'0 0 8px', fontWeight:'700', letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#4f7eff'}}>CO</span></p>
-        <p style={{color:'#4e5a6e', fontSize:'12px', margin:0}}>© 2026 · <a href='/terminos.html' target='_blank' style={{color:'#8892a4', textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0,textDecoration:'none'}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
+        <p style={{color:'#4e5a6e', fontSize:'12px', margin:0}}>© 2026 · <button onClick={()=>setPaginaActual('como-funciona')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0}}>Cómo funciona</button> · <a href='/terminos.html' target='_blank' style={{color:'#8892a4', textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0,textDecoration:'none'}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
       </footer>
       </div>
     </div>

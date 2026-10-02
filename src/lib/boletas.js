@@ -87,7 +87,7 @@ export async function obtenerMisVentas(usuarioId) {
   const { data, error } = await supabase
     .from('boletas')
     .select(`
-      id, tribuna, fila, silla, precio, estado, creado_en, plataforma,
+      id, tribuna, fila, silla, precio, estado, creado_en, plataforma, publicada_por_admin,
       eventos(nombre, ciudad, fecha, moneda),
       ordenes(id, codigo_orden, subtotal, comision, total, estado_pago, liberado, liberado_en, creado_en, archivo_url, pago_vendedor_enviado)
     `)
