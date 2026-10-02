@@ -16,7 +16,7 @@ export async function obtenerBoletas() {
     .select(`
       id, evento_id, tribuna, fila, silla, cantidad, precio, estado, reservada_hasta, vendedor_id, publicada_por_admin,
       eventos ( id, nombre, deporte, ciudad, estadio, fecha, hora, moneda ),
-      usuarios ( nombre, correo, es_admin )
+      usuarios ( nombre, es_admin )
     `)
     .or(filtroDisponible())
     .order('creado_en', { ascending: false })

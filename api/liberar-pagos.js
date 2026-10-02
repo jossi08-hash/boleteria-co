@@ -55,7 +55,7 @@ export default async function handler(req) {
   const resReservas = await supa(`boletas?estado=eq.reservada&reservada_hasta=lt.${new Date().toISOString()}&select=id`, {
     method: 'PATCH',
     headers: { Prefer: 'return=representation' },
-    body: JSON.stringify({ estado: 'publicada', reservada_hasta: null })
+    body: JSON.stringify({ estado: 'publicada', reservada_hasta: null, reservada_por: null })
   })
   const reservas = await resReservas.json().catch(() => [])
 

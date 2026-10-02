@@ -101,12 +101,30 @@ export async function confirmarPago(referencia, montoCentavos) {
   const confirmadas = pendientes.filter(o => idsConfirmados.has(o.id))
   await supa(`boletas?id=in.(${confirmadas.map(o => o.boleta_id).join(',')})`, {
     method: 'PATCH',
-    body: JSON.stringify({ estado: 'vendida', reservada_hasta: null })
+    body: JSON.stringify({ estado: 'vendida', reservada_hasta: null, reservada_por: null })
   })
 
   await enviarCorreosVenta(confirmadas)
   return { ok: true, confirmadas: confirmadas.length }
 }
+
+// Pago rechazado por Wompi: marca como fallidas las órdenes pendientes y devuelve sus boletas a la venta
+export async function rechazarPago(referencia) {
+  const pendientes = (await ordenesDelPago(referencia)).filter(o => o.estado_pago === 'pendiente')
+  if (!pendientes.length) return { ok: true, rechazadas: 0 }
+  await supa(`ordenes?id=in.(${pendientes.map(o => o.id).join(',')})&estado_pago=eq.pendiente`, {
+    method: 'PATCH',
+    body: JSON.stringify({ estado_pago: 'fallida' })
+  })
+  await supa(`boletas?id=in.(${pendientes.map(o => o.boleta_id).join(',')})&estado=eq.reservada`, {
+    method: 'PATCH',
+    body: JSON.stringify({ estado: 'publicada', reservada_hasta: null, reservada_por: null })
+  })
+  return { ok: true, rechazadas: pendientes.length }
+}
+
+const RECHAZADOS = ['DECLINED', 'VOIDED', 'ERROR']
+export const esRechazado = status => RECHAZADOS.includes(status)
 
 const INSTRUCCIONES_VENDEDOR = {
   'TuBoletaPass': 'Abre TuBoletaPass → Mis entradas → selecciona la boleta → Enviar Entrada → ingresa boletas@boleteriaco.com.',
