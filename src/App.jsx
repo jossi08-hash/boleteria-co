@@ -8,6 +8,7 @@ import { reclamoAbierto, pagoLiberado, horasParaLiberar } from './lib/ordenes'
 import { TITULO_BASE, RUTAS, paginaDesdeUrl, urlDePagina } from './rutas'
 import EscudoSVG from './componentes/EscudoSVG'
 import SillaExtraRow from './componentes/SillaExtraRow'
+import Icono from './componentes/Icono'
 
 // Se cargan solo al abrir la página que los usa
 const ComoFunciona = lazy(() => import('./ComoFunciona'))
@@ -505,6 +506,13 @@ function App() {
       setTribunasEvento(tribs)
     }
     setForm(updated)
+  }
+  // Abre el formulario de venta (con el partido ya elegido, si viene) o lleva a crear cuenta
+  function venderParaEvento(eventoId) {
+    if (!usuario) { setPaginaActual('registro'); return }
+    if (eventoId) manejarCambio({ target: { name: 'eventoId', value: eventoId } })
+    setPaginaActual('inicio')
+    setMostrarFormulario(true)
   }
   function manejarCambioAuth(e) { setFormAuth({ ...formAuth, [e.target.name]: e.target.value }) }
   function manejarCambioEvento(e) {
@@ -1201,10 +1209,13 @@ function App() {
         {/* HERO */}
         {!usuario && (
           <div style={s.hero}>
-            <div style={s.heroTag}>🎟 Marketplace de boletas · Colombia</div>
+            <div style={s.heroTag}>⚽ Reventa segura de boletas · Colombia</div>
             <h2 style={s.heroTitle}>Tu boleta al precio<br/>que realmente vale</h2>
-            <p style={s.heroSub}>Compra y vende boletas para eventos deportivos en Colombia. Pagos seguros con Wompi.</p>
-            <button style={s.botonVender} onClick={() => setVistaAuth('registro')}>Empieza gratis</button>
+            <p style={s.heroSub}>Compra y vende boletas para partidos de fútbol en Colombia. Tu pago queda protegido hasta que recibes tu boleta.</p>
+            <div style={{display:'flex',gap:'10px',justifyContent:'center',flexWrap:'wrap'}}>
+              <button style={s.botonVender} onClick={() => document.getElementById('partidos')?.scrollIntoView({ behavior: 'smooth' })}>Ver partidos</button>
+              <button style={{...s.botonVender,background:'transparent',border:'1px solid #4f7eff',color:'#6b93ff',boxShadow:'none'}} onClick={() => venderParaEvento('')}>Vender mi boleta</button>
+            </div>
             <button onClick={()=>setPaginaActual('como-funciona')} style={{display:'block',margin:'14px auto 0',background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'13px',fontWeight:'600',textDecoration:'underline'}}>¿Cómo funciona?</button>
           </div>
         )}
@@ -2232,10 +2243,13 @@ function App() {
               </div>
             )
           })()}
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px'}}>
-            <div>
-              <p style={{color:'#eef0f6',fontSize:'17px',fontWeight:'800',margin:'0 0 2px',letterSpacing:'-0.4px'}}>Eventos disponibles</p>
-              <p style={{color:'#4e5a6e',fontSize:'12px',margin:0}}>{[...new Set(boletas.filter(b=>b.estado==='publicada'&&b.evento_id).map(b=>b.evento_id))].length} evento{[...new Set(boletas.filter(b=>b.estado==='publicada'&&b.evento_id).map(b=>b.evento_id))].length!==1?'s':''} con entradas</p>
+          <div id="partidos" style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px',scrollMarginTop:'76px'}}>
+            <div style={{textAlign:'left'}}>
+              <p style={{color:'#eef0f6',fontSize:'17px',fontWeight:'800',margin:'0 0 2px',letterSpacing:'-0.4px'}}>Próximos partidos</p>
+              <p style={{color:'#4e5a6e',fontSize:'12px',margin:0}}>{(() => {
+                const conBoletas = new Set(boletas.filter(b=>b.estado==='publicada'&&b.evento_id).map(b=>b.evento_id)).size
+                return conBoletas > 0 ? `${conBoletas} con boletas disponibles` : 'Sé el primero en publicar boletas'
+              })()}</p>
             </div>
             {usuario&&(
               <button onClick={()=>setMostrarFormulario(true)} style={{background:'rgba(79,126,255,0.12)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'10px',padding:'9px 18px',fontSize:'13px',fontWeight:'700',cursor:'pointer',flexShrink:0}}>
@@ -2262,7 +2276,19 @@ function App() {
             }
             return true
           })
-          if (!cargando && boletas.length === 0) return (
+          // Próximos partidos sin boletas publicadas: se muestran para invitar a vender
+          const hoy = new Date().toLocaleDateString('en-CA')  // AAAA-MM-DD en hora local
+          const idsConBoletas = new Set(boletasFiltradas.map(b => String(b.evento_id || b.eventos?.id || b.id)))
+          const q = busquedaPublica.trim().toLowerCase()
+          const proximosSinBoletas = eventos.filter(ev => {
+            if (!ev.fecha || ev.fecha < hoy || idsConBoletas.has(String(ev.id))) return false
+            if (filtros.ciudad && (ev.ciudad || '').toLowerCase() !== filtros.ciudad.toLowerCase()) return false
+            if (filtros.deporte && (ev.deporte || '').toLowerCase() !== filtros.deporte.toLowerCase()) return false
+            if (q && !(ev.nombre || '').toLowerCase().includes(q) && !(ev.ciudad || '').toLowerCase().includes(q)) return false
+            return true
+          })
+          const hayProximos = eventos.some(ev => ev.fecha && ev.fecha >= hoy)
+          if (!cargando && boletas.length === 0 && !hayProximos) return (
             <div style={{textAlign:'center',padding:'60px 20px 40px',display:'flex',flexDirection:'column',alignItems:'center',gap:'16px'}}>
               <div style={{fontSize:'52px',lineHeight:1}}>🎟️</div>
               <h2 style={{margin:0,fontSize:'22px',fontWeight:'800',color:'#eef0f6'}}>Aún no hay boletas publicadas</h2>
@@ -2281,12 +2307,15 @@ function App() {
             if (!eventosMap[eid]) eventosMap[eid] = { info: b.eventos, boletas: [] }
             eventosMap[eid].boletas.push(b)
           })
-          const eventosArr = Object.entries(eventosMap).sort((a, b) => {
+          const eventosArr = [
+            ...Object.entries(eventosMap),
+            ...proximosSinBoletas.map(ev => [String(ev.id), { info: ev, boletas: [], sinBoletas: true }]),
+          ].sort((a, b) => {
             const fa = a[1].info?.fecha || ''
             const fb = b[1].info?.fecha || ''
             return fa.localeCompare(fb)
           })
-          if (!cargando && eventosArr.length === 0 && boletas.length > 0) return (
+          if (!cargando && eventosArr.length === 0 && (boletas.length > 0 || hayProximos)) return (
             <p style={s.vacio}>No hay eventos que coincidan con la búsqueda.</p>
           )
           return eventosArr.map(([eid, ev]) => {
@@ -2304,7 +2333,10 @@ function App() {
             return (
               <div
                 key={eid}
-                onClick={() => { setEventoSeleccionado({eid, ev}); setSeccionMapa(null); setPaginaActual('evento') }}
+                onClick={() => {
+                  if (ev.sinBoletas) { venderParaEvento(eid); return }
+                  setEventoSeleccionado({eid, ev}); setSeccionMapa(null); setPaginaActual('evento')
+                }}
                 style={{background:'linear-gradient(135deg,#0f1a2e 0%,#0c1220 100%)',border:'1px solid #1e2a3a',borderRadius:'18px',padding:'20px 16px',marginBottom:'12px',cursor:'pointer',display:'flex',flexDirection:'column',gap:'14px'}}
                 onMouseEnter={e=>e.currentTarget.style.borderColor='#4f7eff'}
                 onMouseLeave={e=>e.currentTarget.style.borderColor='#1e2a3a'}
@@ -2335,12 +2367,19 @@ function App() {
                 </div>
                 {/* Footer: precio + badge */}
                 <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderTop:'1px solid #111d2b',paddingTop:'12px'}}>
+                  {ev.sinBoletas ? (
+                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px',width:'100%'}}>
+                      <p style={{color:'#8892a4',fontSize:'12px',margin:0,textAlign:'left'}}>Aún sin boletas publicadas</p>
+                      <span style={{background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.3)',color:'#6b93ff',fontSize:'12px',fontWeight:'700',padding:'6px 12px',borderRadius:'8px',whiteSpace:'nowrap'}}>Sé el primero en vender</span>
+                    </div>
+                  ) : (
                   <div>
                     <p style={{color:'#4ade80',fontSize:'14px',fontWeight:'800',margin:'0 0 1px'}}>
-                      {ev.boletas.length > 0 ? `desde ${calcularTotal(precioMin, moneda, esAdminEvento)}` : 'Sin disponibles'}
+                      {`desde ${calcularTotal(precioMin, moneda, esAdminEvento)}`}
                     </p>
                     <p style={{color:'#4e5a6e',fontSize:'11px',margin:0}}>{ev.boletas.length} entrada{ev.boletas.length !== 1 ? 's' : ''} disponible{ev.boletas.length !== 1 ? 's' : ''}</p>
                   </div>
+                  )}
                   {esAdminEvento && (
                     <span style={{background:'rgba(79,126,255,0.15)',border:'1px solid rgba(79,126,255,0.25)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'4px 10px',borderRadius:'20px'}}>✓ Verificado</span>
                   )}
@@ -2976,15 +3015,17 @@ soporte@boleteriaco.com`},
         <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 0'}}>
           <h3 style={{color:'#eef0f6',fontSize:'18px',fontWeight:'800',textAlign:'center',margin:'0 0 6px',letterSpacing:'-0.3px'}}>¿Por qué confiar en Boletería CO?</h3>
           <p style={{color:'#8892a4',fontSize:'13px',textAlign:'center',margin:'0 0 24px'}}>Tu dinero y tu boleta están protegidos en cada compra</p>
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(180px,1fr))',gap:'10px'}}>
+          <div style={{display:'grid',gridTemplateColumns:esMobile?'1fr':'repeat(2,1fr)',gap:'10px'}}>
             {[
-              {icon:'🔒', title:'Custodia de pago', desc:'Tu dinero queda retenido hasta que recibas tu boleta y confirmes la entrega.'},
-              {icon:'✅', title:'Vendedores verificados', desc:'Solo vendemos boletas de usuarios con cuenta real. Sin intermediarios desconocidos.'},
-              {icon:'📲', title:'Solo cesión oficial', desc:'Transferencias directas desde TuBoletaPass, Quentro, W Arena y DIM Plus. Sin capturas ni PDFs.'},
-              {icon:'🛟', title:'Soporte garantizado', desc:'Si algo falla, te ayudamos. Escríbenos a boletas@boleteriaco.com.'},
+              {icon:'candado', title:'Custodia de pago', desc:'Tu dinero queda retenido hasta que recibas tu boleta y confirmes la entrega.'},
+              {icon:'escudo', title:'Vendedores verificados', desc:'Solo vendemos boletas de usuarios con cuenta real. Sin intermediarios desconocidos.'},
+              {icon:'celular', title:'Solo cesión oficial', desc:'Transferencias directas desde TuBoletaPass, Quentro, W Arena y DIM Plus. Sin capturas ni PDFs.'},
+              {icon:'soporte', title:'Soporte garantizado', desc:'Si algo falla, te ayudamos. Escríbenos a soporte@boleteriaco.com.'},
             ].map(({icon,title,desc}) => (
-              <div key={title} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px'}}>
-                <div style={{fontSize:'26px',marginBottom:'8px'}}>{icon}</div>
+              <div key={title} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',textAlign:'left'}}>
+                <div style={{width:'40px',height:'40px',borderRadius:'10px',background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.25)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px'}}>
+                  <Icono nombre={icon} color="#6b93ff" />
+                </div>
                 <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 6px'}}>{title}</p>
                 <p style={{color:'#8892a4',fontSize:'12px',margin:'0',lineHeight:1.6}}>{desc}</p>
               </div>
