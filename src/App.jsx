@@ -3035,7 +3035,7 @@ soporte@boleteriaco.com`},
 
 
       {/* ── Preguntas frecuentes ── */}
-      <section style={{maxWidth:'680px',margin:'0 auto 48px',padding:'0 4px'}}>
+      <section style={{maxWidth:'680px',margin:'56px auto 48px',padding:'0 20px'}}>
           <h2 style={{color:'#eef0f6',fontSize:'20px',fontWeight:'900',textAlign:'center',margin:'0 0 24px',letterSpacing:'-0.3px'}}>Preguntas frecuentes</h2>
           {[
             {
