@@ -109,6 +109,7 @@ code {
 }
 
 /* Mundo afiche: controles del navegador */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body { background: #141311; }
 ::selection { background: #d10f6b; color: #fff; }
 input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2px solid #ffe23b; outline-offset: 2px; }

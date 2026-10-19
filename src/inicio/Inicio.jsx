@@ -378,6 +378,12 @@ export default function Inicio({
             <button type="button" onClick={() => irA('creditos')}>Créditos</button>
             <a href="mailto:soporte@boleteriaco.com">soporte@boleteriaco.com</a>
           </nav>
+          <a className="ini-pie-red" href="https://www.instagram.com/boleteriaco" target="_blank" rel="noreferrer">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4.2" /><circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none" />
+            </svg>
+            Síguenos en Instagram
+          </a>
           <p className="ini-pie-creditos">© 2026 Boletería CO · Bogotá</p>
         </div>
       </footer>
