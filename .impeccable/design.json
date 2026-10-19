@@ -1,0 +1,378 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-19T00:00:00Z",
+  "title": "Design System: Boletería CO",
+  "extensions": {
+    "colorMeta": {
+      "amarillo-afiche": {
+        "role": "primary",
+        "displayName": "Amarillo afiche",
+        "canonical": "oklch(91.0% 0.174 99)",
+        "tonalRamp": [
+          "#130900",
+          "#322200",
+          "#553c00",
+          "#785a00",
+          "#997f00",
+          "#b5a23d",
+          "#d4c98c",
+          "#f4efd3"
+        ]
+      },
+      "fucsia-imprenta": {
+        "role": "secondary",
+        "displayName": "Fucsia de imprenta",
+        "canonical": "oklch(56.0% 0.221 2)",
+        "tonalRamp": [
+          "#200009",
+          "#4a0020",
+          "#78003a",
+          "#aa0c56",
+          "#c94f79",
+          "#df809c",
+          "#f4b2c3",
+          "#ffe5ec"
+        ]
+      },
+      "fucsia-hondo": {
+        "role": "secondary",
+        "displayName": "Fucsia hondo",
+        "canonical": "oklch(47.6% 0.187 2)",
+        "tonalRamp": [
+          "#200009",
+          "#4a0020",
+          "#78003a",
+          "#a90d56",
+          "#c94f79",
+          "#df809c",
+          "#f4b2c4",
+          "#ffe5ed"
+        ]
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "oklch(18.7% 0.004 85)",
+        "tonalRamp": [
+          "#0c0b09",
+          "#252422",
+          "#41403d",
+          "#5f5d5b",
+          "#81807d",
+          "#a3a19e",
+          "#c8c7c4",
+          "#f0eeeb"
+        ]
+      },
+      "papel": {
+        "role": "neutral",
+        "displayName": "Papel",
+        "canonical": "oklch(97.9% 0.014 93)",
+        "tonalRamp": [
+          "#0d0b05",
+          "#26241d",
+          "#424038",
+          "#605e55",
+          "#838077",
+          "#a4a198",
+          "#cac7be",
+          "#f1eee5"
+        ]
+      },
+      "papel-2": {
+        "role": "neutral",
+        "displayName": "Papel viejo",
+        "canonical": "oklch(92.8% 0.026 92)",
+        "tonalRamp": [
+          "#0f0b01",
+          "#282415",
+          "#444030",
+          "#635d4d",
+          "#86806f",
+          "#a7a190",
+          "#cdc7b5",
+          "#f4eedb"
+        ]
+      },
+      "gris-tinta": {
+        "role": "neutral",
+        "displayName": "Gris tinta",
+        "canonical": "oklch(45.1% 0.019 86)",
+        "tonalRamp": [
+          "#0f0b04",
+          "#28241a",
+          "#443f35",
+          "#625d52",
+          "#858074",
+          "#a7a195",
+          "#cdc7ba",
+          "#f4eee1"
+        ]
+      },
+      "tinta-suave": {
+        "role": "neutral",
+        "displayName": "Tinta suave",
+        "canonical": "oklch(33.8% 0.018 89)",
+        "tonalRamp": [
+          "#0e0b04",
+          "#27241a",
+          "#433f35",
+          "#625d52",
+          "#848074",
+          "#a6a195",
+          "#ccc7bb",
+          "#f3eee1"
+        ]
+      },
+      "sobre-tinta": {
+        "role": "neutral",
+        "displayName": "Sobre tinta",
+        "canonical": "oklch(95.8% 0.018 93)",
+        "tonalRamp": [
+          "#0e0b04",
+          "#27241a",
+          "#434035",
+          "#615e53",
+          "#848075",
+          "#a5a195",
+          "#cbc7bb",
+          "#f2eee1"
+        ]
+      },
+      "sobre-tinta-2": {
+        "role": "neutral",
+        "displayName": "Sobre tinta 2",
+        "canonical": "oklch(77.0% 0.020 91)",
+        "tonalRamp": [
+          "#0e0b03",
+          "#282419",
+          "#443f34",
+          "#625d51",
+          "#858073",
+          "#a6a194",
+          "#ccc7b9",
+          "#f4eee0"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Titular de afiche",
+        "purpose": "Solo el titular de la primera pantalla."
+      },
+      "headline": {
+        "displayName": "Título de sección",
+        "purpose": "Títulos de sección y pestañas de categoría."
+      },
+      "title": {
+        "displayName": "Nombre de evento",
+        "purpose": "Nombres de evento en boletas, pasos de la tira, día del talón."
+      },
+      "body": {
+        "displayName": "Texto",
+        "purpose": "Bajadas, respuestas, hechos y metadatos."
+      },
+      "label": {
+        "displayName": "Rótulo de boleta",
+        "purpose": "Rótulos de datos y series, en mayúsculas."
+      },
+      "button": {
+        "displayName": "Botón",
+        "purpose": "Botones en píldora y enlaces de acción."
+      },
+      "cifra": {
+        "displayName": "Cifra",
+        "purpose": "Precios y totales tabulares en fucsia."
+      }
+    },
+    "shadows": [
+      {
+        "name": "papel-apoyado",
+        "value": "0 14px 30px -18px rgba(20, 19, 17, .55)",
+        "purpose": "Buscador en reposo."
+      },
+      {
+        "name": "boleta-levantada",
+        "value": "0 22px 40px -18px rgba(20, 19, 17, .6)",
+        "purpose": "Boletas del anillo; con -26px de spread, la tira de custodia."
+      },
+      {
+        "name": "boleta-al-frente",
+        "value": "drop-shadow(0 26px 34px rgba(20, 19, 17, .38))",
+        "purpose": "Boleta de muestra (filter, respeta las muescas)."
+      },
+      {
+        "name": "brillo-fucsia",
+        "value": "0 6px 18px -8px rgba(209, 15, 107, .7)",
+        "purpose": "Solo el botón fucsia."
+      },
+      {
+        "name": "halo-foco-buscador",
+        "value": "0 0 0 4px rgba(209, 15, 107, .25)",
+        "purpose": "Buscador con foco."
+      }
+    ],
+    "motion": [
+      {
+        "name": "suave",
+        "value": "cubic-bezier(.16, 1, .3, 1)",
+        "purpose": "Curva única de entradas y estados."
+      },
+      {
+        "name": "estado-rapido",
+        "value": ".2s",
+        "purpose": "Fondo de botones y filas."
+      },
+      {
+        "name": "estado-medio",
+        "value": ".3s",
+        "purpose": "Elevación de fila, flechas, signo más."
+      },
+      {
+        "name": "barra-pestana",
+        "value": ".45s",
+        "purpose": "Barra amarilla de la pestaña activa."
+      },
+      {
+        "name": "titular-sube",
+        "value": "1s, segunda línea +.09s",
+        "purpose": "Líneas del titular suben enmascaradas."
+      },
+      {
+        "name": "marquesina",
+        "value": "60s linear infinite",
+        "purpose": "Desplazamiento de la marquesina."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "celular",
+        "value": "640px"
+      },
+      {
+        "name": "tableta",
+        "value": "960px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón tinta",
+      "kind": "button",
+      "refersTo": "button-tinta",
+      "description": "Acción primaria sobre amarillo o papel (Buscar).",
+      "html": "<button class=\"ds-boton ds-boton-tinta\">Buscar</button>",
+      "css": ".ds-boton{border:0;border-radius:999px;cursor:pointer;font:700 15px/1 'Archivo',system-ui,sans-serif;letter-spacing:.01em;padding:0 24px;min-height:48px;transition:transform .2s cubic-bezier(.16,1,.3,1),background-color .2s,box-shadow .2s;} .ds-boton:active{transform:scale(.97);} .ds-boton:focus-visible{outline:3px solid #d10f6b;outline-offset:3px;} .ds-boton-tinta{background:#141311;color:#ffe23b;} .ds-boton-tinta:hover{background:#000;}"
+    },
+    {
+      "name": "Botón borde",
+      "kind": "button",
+      "refersTo": "button-borde",
+      "description": "Acción secundaria sobre amarillo (Vender mi boleta).",
+      "html": "<div style=\"background:#ffe23b;padding:24px\"><button class=\"ds-boton ds-boton-borde\">Vender mi boleta</button></div>",
+      "css": ".ds-boton{border:0;border-radius:999px;cursor:pointer;font:700 15px/1 'Archivo',system-ui,sans-serif;letter-spacing:.01em;padding:0 24px;min-height:48px;transition:transform .2s cubic-bezier(.16,1,.3,1),background-color .2s,box-shadow .2s;} .ds-boton:active{transform:scale(.97);} .ds-boton:focus-visible{outline:3px solid #d10f6b;outline-offset:3px;} .ds-boton-borde{background:transparent;color:#141311;box-shadow:inset 0 0 0 2px #141311;} .ds-boton-borde:hover{background:#141311;color:#ffe23b;}"
+    },
+    {
+      "name": "Botón fucsia",
+      "kind": "button",
+      "refersTo": "button-fucsia",
+      "description": "Acción de venta sobre bandas tinta.",
+      "html": "<div style=\"background:#141311;padding:24px\"><button class=\"ds-boton ds-boton-fucsia\">Vender una boleta</button></div>",
+      "css": ".ds-boton{border:0;border-radius:999px;cursor:pointer;font:700 15px/1 'Archivo',system-ui,sans-serif;letter-spacing:.01em;padding:0 24px;min-height:48px;transition:transform .2s cubic-bezier(.16,1,.3,1),background-color .2s,box-shadow .2s;} .ds-boton:active{transform:scale(.97);} .ds-boton:focus-visible{outline:3px solid #d10f6b;outline-offset:3px;} .ds-boton-fucsia{background:#d10f6b;color:#fff;box-shadow:0 6px 18px -8px rgba(209,15,107,.7);} .ds-boton-fucsia:hover{background:#a80a55;}"
+    },
+    {
+      "name": "Buscador",
+      "kind": "input",
+      "refersTo": "buscador",
+      "description": "Píldora de papel con lupa y botón tinta; halo fucsia al enfocar.",
+      "html": "<div style=\"background:#ffe23b;padding:24px\"><form class=\"ds-buscador\"><span class=\"ds-lupa\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\"><circle cx=\"10.5\" cy=\"10.5\" r=\"6.5\"/><path d=\"M20 20l-4.6-4.6\"/></svg></span><input type=\"search\" placeholder=\"Equipo, artista o ciudad\"><button type=\"button\" class=\"ds-boton ds-boton-tinta\">Buscar</button></form></div>",
+      "css": ".ds-boton{border:0;border-radius:999px;cursor:pointer;font:700 15px/1 'Archivo',system-ui,sans-serif;letter-spacing:.01em;padding:0 24px;min-height:48px;transition:transform .2s cubic-bezier(.16,1,.3,1),background-color .2s,box-shadow .2s;} .ds-boton:active{transform:scale(.97);} .ds-boton:focus-visible{outline:3px solid #d10f6b;outline-offset:3px;} .ds-boton-tinta{background:#141311;color:#ffe23b;} .ds-boton-tinta:hover{background:#000;} .ds-buscador{position:relative;max-width:640px;display:flex;align-items:center;gap:8px;background:#fbf8ee;border:2px solid #141311;border-radius:999px;padding:6px 6px 6px 54px;box-shadow:0 14px 30px -18px rgba(20,19,17,.55);transition:box-shadow .25s cubic-bezier(.16,1,.3,1);} .ds-buscador:focus-within{box-shadow:0 0 0 4px rgba(209,15,107,.25),0 14px 30px -18px rgba(20,19,17,.55);} .ds-lupa{position:absolute;left:20px;top:50%;transform:translateY(-50%);display:flex;color:#141311;} .ds-buscador input{flex:1;min-width:0;height:48px;border:0;background:transparent;outline:none;font:500 17px/1 'Archivo',system-ui,sans-serif;color:#141311;caret-color:#d10f6b;} .ds-buscador input::placeholder{color:#6e685b;}"
+    },
+    {
+      "name": "Fila de evento",
+      "kind": "card",
+      "refersTo": "fila-evento",
+      "description": "Boleta horizontal con talón de fecha amarillo, muescas y precio fucsia; lista vertical sobre tinta.",
+      "html": "<div style=\"background:#141311;padding:24px\"><button class=\"ds-fila\"><span class=\"ds-fecha\"><span class=\"ds-chico\">sáb</span><span class=\"ds-dia\">31</span><span class=\"ds-chico\">oct</span></span><span class=\"ds-centro\"><span class=\"ds-nombre\">Junior vs Deportivo Cali</span><span class=\"ds-lugar\">Metropolitano · Barranquilla</span></span><span class=\"ds-precio\"><span class=\"ds-lugar\">desde</span><span class=\"ds-valor\">$138.000</span></span><span class=\"ds-flecha\"><svg width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></span></button></div>",
+      "css": ".ds-fila{--talon:112px;width:100%;border:0;cursor:pointer;text-align:left;color:#141311;display:grid;grid-template-columns:var(--talon) minmax(0,1fr) auto 64px;min-height:108px;background:#fbf8ee;border-radius:14px;-webkit-mask:radial-gradient(circle at var(--talon) 0,#0000 11px,#000 11.5px) top/100% 51% no-repeat,radial-gradient(circle at var(--talon) 100%,#0000 11px,#000 11.5px) bottom/100% 51% no-repeat;mask:radial-gradient(circle at var(--talon) 0,#0000 11px,#000 11.5px) top/100% 51% no-repeat,radial-gradient(circle at var(--talon) 100%,#0000 11px,#000 11.5px) bottom/100% 51% no-repeat;transition:transform .3s cubic-bezier(.16,1,.3,1),background-color .2s;font-family:'Archivo',system-ui,sans-serif;padding:0;} .ds-fila:hover{transform:translateY(-3px);background:#fff;} .ds-fila:focus-visible{outline:none;background:#fff;box-shadow:inset 0 0 0 3px #d10f6b;} .ds-fecha{background:#ffe23b;border-right:2px dashed rgba(20,19,17,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-transform:uppercase;} .ds-chico{font:700 12px/1.1 'Archivo',sans-serif;letter-spacing:.06em;} .ds-dia{font:900 46px/.9 'Big Shoulders Display','Archivo',sans-serif;} .ds-centro{display:flex;flex-direction:column;justify-content:center;gap:6px;padding:16px 20px 16px 24px;} .ds-nombre{font:800 26px/1 'Big Shoulders Display','Archivo',sans-serif;text-transform:uppercase;} .ds-lugar{font-size:14px;color:#5a554a;} .ds-precio{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:4px;padding:16px 4px 16px 12px;} .ds-valor{font:800 22px/1 'Archivo',sans-serif;color:#d10f6b;font-feature-settings:'tnum';} .ds-flecha{display:flex;align-items:center;justify-content:center;} .ds-flecha svg{transition:transform .3s cubic-bezier(.16,1,.3,1);} .ds-fila:hover .ds-flecha svg{transform:translateX(4px);}"
+    },
+    {
+      "name": "Pestañas de categoría",
+      "kind": "nav",
+      "refersTo": "pestana",
+      "description": "Pestañas titulares sobre tinta con barra amarilla que crece desde la izquierda.",
+      "html": "<div class=\"ds-pestanas\" role=\"tablist\"><button class=\"ds-pestana\" role=\"tab\" aria-selected=\"true\">Deportivos<span class=\"ds-n\">4</span></button><button class=\"ds-pestana\" role=\"tab\" aria-selected=\"false\">Artísticos<span class=\"ds-n\">1</span></button></div>",
+      "css": ".ds-pestanas{background:#141311;padding:24px 24px 0;display:flex;gap:48px;border-bottom:2px solid rgba(245,241,228,.14);} .ds-pestana{position:relative;background:none;border:0;cursor:pointer;padding:0 0 14px;font:900 64px/.9 'Big Shoulders Display','Archivo',sans-serif;text-transform:uppercase;color:rgba(245,241,228,.5);transition:color .25s;} .ds-pestana:hover{color:rgba(245,241,228,.6);} .ds-pestana[aria-selected='true']{color:#ffe23b;} .ds-pestana::after{content:'';position:absolute;left:0;right:0;bottom:-2px;height:6px;background:#ffe23b;transform:scaleX(0);transform-origin:left;transition:transform .45s cubic-bezier(.16,1,.3,1);} .ds-pestana[aria-selected='true']::after{transform:scaleX(1);} .ds-pestana:focus-visible{outline:3px solid #d10f6b;outline-offset:3px;} .ds-n{font:700 15px/1 'Archivo',sans-serif;vertical-align:top;margin-left:6px;}"
+    },
+    {
+      "name": "Nav",
+      "kind": "nav",
+      "refersTo": "nav",
+      "description": "Barra fija tinta con logotipo, CO amarillo y píldora Entrar.",
+      "html": "<nav class=\"ds-nav\"><span class=\"ds-marca\">Boletería <b>CO</b></span><button class=\"ds-entrar\">Iniciar sesión</button></nav>",
+      "css": ".ds-nav{background:#141311;border-bottom:1px solid rgba(245,241,228,.1);height:60px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-family:'Archivo',system-ui,sans-serif;} .ds-marca{color:#f5f1e4;font-weight:800;font-size:18px;} .ds-marca b{color:#ffe23b;} .ds-entrar{background:#ffe23b;border:0;border-radius:999px;cursor:pointer;color:#141311;font:700 13px/1 'Archivo',sans-serif;padding:8px 14px;} .ds-entrar:focus-visible{outline:3px solid #d10f6b;outline-offset:3px;}"
+    },
+    {
+      "name": "Sello EN CUSTODIA",
+      "kind": "custom",
+      "refersTo": "sello",
+      "description": "Sello de goma fucsia rotado sobre el talón de la boleta de muestra.",
+      "html": "<div style=\"background:#fbf8ee;padding:32px;display:inline-block\"><span class=\"ds-sello\">En<br>custodia</span></div>",
+      "css": ".ds-sello{display:inline-block;transform:rotate(-9deg);border:3px solid #d10f6b;border-radius:10px;box-shadow:inset 0 0 0 2px #fbf8ee,inset 0 0 0 4px #d10f6b;padding:9px 14px 7px;font:900 26px/.9 'Big Shoulders Display','Archivo',sans-serif;text-transform:uppercase;letter-spacing:.02em;color:#d10f6b;mix-blend-mode:multiply;}"
+    }
+  ],
+  "narrative": {
+    "northStar": "El afiche de poste con boleta en custodia",
+    "overview": "Boletería CO se ve como un afiche callejero bogotano pegado en un poste: amarillo afiche a sangre, tinta negra casi pura, fucsia de imprenta para la plata y la acción, y letras de madera condensadas que gritan en mayúsculas. Sobre ese afiche, cada pieza de información tiene forma de boleta: talón perforado con línea punteada, muescas semicirculares en el corte, número de serie y un sello de goma \"EN CUSTODIA\" con tinta irregular. La boleta es la interfaz; la confianza se muestra con un objeto, no se promete con un párrafo.\n\nLa densidad alterna por bandas completas: amarillo (primera pantalla, custodia) y tinta (eventos, preguntas, pie). El texto corrido es Archivo, sobrio y legible; la voz alta es Big Shoulders Display. Las fotos de estadios y artistas viven siempre dentro de boletas, a todo color. El mundo rechaza explícitamente el hero oscuro con brillo azul y la grilla de tarjetas iguales que tenía el sitio anterior.",
+    "keyCharacteristics": [
+      "Bandas a sangre que alternan amarillo afiche y tinta; papel crema para todo lo que es boleta.",
+      "Titulares en Big Shoulders Display 800–900, siempre en mayúsculas, con interlineado apretado (0.84–0.95).",
+      "Componentes con anatomía de boleta: talón, perforación punteada, muescas, serie, sello.",
+      "Fucsia reservado para precio, acción de compra/venta, foco y el sello de custodia.",
+      "Movimiento lento y suave con una sola curva (cubic-bezier(.16, 1, .3, 1)); todo se detiene con reduce-motion."
+    ],
+    "rules": [
+      {
+        "name": "La regla de la plata fucsia",
+        "body": "El fucsia marca dinero y acción: precio, total, vender, foco, sello. Si un elemento fucsia no es plata, una acción o la custodia, está mal.",
+        "section": "colors"
+      },
+      {
+        "name": "La regla de las bandas a sangre",
+        "body": "Las secciones no flotan en tarjetas sobre un fondo: cada sección es una banda de ancho completo, amarillo o tinta, y sobre ella se apoyan las boletas de papel.",
+        "section": "colors"
+      },
+      {
+        "name": "La regla de la madera en mayúsculas",
+        "body": "Big Shoulders Display se usa siempre en mayúsculas y con interlineado ≤ 1; nunca para texto corrido, botones ni precios.",
+        "section": "typography"
+      },
+      {
+        "name": "La regla de la cifra tabular",
+        "body": "Todo número que es plata se compone en Archivo con 'tnum'; nunca en la letra de afiche.",
+        "section": "typography"
+      },
+      {
+        "name": "La regla del papel sobre el poste",
+        "body": "Solo lo que es papel proyecta sombra, y siempre difusa y teñida de tinta. Las bandas y el texto nunca.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do poner las fotos de eventos siempre dentro de una boleta (talón, muescas, serie), a todo color y con crédito de licencia en el pie.",
+      "Do alternar bandas a sangre amarillo afiche y tinta, y apoyar sobre ellas objetos de papel.",
+      "Do usar la perforación punteada de 2px y las muescas semicirculares para separar talón y cuerpo en cualquier componente-boleta.",
+      "Do componer precios y totales en Archivo 800 con 'tnum' y en fucsia de imprenta.",
+      "Do usar la curva suave cubic-bezier(.16, 1, .3, 1) para entradas y estados, y detener toda animación con prefers-reduced-motion.",
+      "Do marcar como ejemplo cualquier boleta con datos ilustrativos."
+    ],
+    "donts": [
+      "Don't volver al hero oscuro con brillo azul ni a la grilla de tarjetas de evento iguales.",
+      "Don't usar el fucsia como decoración: solo plata, acción, foco y custodia.",
+      "Don't usar Big Shoulders Display en minúsculas, en texto corrido o en cifras.",
+      "Don't poner fotos sueltas fuera de una boleta, ni escudos o rostros de jugadores en fotos deportivas.",
+      "Don't usar sombras duras desplazadas ni sombras en las bandas; solo sombras difusas teñidas de tinta bajo el papel.",
+      "Don't usar Inter ni los azules del sitio anterior en superficies nuevas."
+    ]
+  }
+}
