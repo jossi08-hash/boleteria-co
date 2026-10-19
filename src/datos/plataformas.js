@@ -2,6 +2,7 @@
 
 export const PLATAFORMAS = {
   'TuBoletaPass': {
+    uso: 'Santa Fe, América, Llaneros, Tolima y conciertos vendidos por TuBoleta',
     equipos: ['santa fe','america','llaneros','tolima'],
     color: '#e85d04',
     instrVendedor: 'Abre TuBoletaPass → Mis entradas → selecciona la boleta → Enviar Entrada → ingresa boletas@boleteriaco.com.',
@@ -26,6 +27,7 @@ export const PLATAFORMAS = {
     ],
   },
   'Quentro': {
+    uso: 'Millonarios, Atlético Nacional',
     equipos: ['millonarios','nacional','atletico nacional'],
     color: '#2563eb',
     instrVendedor: 'Abre Quentro → Mis Entradas → selecciona la entrada → icono de flecha → ingresa boletas@boleteriaco.com.',
@@ -48,6 +50,7 @@ export const PLATAFORMAS = {
     ],
   },
   'Warena': {
+    uso: 'Cúcuta, Junior',
     equipos: ['cucuta','junior','atletico junior'],
     color: '#7c3aed',
     instrVendedor: 'Abre W Arena → perfil → entradas → Transferir → ingresa el documento de identidad registrado en la cuenta de boletas@boleteriaco.com.',
@@ -69,6 +72,7 @@ export const PLATAFORMAS = {
     ],
   },
   'Dim Plus': {
+    uso: 'Independiente Medellín',
     equipos: ['independiente medellin','medellin','dim'],
     color: '#dc2626',
     instrVendedor: 'Abre DIM Plus → Mis boletas → Ver boleta → Ceder boleta → llena los datos de la cuenta boletas@boleteriaco.com.',
@@ -88,6 +92,30 @@ export const PLATAFORMAS = {
       'Regístrate con tus datos personales exactos (nombre y documento).',
       'Boletería CO cederá la boleta a tus datos registrados.',
       'Importante: no se permiten descargas en PDF ni capturas del QR — el código es dinámico.',
+    ],
+  },
+  'Ticketmaster': {
+    uso: 'Conciertos vendidos por Ticketmaster',
+    equipos: [],
+    color: '#026cdf',
+    instrVendedor: 'Abre Ticketmaster → Mis boletos → selecciona el evento → Transferir boletos → ingresa el nombre y el correo boletas@boleteriaco.com.',
+    instrComprador: 'Crea tu cuenta en Ticketmaster con tu correo. Boletería CO te transferirá la boleta y te llegará un correo para aceptarla; después aparecerá en "Mis boletos".',
+    tipoEntrega: 'email',
+    requisitoReceptor: 'La persona que recibe la boleta debe tener una cuenta en Ticketmaster creada con el mismo correo al que se envía la transferencia.',
+    notaVendedor: 'Solo se puede transferir si el organizador activó la transferencia para ese evento (si el botón "Transferir" sale en gris, no se puede). Las boletas VIP o con beneficios suelen no ser transferibles, y la opción se cierra unas horas antes del evento.',
+    emailAdmin: 'boletas@boleteriaco.com',
+    pasosVendedor: [
+      'Entra a Ticketmaster (app o web) con la cuenta con la que compraste.',
+      'Ve a "Mis boletos" y selecciona el evento.',
+      'Toca "Transferir boletos" y elige las boletas que vas a ceder.',
+      'Confirma tu identidad con el código que te llega por SMS o correo.',
+      'Escribe como destinatario a Boletería CO con el correo boletas@boleteriaco.com y confirma.',
+    ],
+    pasosComprador: [
+      'Crea tu cuenta en Ticketmaster con tu correo electrónico.',
+      'Boletería CO te transferirá la boleta a ese correo.',
+      'Abre el correo de Ticketmaster y acepta la transferencia; si no la aceptas, la boleta no queda a tu nombre.',
+      'La boleta aparecerá en "Mis boletos" de tu cuenta.',
     ],
   },
 }

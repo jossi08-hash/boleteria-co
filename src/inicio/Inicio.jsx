@@ -10,7 +10,7 @@ const esArtisticoInfo = (info) => esArtistico(info?.deporte)
 
 const PREGUNTAS = [
   { q: '¿Cómo sé que no me estafan?', a: 'Tu dinero queda en custodia con Boletería CO hasta que tú confirmes que recibiste la boleta. Solo después de tu confirmación el vendedor cobra. Si algo sale mal, tocas "Tengo un problema" antes de 72 horas y congelamos el pago mientras lo revisamos.' },
-  { q: '¿Cómo llega la boleta?', a: 'Depende de la plataforma: en TuBoletaPass y Quentro te la transferimos por correo electrónico; en W Arena y DIM Plus por número de documento. Antes de pagar te mostramos exactamente qué necesitas.' },
+  { q: '¿Cómo llega la boleta?', a: 'Depende de la plataforma: en TuBoletaPass, Quentro y Ticketmaster te la transferimos por correo electrónico; en W Arena y DIM Plus por número de documento. Antes de pagar te mostramos exactamente qué necesitas.' },
   { q: '¿Cuánto demora?', a: 'En la mayoría de casos menos de 24 horas. Cuando tu pago se confirma, el vendedor recibe una notificación inmediata para transferirte la boleta.' },
   { q: '¿Cuánto cobra Boletería CO?', a: 'Al comprador se le suma aproximadamente un 15% sobre el precio publicado (redondeado a los $1.000 más cercanos) y ve el total exacto antes de pagar. Al vendedor se le retiene un 8% del precio de venta. Publicar es gratis.' },
 ]
@@ -106,7 +106,7 @@ export default function Inicio({
       return `${ev.nombre} · ${p.semana} ${p.dia} ${p.mes}${ev.ciudad ? ' · ' + ev.ciudad : ''}`
     }),
     'Tu plata queda en custodia hasta que recibes la boleta',
-    'Solo cesión oficial: TuBoletaPass · Quentro · W Arena · DIM Plus',
+    'Solo cesión oficial: TuBoletaPass · Quentro · W Arena · DIM Plus · Ticketmaster',
   ]
 
   // Boleta de ejemplo: el próximo evento con boletas, si existe
@@ -339,7 +339,7 @@ export default function Inicio({
           </ol>
           <div className="ini-hechos">
             <p><strong>Revisamos cada publicación</strong> antes de mostrarla.</p>
-            <p><strong>Solo cesión oficial</strong> desde TuBoletaPass, Quentro, W Arena y DIM Plus. Sin capturas ni PDF.</p>
+            <p><strong>Solo cesión oficial</strong> desde TuBoletaPass, Quentro, W Arena, DIM Plus y Ticketmaster. Sin capturas ni PDF.</p>
             <p><strong>Precio claro:</strong> el comprador paga cerca de 15% sobre el precio publicado y ve el total antes; el vendedor publica gratis y paga 8% al vender.</p>
           </div>
           <button type="button" className="ini-enlace" onClick={() => irA('como-funciona')}>

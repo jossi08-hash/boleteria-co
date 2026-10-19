@@ -1,6 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { supa, json, correoAdmin, enviarCorreo, SUPABASE_URL } from './_lib/pagos.js'
+import { correo, boleta, aviso, parrafo, escapar } from './_lib/plantilla.js'
 
 // Avisa al admin que un comprador reportó un problema con su boleta
 export default async function handler(req) {
@@ -25,16 +26,19 @@ export default async function handler(req) {
   if (!orden || orden.comprador_id !== user.id || !orden.reclamo_en) return json({ error: 'Orden no encontrada' }, 404)
 
   const b = orden.boletas || {}
-  const escapar = t => String(t || '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
-  await enviarCorreo(await correoAdmin(), `🛑 Reclamo de comprador — ${orden.codigo_orden}`,
-    `<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px;">
-      <h1 style="color:#dc2626;font-size:20px;">Un comprador reportó un problema</h1>
-      <p><strong>Evento:</strong> ${escapar(b.eventos?.nombre)} · ${escapar(b.tribuna)}${b.fila ? ' · Fila ' + escapar(b.fila) : ''}${b.silla ? ' · Silla ' + escapar(b.silla) : ''}</p>
-      <p><strong>Referencia:</strong> ${orden.codigo_orden} · <strong>Pagado:</strong> $${Number(orden.total || 0).toLocaleString('es-CO')}</p>
-      <p><strong>Comprador:</strong> ${escapar(user.email)}</p>
-      <p><strong>Vendedor:</strong> ${escapar(b.usuarios?.nombre)} · ${escapar(b.usuarios?.correo)}</p>
-      <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;margin:16px 0;white-space:pre-wrap;">${escapar(orden.reclamo_motivo)}</div>
-      <p>El pago al vendedor quedó congelado. Resuélvelo desde el panel de admin: liberar el pago o reembolsar al comprador.</p>
-    </div>`)
+  await enviarCorreo(await correoAdmin(), `Reclamo de comprador — ${orden.codigo_orden}`, correo({
+    titulo: 'Un comprador reportó un problema',
+    previa: `Pago congelado · ${orden.codigo_orden}`,
+    contenido: boleta([
+      ['Evento', escapar(b.eventos?.nombre)],
+      ['Ubicación', [escapar(b.tribuna), b.fila && 'Fila ' + escapar(b.fila), b.silla && 'Silla ' + escapar(b.silla)].filter(Boolean).join(' · ')],
+      ['Referencia', orden.codigo_orden],
+      ['Pagado', '$' + Number(orden.total || 0).toLocaleString('es-CO')],
+      ['Comprador', escapar(user.email)],
+      ['Vendedor', `${escapar(b.usuarios?.nombre)} · ${escapar(b.usuarios?.correo)}`],
+    ]) +
+      aviso('Motivo del reclamo', `<span style="white-space:pre-wrap;">${escapar(orden.reclamo_motivo)}</span>`) +
+      parrafo('El pago al vendedor quedó congelado. Resuélvelo desde el panel de admin: liberar el pago o reembolsar al comprador.')
+  }))
   return json({ ok: true })
 }

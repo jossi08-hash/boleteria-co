@@ -1,5 +1,7 @@
 export const config = { runtime: 'edge' }
 
+import { correo, boleta as datosBoleta, monto, parrafo, escapar } from './_lib/plantilla.js'
+
 const SUPABASE_URL = 'https://ssyelddmusabkxwijghn.supabase.co'
 
 export default async function handler(req) {
@@ -97,36 +99,25 @@ export default async function handler(req) {
   const referencia = orden.codigo_orden
   const datosPago = (vendedor && vendedor.datos_pago) || null
 
-  const htmlPago = datosPago
-    ? '<p style="margin:0;color:#374151;font-size:14px;">Enviado a: <strong>' + datosPago + '</strong></p>'
-    : '<p style="margin:0;color:#dc2626;font-size:14px;">Si no recibes el pago en 24h, contactanos a hola@boleteriaco.com.</p>'
-
-  const htmlEvento = '<p style="margin:0 0 6px;"><strong>Evento:</strong> ' + eventoNombre + (eventoCity ? ' - ' + eventoCity : '') + '</p>' +
-    '<p style="margin:0 0 6px;"><strong>Ubicacion:</strong> ' + (ubicacion || 'N/A') + '</p>' +
-    '<p style="margin:0;"><strong>Referencia:</strong> ' + referencia + '</p>'
-
-  const htmlBody = '<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px;">' +
-    '<h1 style="color:#34d399;font-size:22px;">Tu pago fue enviado, ' + nombreVendedor + '!</h1>' +
-    '<p style="color:#374151;">El comprador confirmo que recibio la boleta y ya enviamos tu pago.</p>' +
-    '<div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px;margin:20px 0;">' +
-    '<p style="margin:0 0 6px;font-size:28px;font-weight:900;color:#15803d;">' + netoFmt + '</p>' +
-    htmlPago +
-    '</div>' +
-    '<div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;">' +
-    htmlEvento +
-    '</div>' +
-    '<p style="color:#374151;font-size:14px;">Preguntas? Escribenos a hola@boleteriaco.com</p>' +
-    '<hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">' +
-    '<p style="color:#9ca3af;font-size:12px;">Boleteria CO - boleteriaco.com</p>' +
-    '</div>'
+  const htmlBody = correo({
+    titulo: '¡Tu pago va en camino!',
+    previa: `Te enviamos ${netoFmt} por tu boleta de ${eventoNombre}`,
+    contenido: parrafo(`Hola ${escapar(nombreVendedor)}, el comprador confirmó que recibió la boleta y ya te enviamos tu pago.`) +
+      monto('Te enviamos', netoFmt, datosPago ? `A: <strong>${escapar(datosPago)}</strong>` : 'Si no lo recibes en 24 horas, escríbenos a soporte@boleteriaco.com.') +
+      datosBoleta([
+        ['Evento', escapar(eventoNombre) + (eventoCity ? ' · ' + escapar(eventoCity) : '')],
+        ['Ubicación', escapar(ubicacion) || 'Sin especificar'],
+        ['Referencia', referencia],
+      ])
+  })
 
   const emailRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + resendKey, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      from: 'Boleteria CO <noreply@boleteriaco.com>',
+      from: 'Boletería CO <noreply@boleteriaco.com>',
       to: correoVendedor,
-      subject: 'Tu pago esta en camino - ' + netoFmt,
+      subject: 'Tu pago está en camino — ' + netoFmt,
       html: htmlBody
     })
   })

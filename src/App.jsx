@@ -1029,7 +1029,7 @@ function App() {
       <h2 style={{color:'#f5f1e4',fontSize:'20px',fontWeight:'900',textAlign:'center',margin:'0 0 24px',letterSpacing:'-0.3px',borderTop:'1px solid #34312b',paddingTop:'40px'}}>Preguntas frecuentes</h2>
       {[
         {q:'¿Cómo sé que no me estafan?',a:'Tu dinero queda en custodia con Boletería CO hasta que tú confirmes que recibiste la boleta. Solo después de tu confirmación el vendedor cobra. Si algo sale mal, nosotros respondemos.'},
-        {q:'¿Cómo llega la boleta?',a:'Depende de la plataforma: en TuBoletaPass y Quentro te la transferimos por correo electrónico; en W Arena y DIM Plus por número de documento. Antes de pagar te mostramos exactamente los pasos.'},
+        {q:'¿Cómo llega la boleta?',a:'Depende de la plataforma: en TuBoletaPass, Quentro y Ticketmaster te la transferimos por correo electrónico; en W Arena y DIM Plus por número de documento. Antes de pagar te mostramos exactamente los pasos.'},
         {q:'¿Cuánto demora?',a:'En la mayoría de casos menos de 24 horas. Cuando tu pago se confirma, el vendedor recibe una notificación inmediata para transferirte la boleta.'},
         {q:'¿Cuánto cobra Boletería CO?',a:'Al comprador se le suma aproximadamente un 15% sobre el precio publicado (redondeado a los $1.000 más cercanos). Al vendedor se le retiene un 8% del precio de venta. Sin cobros ocultos.'},
       ].map(({q,a},i)=>(
@@ -1986,7 +1986,7 @@ function App() {
                 </select>
                 {form.plataforma && PLATAFORMAS[form.plataforma] && (
                   <p style={{color:'#b9b4a6',fontSize:'11px',margin:'-10px 0 12px',lineHeight:1.5}}>
-                    ℹ️ {form.plataforma === 'TuBoletaPass' ? 'Santa Fe, América, Llaneros, Tolima' : form.plataforma === 'Quentro' ? 'Millonarios, Atlético Nacional' : form.plataforma === 'Warena' ? 'Cúcuta, Junior' : 'Ind. Medellín'}
+                    {PLATAFORMAS[form.plataforma].uso}
                   </p>
                 )}
                 <label style={s.label}>Tribuna</label>
