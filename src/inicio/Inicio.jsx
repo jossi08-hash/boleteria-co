@@ -88,7 +88,7 @@ export default function Inicio({
       .filter(ev => ev.fecha && ev.fecha >= hoy && !mapa[String(ev.id)] && coincide(ev))
       .map(ev => [String(ev.id), { info: ev, boletas: [], sinBoletas: true }])
     return [...Object.entries(mapa), ...sinBoletas]
-      .sort((a, b) => (a[1].info?.fecha || '').localeCompare(b[1].info?.fecha || ''))
+      .sort((a, b) => `${a[1].info?.fecha || ''} ${a[1].info?.hora || ''}`.localeCompare(`${b[1].info?.fecha || ''} ${b[1].info?.hora || ''}`))
   }, [boletas, eventos, busqueda, filtros.ciudad, hoy])
 
   const deportivos = todos.filter(([, ev]) => !esArtistico(ev.info))
@@ -99,7 +99,7 @@ export default function Inicio({
   // Próximos eventos para la marquesina
   const proximos = eventos
     .filter(ev => ev.fecha && ev.fecha >= hoy)
-    .sort((a, b) => a.fecha.localeCompare(b.fecha))
+    .sort((a, b) => `${a.fecha} ${a.hora || ''}`.localeCompare(`${b.fecha} ${b.hora || ''}`))
     .slice(0, 5)
   const marquesina = [
     ...proximos.map(ev => {
