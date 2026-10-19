@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import EscudoSVG from '../componentes/EscudoSVG'
 import { extraerEquipos } from '../lib/equipos'
 import AnilloBoletas from './AnilloBoletas'
-import { FOTOS_ANILLO, CREDITOS } from './fotos'
+import { FOTOS_ANILLO } from './fotos'
 import './inicio.css'
 
 // Categorías que cuentan como evento artístico (columna `deporte` de eventos)
@@ -376,17 +376,10 @@ export default function Inicio({
             <button type="button" onClick={() => irA('como-funciona')}>Cómo funciona</button>
             <a href="/terminos.html" target="_blank" rel="noreferrer">Términos y condiciones</a>
             <button type="button" onClick={() => irA('privacidad')}>Política de privacidad</button>
+            <button type="button" onClick={() => irA('creditos')}>Créditos</button>
             <a href="mailto:soporte@boleteriaco.com">soporte@boleteriaco.com</a>
           </nav>
-          <p className="ini-pie-creditos">
-            Fotos:{' '}
-            {CREDITOS.map((c, i) => (
-              <span key={c.quien}>
-                {c.quien}, <a href={c.url} target="_blank" rel="noreferrer">{c.autor}</a> ({c.licencia}){i < CREDITOS.length - 1 ? '; ' : ''}
-              </span>
-            ))}
-            ; estadios y tribunas, Unsplash. © 2026 Boletería CO · Bogotá
-          </p>
+          <p className="ini-pie-creditos">© 2026 Boletería CO · Bogotá</p>
         </div>
       </footer>
     </div>
