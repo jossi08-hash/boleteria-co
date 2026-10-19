@@ -9,6 +9,9 @@ import { TITULO_BASE, RUTAS, paginaDesdeUrl, urlDePagina } from './rutas'
 import EscudoSVG from './componentes/EscudoSVG'
 import SillaExtraRow from './componentes/SillaExtraRow'
 import Icono from './componentes/Icono'
+import Inicio from './inicio/Inicio'
+import './estilo/afiche.css'
+import { EVENTOS_DEMO, BOLETAS_DEMO } from './inicio/demo'
 
 // Se cargan solo al abrir la página que los usa
 const ComoFunciona = lazy(() => import('./ComoFunciona'))
@@ -824,68 +827,68 @@ function App() {
   }
 
   const c = {
-    fondo: '#080b12', nav: '#0d1117', tarjeta: '#0f1623', borde: '#1e2a3a',
-    texto: '#eef0f6', textoSec: '#8892a4', textoTercio: '#4e5a6e',
-    acento: '#4f7eff', verde: '#22c55e', ambar: '#f59e0b',
+    fondo: '#141311', nav: '#141311', tarjeta: '#1e1c19', borde: '#34312b',
+    texto: '#f5f1e4', textoSec: '#b9b4a6', textoTercio: '#8f8a7d',
+    acento: '#ffe23b', verde: '#22c55e', ambar: '#f59e0b',
   }
   const s = {
-    pagina: { minHeight: '100vh', paddingTop: esMobile ? '52px' : '60px', background: '#080b12', fontFamily: "'Inter', system-ui, -apple-system, sans-serif", backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% -20%, rgba(79,126,255,0.07), transparent)' },
-    nav: { background: 'rgba(13,17,23,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1e2a3a', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 400, padding: esMobile ? '0 12px' : '0 20px' },
-    navSec: { background: 'rgba(13,17,23,0.9)', backdropFilter: 'blur(12px)', borderBottom: '1px solid #1e2a3a', position: 'sticky', top: 0, zIndex: 10, padding: esMobile ? '0 12px' : '0 20px' },
-    navInner: { maxWidth: '720px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: esMobile ? '52px' : '60px' },
-    logo: { color: '#eef0f6', fontSize: esMobile ? '15px' : '17px', fontWeight: '800', letterSpacing: '-0.5px', margin: 0, whiteSpace: 'nowrap' },
-    logoPunto: { color: '#4f7eff' },
-    contenedor: { maxWidth: '720px', margin: '0 auto', padding: esMobile ? '0 12px 48px' : '0 20px 48px' },
+    pagina: { minHeight: '100vh', paddingTop: esMobile ? '52px' : '60px', background: '#141311', fontFamily: "'Archivo', system-ui, -apple-system, sans-serif" },
+    nav: { background: '#141311', borderBottom: '1px solid rgba(245,241,228,0.1)', position: 'fixed', top: 0, left: 0, right: 0, zIndex: 400, padding: esMobile ? '0 12px' : '0 20px' },
+    navSec: { background: '#141311', borderBottom: '1px solid #34312b', position: 'sticky', top: 0, zIndex: 10, padding: esMobile ? '0 12px' : '0 20px' },
+    navInner: { maxWidth: '1120px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: esMobile ? '52px' : '60px' },
+    logo: { color: '#f5f1e4', fontSize: esMobile ? '15px' : '17px', fontWeight: '800', letterSpacing: '-0.5px', margin: 0, whiteSpace: 'nowrap' },
+    logoPunto: { color: '#ffe23b' },
+    contenedor: { maxWidth: '720px', margin: '0 auto', padding: esMobile ? '0 12px' : '0 20px' },
     header: { display: 'none' },
     titulo: { display: 'none' },
     authBar: { display: 'flex', gap: '8px', alignItems: 'center' },
-    usuarioNombre: { color: '#8892a4', fontSize: '12px', maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
-    botonSec: { background: 'transparent', border: '1px solid #1e2a3a', borderRadius: '8px', padding: '7px 14px', fontSize: '13px', color: '#8892a4', cursor: 'pointer' },
-    botonPrin: { background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '8px', padding: '7px 16px', fontSize: '13px', fontWeight: '600', cursor: 'pointer' },
+    usuarioNombre: { color: '#b9b4a6', fontSize: '12px', maxWidth: '130px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' },
+    botonSec: { background: 'transparent', border: '1.5px solid rgba(245,241,228,0.35)', borderRadius: '999px', padding: '8px 16px', fontSize: '13px', fontWeight: '600', color: '#f5f1e4', cursor: 'pointer' },
+    botonPrin: { background: '#ffe23b', color:'#141311', border: 'none', borderRadius: '999px', padding: '8px 18px', fontSize: '13px', fontWeight: '700', cursor: 'pointer' },
     botonAdmin: { background: 'rgba(160,82,255,0.1)', color: '#c084fc', border: '1px solid rgba(160,82,255,0.2)', borderRadius: '8px', padding: '7px 14px', fontSize: '13px', cursor: 'pointer' },
     hero: { textAlign: 'center', padding: esMobile ? '36px 0 28px' : '56px 0 44px' },
-    heroTag: { display: 'inline-block', background: 'rgba(79,126,255,0.1)', color: '#4f7eff', border: '1px solid rgba(79,126,255,0.2)', borderRadius: '20px', padding: '4px 14px', fontSize: '11px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '20px' },
-    heroTitle: { color: '#eef0f6', fontSize: esMobile ? '28px' : '40px', fontWeight: '800', margin: '0 0 14px', letterSpacing: esMobile ? '-0.8px' : '-1.5px', lineHeight: 1.1 },
-    heroSub: { color: '#8892a4', fontSize: esMobile ? '14px' : '16px', margin: '0 auto 32px', lineHeight: 1.65, maxWidth: '440px' },
-    botonVender: { display: 'inline-block', background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '10px', padding: '13px 28px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', boxShadow: '0 0 28px rgba(79,126,255,0.25)' },
-    seccionTitulo: { color: '#eef0f6', fontSize: '14px', fontWeight: '600', margin: '0 0 16px' },
-    tarjetaForm: { background: '#0f1623', border: '1px solid #1e2a3a', borderRadius: '16px', padding: esMobile ? '20px 16px' : '28px', marginBottom: '24px' },
+    heroTag: { display: 'inline-block', background: 'rgba(255,226,59,0.1)', color: '#ffe23b', border: '1px solid rgba(255,226,59,0.2)', borderRadius: '20px', padding: '4px 14px', fontSize: '11px', fontWeight: '700', letterSpacing: '0.8px', textTransform: 'uppercase', marginBottom: '20px' },
+    heroTitle: { color: '#f5f1e4', fontSize: esMobile ? '28px' : '40px', fontWeight: '800', margin: '0 0 14px', letterSpacing: esMobile ? '-0.8px' : '-1.5px', lineHeight: 1.1 },
+    heroSub: { color: '#b9b4a6', fontSize: esMobile ? '14px' : '16px', margin: '0 auto 32px', lineHeight: 1.65, maxWidth: '440px' },
+    botonVender: { display: 'inline-block', background: '#ffe23b', color:'#141311', border: 'none', borderRadius: '999px', padding: '14px 28px', fontSize: '15px', fontWeight: '700', cursor: 'pointer' },
+    seccionTitulo: { color: '#f5f1e4', fontSize: '14px', fontWeight: '600', margin: '0 0 16px' },
+    tarjetaForm: { background: '#1e1c19', border: '1px solid #34312b', borderRadius: '18px', padding: esMobile ? '20px 16px' : '28px', marginBottom: '24px' },
     tarjetaAdmin: { background: '#081a10', border: '1px solid #0f3320', borderRadius: '16px', padding: '24px', marginBottom: '24px' },
-    label: { color: '#8892a4', fontSize: '11px', fontWeight: '700', letterSpacing: '0.5px', textTransform: 'uppercase', display: 'block', marginBottom: '7px' },
-    input: { width: '100%', background: 'rgba(255,255,255,0.03)', border: '1px solid #1e2a3a', borderRadius: '10px', padding: '11px 14px', color: '#eef0f6', fontSize: '14px', marginBottom: '16px', boxSizing: 'border-box' },
-    botonSubmit: { background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '10px', padding: '12px 20px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', width: '100%' },
-    botonSubmitVerde: { background: '#16a34a', color: '#fff', border: 'none', borderRadius: '10px', padding: '12px 20px', fontSize: '14px', fontWeight: '700', cursor: 'pointer', width: '100%' },
-    mensaje: { color: '#8892a4', fontSize: '13px', marginTop: '12px', textAlign: 'center' },
-    tarjetaBoleta: { background: '#0f1623', border: '1px solid #1e2a3a', borderRadius: '16px', padding: '20px 22px', marginBottom: '12px' },
+    label: { color: '#b9b4a6', fontSize: '11px', fontWeight: '700', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', marginBottom: '7px' },
+    input: { width: '100%', background: '#141311', border: '1.5px solid #4a463d', borderRadius: '12px', padding: '12px 14px', color: '#f5f1e4', fontSize: '16px', fontFamily: 'inherit', marginBottom: '16px', boxSizing: 'border-box' },
+    botonSubmit: { background: '#ffe23b', color:'#141311', border: 'none', borderRadius: '999px', padding: '14px 20px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', width: '100%' },
+    botonSubmitVerde: { background: '#16a34a', color: '#fff', border: 'none', borderRadius: '999px', padding: '14px 20px', fontSize: '15px', fontWeight: '700', cursor: 'pointer', width: '100%' },
+    mensaje: { color: '#b9b4a6', fontSize: '13px', marginTop: '12px', textAlign: 'center' },
+    tarjetaBoleta: { background: '#1e1c19', border: '1px solid #34312b', borderRadius: '16px', padding: '20px 22px', marginBottom: '12px' },
     tarjetaPendiente: { background: 'rgba(245,158,11,0.05)', border: '1px solid rgba(245,158,11,0.15)', borderRadius: '12px', padding: '14px 16px', marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    nombreEvento: { color: '#eef0f6', fontSize: '16px', fontWeight: '700', margin: '0 0 4px', letterSpacing: '-0.2px' },
-    detalleEvento: { color: '#8892a4', fontSize: '13px', margin: '0 0 3px' },
+    nombreEvento: { color: '#f5f1e4', fontFamily: "'Big Shoulders Display', sans-serif", fontSize: '24px', fontWeight: '800', textTransform: 'uppercase', lineHeight: 1, margin: '0 0 6px' },
+    detalleEvento: { color: '#b9b4a6', fontSize: '13px', margin: '0 0 3px' },
     vendedorRow: { display: 'flex', alignItems: 'center', gap: '6px', margin: '8px 0 0' },
-    badgeBCO: { background: 'rgba(79,126,255,0.12)', color: '#4f7eff', fontSize: '10px', fontWeight: '700', padding: '3px 8px', borderRadius: '20px', letterSpacing: '0.4px', textTransform: 'uppercase' },
-    vendedorNombre: { color: '#4e5a6e', fontSize: '12px' },
-    ventasCount: { color: '#4e5a6e', fontSize: '11px', background: 'rgba(255,255,255,0.04)', padding: '2px 7px', borderRadius: '4px' },
-    filaPrecio: { display: 'flex', flexDirection: esMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: esMobile ? 'flex-start' : 'center', gap: esMobile ? '10px' : '0', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #1e2a3a' },
-    precio: { color: '#eef0f6', fontSize: '20px', fontWeight: '800', margin: 0, letterSpacing: '-0.5px' },
-    botonComprar: { background: '#4f7eff', color: '#fff', border: 'none', borderRadius: '8px', padding: '9px 20px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', width: esMobile ? '100%' : 'auto' },
+    badgeBCO: { background: 'rgba(255,226,59,0.12)', color: '#ffe23b', fontSize: '10px', fontWeight: '700', padding: '3px 8px', borderRadius: '20px', letterSpacing: '0.4px', textTransform: 'uppercase' },
+    vendedorNombre: { color: '#8f8a7d', fontSize: '12px' },
+    ventasCount: { color: '#8f8a7d', fontSize: '11px', background: 'rgba(255,255,255,0.04)', padding: '2px 7px', borderRadius: '4px' },
+    filaPrecio: { display: 'flex', flexDirection: esMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: esMobile ? 'flex-start' : 'center', gap: esMobile ? '10px' : '0', marginTop: '14px', paddingTop: '14px', borderTop: '1px solid #34312b' },
+    precio: { color: '#ff5ca8', fontSize: '22px', fontWeight: '800', margin: 0, fontVariantNumeric: 'tabular-nums' },
+    botonComprar: { background: '#ffe23b', color:'#141311', border: 'none', borderRadius: '999px', padding: '11px 22px', fontSize: '13px', fontWeight: '700', cursor: 'pointer', width: esMobile ? '100%' : 'auto' },
     botonAprobar: { background: 'rgba(34,197,94,0.12)', color: '#4ade80', border: '1px solid rgba(34,197,94,0.25)', borderRadius: '6px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginLeft: '6px' },
     botonRechazar: { background: 'rgba(239,68,68,0.08)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '6px', padding: '5px 12px', fontSize: '12px', fontWeight: '600', cursor: 'pointer', marginLeft: '6px' },
-    vacio: { color: '#4e5a6e', textAlign: 'center', fontSize: '14px', padding: '40px 0' },
-    tituloForm: { color: '#eef0f6', fontSize: '17px', fontWeight: '700', margin: '0 0 22px', letterSpacing: '-0.3px' },
+    vacio: { color: '#8f8a7d', textAlign: 'center', fontSize: '14px', padding: '40px 0' },
+    tituloForm: { color: '#ffe23b', fontFamily: "'Big Shoulders Display', sans-serif", fontSize: '36px', fontWeight: '900', textTransform: 'uppercase', lineHeight: 0.92, margin: '0 0 22px' },
     tituloAdmin: { color: '#4ade80', fontSize: '15px', fontWeight: '700', margin: '0 0 16px' },
     tituloPendiente: { color: '#f59e0b', fontSize: '14px', fontWeight: '600', margin: '0 0 12px' },
     row2: { display: 'grid', gridTemplateColumns: esMobile ? '1fr' : '1fr 1fr', gap: '12px' },
-    separador: { border: 'none', borderTop: '1px solid #1e2a3a', margin: '20px 0' },
+    separador: { border: 'none', borderTop: '1px solid #34312b', margin: '20px 0' },
   }
 
   if (pagoStatus === 'exitoso') {
     const n = pagoInfo?.carritoCount || 1
     const ref = pagoInfo?.referencia || ''
     return (
-      <div style={{minHeight:'100vh',background:'#080b12',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Inter',system-ui,sans-serif",padding:'20px'}}>
+      <div style={{minHeight:'100vh',background:'#141311',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Archivo',system-ui,sans-serif",padding:'20px'}}>
         <div style={{maxWidth:'480px',width:'100%'}}>
           {/* Header */}
           <div style={{background:'#0f2d1e',border:'1px solid #166534',borderRadius:'20px',padding:'36px 32px',textAlign:'center',marginBottom:'16px'}}>
-            <div style={{fontSize:'64px',marginBottom:'16px',lineHeight:1}}>🎟️</div>
+            <div style={{marginBottom:'16px',lineHeight:1,display:'flex',justifyContent:'center'}}><Icono nombre="boleta" size={72} color="#ffe23b" /></div>
             <h2 style={{color:'#4ade80',fontSize:'26px',fontWeight:'900',margin:'0 0 8px'}}>¡Compra exitosa!</h2>
             <p style={{color:'#86efac',fontSize:'15px',margin:'0 0 20px'}}>
               {n === 1 ? 'Adquiriste tu boleta correctamente.' : `Adquiriste ${n} boletas correctamente.`}
@@ -893,7 +896,7 @@ function App() {
             {ref && (
               <div style={{background:'rgba(0,0,0,0.3)',borderRadius:'10px',padding:'12px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'8px'}}>
                 <div style={{textAlign:'left'}}>
-                  <p style={{color:'#4e5a6e',fontSize:'11px',margin:'0 0 2px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.5px'}}>Referencia</p>
+                  <p style={{color:'#8f8a7d',fontSize:'11px',margin:'0 0 2px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.5px'}}>Referencia</p>
                   <p style={{color:'#6ee7b7',fontSize:'13px',margin:0,fontFamily:'monospace',fontWeight:'700'}}>{ref}</p>
                 </div>
                 <button
@@ -907,18 +910,18 @@ function App() {
           </div>
 
           {/* Pasos */}
-          <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'24px',marginBottom:'16px'}}>
-            <h3 style={{color:'#eef0f6',fontSize:'14px',fontWeight:'800',margin:'0 0 16px',textAlign:'center',textTransform:'uppercase',letterSpacing:'0.5px'}}>¿Qué sigue?</h3>
+          <div style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'16px',padding:'24px',marginBottom:'16px'}}>
+            <h3 style={{color:'#f5f1e4',fontSize:'14px',fontWeight:'800',margin:'0 0 16px',textAlign:'center',textTransform:'uppercase',letterSpacing:'0.5px'}}>¿Qué sigue?</h3>
             {[
               {num:'1', titulo:'Revisa tu correo', desc:'Te llegará el comprobante de pago de Wompi.'},
               {num:'2', titulo:'El vendedor te contacta', desc:'En las próximas horas recibirás la boleta digital por la app o correo acordado.'},
               {num:'3', titulo:'Confirma que llegó', desc:'En "Mis boletas" confirma el recibo para liberar el pago al vendedor.'},
             ].map(p => (
               <div key={p.num} style={{display:'flex',flexDirection:'column',gap:'6px',marginBottom:'20px',alignItems:'center',textAlign:'center'}}>
-                <div style={{width:'24px',height:'24px',borderRadius:'50%',background:'#1e3a6a',color:'#4f7eff',fontSize:'12px',fontWeight:'900',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'1px'}}>{p.num}</div>
+                <div style={{width:'24px',height:'24px',borderRadius:'50%',background:'#5c5222',color:'#ffe23b',fontSize:'12px',fontWeight:'900',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'1px'}}>{p.num}</div>
                 <div>
-                  <p style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700',margin:'0 0 2px',textAlign:'center'}}>{p.titulo}</p>
-                  <p style={{color:'#8892a4',fontSize:'13px',margin:0,lineHeight:'1.5',textAlign:'center'}}>{p.desc}</p>
+                  <p style={{color:'#f5f1e4',fontSize:'14px',fontWeight:'700',margin:'0 0 2px',textAlign:'center'}}>{p.titulo}</p>
+                  <p style={{color:'#b9b4a6',fontSize:'13px',margin:0,lineHeight:'1.5',textAlign:'center'}}>{p.desc}</p>
                 </div>
               </div>
             ))}
@@ -928,15 +931,15 @@ function App() {
           <div style={{display:'flex',gap:'10px',flexDirection:'column'}}>
             <button
               onClick={() => { setPagoStatus(null); setPagoInfo(null); setPaginaActual('mis-boletas') }}
-              style={{background:'#4f7eff',color:'#fff',border:'none',borderRadius:'12px',padding:'14px',fontSize:'15px',fontWeight:'700',cursor:'pointer'}}
+              style={{background:'#ffe23b',color:'#141311',border:'none',borderRadius:'12px',padding:'14px',fontSize:'15px',fontWeight:'700',cursor:'pointer'}}
             >
               Ver mis boletas
             </button>
             <a
               href={`mailto:soporte@boleteriaco.com?subject=Compra%20${ref}&body=Hola%2C%20tengo%20una%20pregunta%20sobre%20mi%20compra.%20Referencia%3A%20${ref}`}
-              style={{display:'block',textAlign:'center',background:'#0f1623',color:'#8892a4',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'13px',fontSize:'14px',fontWeight:'700',textDecoration:'none'}}
+              style={{display:'block',textAlign:'center',background:'#1e1c19',color:'#b9b4a6',border:'1px solid #34312b',borderRadius:'12px',padding:'13px',fontSize:'14px',fontWeight:'700',textDecoration:'none'}}
             >
-              ✉️ Contactar soporte
+              Contactar soporte
             </a>
           </div>
         </div>
@@ -946,9 +949,9 @@ function App() {
 
   if (pagoStatus === 'fallido') {
     return (
-      <div style={{ minHeight: '100vh', background: '#0a1f14', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Inter',system-ui,sans-serif" }}>
+      <div style={{ minHeight: '100vh', background: '#141311', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'Archivo',system-ui,sans-serif" }}>
         <div style={{ background: '#1c0a0a', border: '1px solid #991b1b', borderRadius: '16px', padding: '40px', maxWidth: '480px', width: '90%', textAlign: 'center' }}>
-          <div style={{ fontSize: '60px', marginBottom: '16px' }}>❌</div>
+          <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}><Icono nombre="cerrar" size={64} color="#f87171" /></div>
           <h2 style={{ color: '#f87171', fontSize: '24px', fontWeight: '700', margin: '0 0 12px' }}>Pago no completado</h2>
           <p style={{ color: '#fca5a5', fontSize: '15px', margin: '0 0 24px' }}>El pago fue rechazado o cancelado. Puedes intentarlo de nuevo.</p>
           <button
@@ -966,7 +969,7 @@ function App() {
     const refP = pagoInfo?.referencia
     const txP = pagoInfo?.transaccionId
     return (
-      <div style={{minHeight:'100vh',background:'#080b12',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Inter',system-ui,sans-serif",padding:'20px'}}>
+      <div style={{minHeight:'100vh',background:'#141311',display:'flex',alignItems:'center',justifyContent:'center',fontFamily:"'Archivo',system-ui,sans-serif",padding:'20px'}}>
         <div style={{maxWidth:'480px',width:'100%'}}>
           {/* Header */}
           <div style={{background:'#1a1500',border:'1px solid #854d0e',borderRadius:'20px',padding:'32px',textAlign:'center',marginBottom:'16px'}}>
@@ -977,23 +980,23 @@ function App() {
             </p>
             {refP && (
               <div style={{background:'rgba(0,0,0,0.3)',borderRadius:'10px',padding:'10px 14px',display:'inline-flex',alignItems:'center',gap:'8px'}}>
-                <span style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.5px'}}>Ref.</span>
+                <span style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.5px'}}>Ref.</span>
                 <span style={{color:'#fbbf24',fontSize:'13px',fontFamily:'monospace',fontWeight:'700'}}>{refP}</span>
               </div>
             )}
           </div>
 
           {/* Qué hacer */}
-          <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'16px',padding:'20px',marginBottom:'16px'}}>
-            <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 14px'}}>¿Qué hago ahora?</p>
+          <div style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'16px',padding:'20px',marginBottom:'16px'}}>
+            <p style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 14px'}}>¿Qué hago ahora?</p>
             {[
-              {icon:'📧', texto:'Revisa tu correo — Wompi te enviará confirmación cuando el pago se acredite.'},
-              {icon:'⏱', texto:'Puede demorar entre unos minutos y 24 horas dependiendo del banco.'},
-              {icon:'🔒', texto:'Tu boleta quedó reservada. Si el pago no se confirma, se libera automáticamente.'},
+              {icon:'celular', texto:'Revisa tu correo — Wompi te enviará confirmación cuando el pago se acredite.'},
+              {icon:'soporte', texto:'Puede demorar entre unos minutos y 24 horas dependiendo del banco.'},
+              {icon:'candado', texto:'Tu boleta quedó reservada. Si el pago no se confirma, se libera automáticamente.'},
             ].map((item, i) => (
               <div key={i} style={{display:'flex',gap:'12px',marginBottom: i < 2 ? '14px' : '0',alignItems:'flex-start'}}>
-                <span style={{fontSize:'18px',flexShrink:0,marginTop:'1px'}}>{item.icon}</span>
-                <p style={{color:'#8892a4',fontSize:'13px',margin:'0',lineHeight:'1.6'}}>{item.texto}</p>
+                <span style={{flexShrink:0,marginTop:'1px'}}><Icono nombre={item.icon} size={20} color="#ffe23b" /></span>
+                <p style={{color:'#b9b4a6',fontSize:'13px',margin:'0',lineHeight:'1.6'}}>{item.texto}</p>
               </div>
             ))}
           </div>
@@ -1002,15 +1005,15 @@ function App() {
           <div style={{display:'flex',gap:'10px',flexDirection:'column'}}>
             <button
               onClick={() => { setPagoStatus(null); setPagoInfo(null); setPaginaActual('mis-boletas') }}
-              style={{background:'#4f7eff',color:'#fff',border:'none',borderRadius:'12px',padding:'14px',fontSize:'15px',fontWeight:'700',cursor:'pointer'}}
+              style={{background:'#ffe23b',color:'#141311',border:'none',borderRadius:'12px',padding:'14px',fontSize:'15px',fontWeight:'700',cursor:'pointer'}}
             >
               Ver mis boletas
             </button>
             <a
               href={`mailto:soporte@boleteriaco.com?subject=Pago%20pendiente${refP ? '%20' + refP : ''}&body=Hola%2C%20mi%20pago%20quedó%20pendiente${refP ? '.%20Ref%3A%20' + refP : ''}${txP ? '%20%2F%20Transacción%3A%20' + txP : ''}.%20¿Qué%20debo%20hacer%3F`}
-              style={{display:'block',textAlign:'center',background:'#0f1623',color:'#8892a4',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'13px',fontSize:'14px',fontWeight:'700',textDecoration:'none'}}
+              style={{display:'block',textAlign:'center',background:'#1e1c19',color:'#b9b4a6',border:'1px solid #34312b',borderRadius:'12px',padding:'13px',fontSize:'14px',fontWeight:'700',textDecoration:'none'}}
             >
-              ✉️ Contactar soporte
+              Contactar soporte
             </a>
           </div>
         </div>
@@ -1021,24 +1024,24 @@ function App() {
 
   const faqFooterSeccion = (
     <div style={{maxWidth:'680px',margin:'0 auto',padding:'40px 20px 48px'}}>
-      <h2 style={{color:'#eef0f6',fontSize:'20px',fontWeight:'900',textAlign:'center',margin:'0 0 24px',letterSpacing:'-0.3px',borderTop:'1px solid #1e2a3a',paddingTop:'40px'}}>Preguntas frecuentes</h2>
+      <h2 style={{color:'#f5f1e4',fontSize:'20px',fontWeight:'900',textAlign:'center',margin:'0 0 24px',letterSpacing:'-0.3px',borderTop:'1px solid #34312b',paddingTop:'40px'}}>Preguntas frecuentes</h2>
       {[
         {q:'¿Cómo sé que no me estafan?',a:'Tu dinero queda en custodia con Boletería CO hasta que tú confirmes que recibiste la boleta. Solo después de tu confirmación el vendedor cobra. Si algo sale mal, nosotros respondemos.'},
         {q:'¿Cómo llega la boleta?',a:'Depende de la plataforma: en TuBoletaPass y Quentro te la transferimos por correo electrónico; en W Arena y DIM Plus por número de documento. Antes de pagar te mostramos exactamente los pasos.'},
         {q:'¿Cuánto demora?',a:'En la mayoría de casos menos de 24 horas. Cuando tu pago se confirma, el vendedor recibe una notificación inmediata para transferirte la boleta.'},
         {q:'¿Cuánto cobra Boletería CO?',a:'Al comprador se le suma aproximadamente un 15% sobre el precio publicado (redondeado a los $1.000 más cercanos). Al vendedor se le retiene un 8% del precio de venta. Sin cobros ocultos.'},
       ].map(({q,a},i)=>(
-        <div key={i} style={{borderBottom:'1px solid #1e2a3a',overflow:'hidden'}}>
+        <div key={i} style={{borderBottom:'1px solid #34312b',overflow:'hidden'}}>
           <button onClick={()=>setFaqAbierto(faqAbierto===i?null:i)} style={{width:'100%',background:'none',border:'none',padding:'16px 0',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',gap:'12px'}}>
-            <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',textAlign:'left',lineHeight:'1.4'}}>{q}</span>
-            <span style={{color:'#4f7eff',fontSize:'18px',flexShrink:0,transition:'transform 0.2s',transform:faqAbierto===i?'rotate(45deg)':'rotate(0deg)'}}>+</span>
+            <span style={{color:'#f5f1e4',fontSize:'15px',fontWeight:'700',textAlign:'left',lineHeight:'1.4'}}>{q}</span>
+            <span style={{color:'#ffe23b',fontSize:'18px',flexShrink:0,transition:'transform 0.2s',transform:faqAbierto===i?'rotate(45deg)':'rotate(0deg)'}}>+</span>
           </button>
-          {faqAbierto===i&&<p style={{color:'#8892a4',fontSize:'14px',lineHeight:'1.7',margin:'0 0 16px',paddingRight:'32px'}}>{a}</p>}
+          {faqAbierto===i&&<p style={{color:'#b9b4a6',fontSize:'14px',lineHeight:'1.7',margin:'0 0 16px',paddingRight:'32px'}}>{a}</p>}
         </div>
       ))}
-      <footer style={{borderTop:'1px solid #1e2a3a',marginTop:'40px',paddingTop:'28px',paddingBottom:'32px',textAlign:'center'}}>
-        <p style={{color:'#4e5a6e',fontSize:'13px',margin:'0 0 8px',fontWeight:'700',letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#4f7eff'}}>CO</span></p>
-        <p style={{color:'#4e5a6e',fontSize:'12px',margin:0}}>© 2026 · <button onClick={()=>setPaginaActual('como-funciona')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0}}>Cómo funciona</button> · <a href='/terminos.html' target='_blank' style={{color:'#8892a4',textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
+      <footer style={{borderTop:'1px solid #34312b',marginTop:'40px',paddingTop:'28px',paddingBottom:'32px',textAlign:'center'}}>
+        <p style={{color:'#8f8a7d',fontSize:'13px',margin:'0 0 8px',fontWeight:'700',letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#ffe23b'}}>CO</span></p>
+        <p style={{color:'#8f8a7d',fontSize:'12px',margin:0}}>© 2026 · <button onClick={()=>setPaginaActual('como-funciona')} style={{background:'none',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'12px',padding:0}}>Cómo funciona</button> · <a href='/terminos.html' target='_blank' style={{color:'#b9b4a6',textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'12px',padding:0}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
       </footer>
     </div>
   )
@@ -1050,7 +1053,7 @@ function App() {
       {timerReserva !== null && (
         <div style={{position:'fixed',top:0,left:0,right:0,zIndex:9998,background:'#1a2a00',borderBottom:'2px solid #4ade80',padding:'10px 20px',textAlign:'center',display:'flex',alignItems:'center',justifyContent:'center',gap:'10px'}}>
           <span style={{fontSize:'18px'}}>⏳</span>
-          <span style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700'}}>
+          <span style={{color:'#f5f1e4',fontSize:'14px',fontWeight:'700'}}>
             Boleta reservada por{' '}
             <span style={{color:'#4ade80',fontVariantNumeric:'tabular-nums'}}>
               {String(Math.floor(timerReserva/60)).padStart(2,'0')}:{String(timerReserva%60).padStart(2,'0')}
@@ -1065,8 +1068,8 @@ function App() {
         {toasts.map(t => (
           <div key={t.id} style={{
             background: t.tipo === 'success' ? '#052e16' : t.tipo === 'info' ? '#0f1e3a' : '#1a0808',
-            border: `1px solid ${t.tipo === 'success' ? '#166534' : t.tipo === 'info' ? '#1e3a6a' : '#5a1e1e'}`,
-            color: t.tipo === 'success' ? '#4ade80' : t.tipo === 'info' ? '#93c5fd' : '#fca5a5',
+            border: `1px solid ${t.tipo === 'success' ? '#166534' : t.tipo === 'info' ? '#5c5222' : '#5a1e1e'}`,
+            color: t.tipo === 'success' ? '#4ade80' : t.tipo === 'info' ? '#ffe23b' : '#fca5a5',
             borderRadius:'12px', padding:'12px 20px',
             fontSize:'14px', fontWeight:'600',
             boxShadow:'0 8px 32px rgba(0,0,0,0.5)',
@@ -1074,7 +1077,7 @@ function App() {
             animation:'fadeInUp 0.25s ease',
             pointerEvents:'auto'
           }}>
-            {t.tipo === 'success' ? '✅' : t.tipo === 'info' ? 'ℹ️' : '⚠️'} {t.msg}
+            {t.msg}
           </div>
         ))}
       </div>
@@ -1086,7 +1089,7 @@ function App() {
             {usuario ? (
               <>
                 {!esMobile && (
-                  <span style={{color:'#6b7a94',fontSize:'11px',fontWeight:'600',maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+                  <span style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',maxWidth:'80px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
                     ¡Hola, {((usuario.user_metadata?.nombre || usuario.email || '').split(' ')[0].split('@')[0])}!
                   </span>
                 )}
@@ -1095,26 +1098,26 @@ function App() {
                 </button>
               </>
             ) : (
-              <button onClick={()=>{setPaginaActual('login');cerrarOverlays()}} style={{background:'transparent',border:'1px solid #4f7eff',borderRadius:'8px',cursor:'pointer',color:'#4f7eff',fontSize:'12px',fontWeight:'600',padding:'5px 10px',lineHeight:1,whiteSpace:'nowrap'}}>
+              <button onClick={()=>{setPaginaActual('login');cerrarOverlays()}} style={{background:'#ffe23b',border:'none',borderRadius:'999px',cursor:'pointer',color:'#141311',fontSize:'13px',fontWeight:'700',padding:'8px 14px',lineHeight:1,whiteSpace:'nowrap'}}>
                 {esMobile ? 'Entrar' : 'Iniciar sesión'}
               </button>
             )}
             {esAdmin && (
-              <button onClick={()=>{setMostrarAdmin(true);setPaginaActual('inicio')}} style={{position:'relative',background:'rgba(160,82,255,0.1)',border:'1px solid rgba(160,82,255,0.3)',borderRadius:'8px',cursor:'pointer',color:'#c084fc',fontSize:'12px',fontWeight:'700',padding:'5px 10px',lineHeight:1}}>
-                ⚙️ Admin
-                {boletasPendientes.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#a855f7',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{boletasPendientes.length}</span>}
+              <button onClick={()=>{setMostrarAdmin(true);setPaginaActual('inicio')}} style={{position:'relative',background:'transparent',border:'1.5px solid rgba(245,241,228,0.35)',borderRadius:'999px',cursor:'pointer',color:'#f5f1e4',fontSize:'12px',fontWeight:'700',padding:'5px 10px',lineHeight:1}}>
+                Admin
+                {boletasPendientes.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#ffe23b',color:'#141311',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{boletasPendientes.length}</span>}
               </button>
             )}
             {usuario && (
-              <button onClick={() => {setPaginaActual('carrito');cerrarOverlays()}} style={{position:'relative',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',cursor:'pointer',color:'#8892a4',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
-                🛒
-                {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#4f7eff',color:'#fff',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
+              <button onClick={() => {setPaginaActual('carrito');cerrarOverlays()}} style={{position:'relative',background:'transparent',border:'1px solid #34312b',borderRadius:'8px',cursor:'pointer',color:'#b9b4a6',fontSize:'17px',padding:'5px 10px',lineHeight:1}}>
+                <Icono nombre="carrito" size={18} color="#f5f1e4" />
+                {carrito.length > 0 && <span style={{position:'absolute',top:'-6px',right:'-6px',background:'#ffe23b',color:'#141311',borderRadius:'50%',width:'17px',height:'17px',fontSize:'10px',fontWeight:'800',display:'flex',alignItems:'center',justifyContent:'center',lineHeight:1}}>{carrito.length}</span>}
               </button>
             )}
-            <button onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#8892a4',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
-              <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-              <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
-              <span style={{display:'block',width:'16px',height:'2px',background:'#8892a4',borderRadius:'2px'}}/>
+            <button aria-label="Abrir menú" onClick={()=>setMostrarMenu(true)} style={{background:'transparent',border:'1px solid #34312b',borderRadius:'8px',color:'#b9b4a6',cursor:'pointer',padding:'5px 11px',lineHeight:1,display:'flex',flexDirection:'column',gap:'4px',alignItems:'center',justifyContent:'center',width:'38px',height:'36px'}}>
+              <span style={{display:'block',width:'16px',height:'2px',background:'#b9b4a6',borderRadius:'2px'}}/>
+              <span style={{display:'block',width:'16px',height:'2px',background:'#b9b4a6',borderRadius:'2px'}}/>
+              <span style={{display:'block',width:'16px',height:'2px',background:'#b9b4a6',borderRadius:'2px'}}/>
             </button>
           </div>
         </div>
@@ -1125,80 +1128,80 @@ function App() {
           {/* Overlay */}
           <div onClick={()=>setMostrarMenu(false)} style={{position:'fixed',inset:0,zIndex:998,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(2px)'}}/>
           {/* Panel */}
-          <div style={{position:'fixed',top:0,right:0,bottom:0,width:'78%',maxWidth:'300px',zIndex:999,background:'#0d1117',borderLeft:'1px solid #1e2a3a',display:'flex',flexDirection:'column',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:0,right:0,bottom:0,width:'78%',maxWidth:'300px',zIndex:999,background:'#141311',borderLeft:'1px solid #34312b',display:'flex',flexDirection:'column',overflowY:'auto'}}>
             {/* Header */}
-            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'18px 20px',borderBottom:'1px solid #1e2a3a'}}>
-              <h2 style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px',display:'flex',alignItems:'center',gap:'7px'}}><img src='/logo-nav.svg' style={{width:'34px',height:'34px',borderRadius:'7px',flexShrink:0}} alt='BCO' />Boletería <span style={{color:'#4f7eff'}}>CO</span></h2>
-              <button onClick={()=>setMostrarMenu(false)} style={{background:'transparent',border:'none',color:'#6b7a94',cursor:'pointer',fontSize:'20px',lineHeight:1,padding:'2px 6px'}}>✕</button>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'18px 20px',borderBottom:'1px solid #34312b'}}>
+              <h2 style={{color:'#f5f1e4',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px',display:'flex',alignItems:'center',gap:'7px'}}><img src='/logo-nav.svg' style={{width:'34px',height:'34px',borderRadius:'7px',flexShrink:0}} alt='BCO' />Boletería <span style={{color:'#ffe23b'}}>CO</span></h2>
+              <button onClick={()=>setMostrarMenu(false)} style={{background:'transparent',border:'none',color:'#8f8a7d',cursor:'pointer',fontSize:'20px',lineHeight:1,padding:'2px 6px'}} aria-label="Cerrar menú"><Icono nombre="cerrar" color="#f5f1e4" /></button>
             </div>
             {/* Usuario */}
             {usuario && (
-              <div style={{padding:'14px 20px',borderBottom:'1px solid #1e2a3a',background:'rgba(79,126,255,0.05)'}}>
-                <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.8px',margin:'0 0 3px'}}>Sesión activa</p>
-                <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'600',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{usuario.email}</p>
+              <div style={{padding:'14px 20px',borderBottom:'1px solid #34312b',background:'rgba(255,226,59,0.05)'}}>
+                <p style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.8px',margin:'0 0 3px'}}>Sesión activa</p>
+                <p style={{color:'#f5f1e4',fontSize:'13px',fontWeight:'600',margin:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{usuario.email}</p>
               </div>
             )}
             {/* Opciones */}
             <nav style={{flex:1,padding:'8px 0'}}>
               {/* Inicio */}
               <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null);cerrarOverlays()}}
-                style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
-                <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🏠</span> Inicio
+                style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(52,49,43,0.5)',color:'#f5f1e4',cursor:'pointer',fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',padding:'14px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                <Icono nombre="inicio" color="#ffe23b" /> Inicio
               </button>
               {/* Cómo funciona */}
               <button onClick={()=>{setPaginaActual('como-funciona');cerrarOverlays()}}
-                style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
-                <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>ℹ️</span> Cómo funciona
+                style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(52,49,43,0.5)',color:'#f5f1e4',cursor:'pointer',fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',padding:'14px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                <Icono nombre="ayuda" color="#ffe23b" /> Cómo funciona
               </button>
               {/* Vender */}
               {usuario && (
                 <button onClick={()=>{cerrarOverlays();setMostrarFormulario(true);setPaginaActual('inicio')}}
-                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
-                  <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>➕</span> Vender boleta
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(52,49,43,0.5)',color:'#f5f1e4',cursor:'pointer',fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',padding:'14px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                  <Icono nombre="mas" color="#ffe23b" /> Vender boleta
                 </button>
               )}
               {/* Mis boletas */}
               {usuario && (
                 <button onClick={()=>{irAMisBoletas();setMostrarMenu(false)}}
-                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
-                  <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🎟</span> Mis boletas
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(52,49,43,0.5)',color:'#f5f1e4',cursor:'pointer',fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',padding:'14px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                  <Icono nombre="boleta" color="#ffe23b" /> Mis boletas
                 </button>
               )}
               {/* Mi perfil */}
               {usuario && (
                 <button onClick={()=>{setPaginaActual('mi-perfil');cargarPerfil();cerrarOverlays()}}
-                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
-                  <span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>👤</span> Mi perfil
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(52,49,43,0.5)',color:'#f5f1e4',cursor:'pointer',fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',padding:'14px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
+                  <Icono nombre="perfil" color="#ffe23b" /> Mi perfil
                 </button>
               )}
               {/* Carrito */}
               {usuario && (
                 <button onClick={()=>{setPaginaActual('carrito');cerrarOverlays()}}
-                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#eef0f6',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
-                  <span style={{display:'flex',alignItems:'center',gap:'12px'}}><span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>🛒</span> Carrito</span>
-                  {carrito.length > 0 && <span style={{background:'#4f7eff',color:'#fff',borderRadius:'20px',padding:'2px 9px',fontSize:'11px',fontWeight:'800'}}>{carrito.length}</span>}
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(52,49,43,0.5)',color:'#f5f1e4',cursor:'pointer',fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',padding:'14px 20px',textAlign:'left',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
+                  <span style={{display:'flex',alignItems:'center',gap:'12px'}}><Icono nombre="carrito" color="#ffe23b" /> Carrito</span>
+                  {carrito.length > 0 && <span style={{background:'#ffe23b',color:'#141311',borderRadius:'20px',padding:'2px 9px',fontSize:'11px',fontWeight:'800'}}>{carrito.length}</span>}
                 </button>
               )}
               {/* Admin */}
               {esAdmin && (
                 <button onClick={()=>{setMostrarAdmin(true);setPaginaActual('inicio');setMostrarMenu(false)}}
-                  style={{width:'100%',background:'rgba(160,82,255,0.06)',border:'none',borderBottom:'1px solid rgba(30,42,58,0.5)',color:'#c084fc',cursor:'pointer',fontSize:'15px',fontWeight:'600',padding:'16px 20px',textAlign:'left',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
-                  <span style={{display:'flex',alignItems:'center',gap:'12px'}}><span style={{fontSize:'18px',width:'24px',textAlign:'center'}}>⚙️</span> Admin</span>
-                  {boletasPendientes.length > 0 && <span style={{background:'rgba(160,82,255,0.25)',color:'#c084fc',borderRadius:'20px',padding:'2px 9px',fontSize:'11px',fontWeight:'800'}}>{boletasPendientes.length}</span>}
+                  style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(52,49,43,0.5)',color:'#f5f1e4',cursor:'pointer',fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',padding:'14px 20px',textAlign:'left',display:'flex',alignItems:'center',justifyContent:'space-between',gap:'12px'}}>
+                  <span style={{display:'flex',alignItems:'center',gap:'12px'}}><Icono nombre="ajustes" color="#ffe23b" /> Admin</span>
+                  {boletasPendientes.length > 0 && <span style={{background:'#ffe23b',color:'#141311',borderRadius:'20px',padding:'2px 9px',fontSize:'11px',fontWeight:'800'}}>{boletasPendientes.length}</span>}
                 </button>
               )}
             </nav>
             {/* Footer: Salir / Auth */}
-            <div style={{padding:'16px 20px',borderTop:'1px solid #1e2a3a'}}>
+            <div style={{padding:'16px 20px',borderTop:'1px solid #34312b'}}>
               {usuario ? (
                 <button onClick={()=>{manejarCerrarSesion();setMostrarMenu(false)}}
-                  style={{width:'100%',background:'rgba(255,59,48,0.08)',border:'1px solid rgba(255,59,48,0.2)',borderRadius:'10px',color:'#f87171',cursor:'pointer',fontSize:'14px',fontWeight:'700',padding:'12px 0'}}>
+                  style={{width:'100%',background:'rgba(255,59,48,0.08)',border:'1px solid rgba(255,59,48,0.2)',borderRadius:'999px',color:'#f87171',cursor:'pointer',fontSize:'14px',fontWeight:'700',padding:'12px 0'}}>
                   Salir
                 </button>
               ) : (
                 <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
-                  <button onClick={()=>{setPaginaActual('login');setMostrarMenu(false)}} style={{width:'100%',background:'transparent',border:'1px solid #1e2a3a',borderRadius:'10px',color:'#eef0f6',cursor:'pointer',fontSize:'14px',fontWeight:'600',padding:'12px 0'}}>Iniciar sesión</button>
-                  <button onClick={()=>{setPaginaActual('registro');setMostrarMenu(false)}} style={{width:'100%',background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',cursor:'pointer',fontSize:'14px',fontWeight:'700',padding:'12px 0'}}>Registrarse</button>
+                  <button onClick={()=>{setPaginaActual('login');setMostrarMenu(false)}} style={{width:'100%',background:'transparent',border:'1px solid #34312b',borderRadius:'999px',color:'#f5f1e4',cursor:'pointer',fontSize:'14px',fontWeight:'600',padding:'12px 0'}}>Iniciar sesión</button>
+                  <button onClick={()=>{setPaginaActual('registro');setMostrarMenu(false)}} style={{width:'100%',background:'#ffe23b',border:'none',borderRadius:'999px',color:'#141311',cursor:'pointer',fontSize:'14px',fontWeight:'700',padding:'12px 0'}}>Registrarse</button>
                 </div>
               )}
             </div>
@@ -1206,40 +1209,25 @@ function App() {
         </>
       )}
       <div style={s.contenedor}>
-        {/* HERO */}
-        {!usuario && (
-          <div style={s.hero}>
-            <div style={s.heroTag}>⚽ Reventa segura de boletas · Colombia</div>
-            <h2 style={s.heroTitle}>Tu boleta al precio<br/>que realmente vale</h2>
-            <p style={s.heroSub}>Compra y vende boletas para partidos de fútbol en Colombia. Tu pago queda protegido hasta que recibes tu boleta.</p>
-            <div style={{display:'flex',gap:'10px',justifyContent:'center',flexWrap:'wrap'}}>
-              <button style={s.botonVender} onClick={() => document.getElementById('partidos')?.scrollIntoView({ behavior: 'smooth' })}>Ver partidos</button>
-              <button style={{...s.botonVender,background:'transparent',border:'1px solid #4f7eff',color:'#6b93ff',boxShadow:'none'}} onClick={() => venderParaEvento('')}>Vender mi boleta</button>
-            </div>
-            <button onClick={()=>setPaginaActual('como-funciona')} style={{display:'block',margin:'14px auto 0',background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'13px',fontWeight:'600',textDecoration:'underline'}}>¿Cómo funciona?</button>
-          </div>
-        )}
-
-
         {paginaActual === 'mis-boletas' && usuario && (
-          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
           <nav style={s.navSec}>
             <div style={s.navInner}>
-              <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-              <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>🎟 Mis boletas</p>
+              <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+              <p className="af-titulo-nav" style={{margin:0}}>Mis boletas</p>
             </div>
           </nav>
           <div style={{maxWidth:'680px',margin:'0 auto',padding:'28px 20px 48px'}}>
-            <div style={{display:'flex',gap:'3px',marginBottom:'20px',background:'rgba(255,255,255,0.03)',borderRadius:'10px',padding:'4px',overflowX:'auto'}}>
-              <button onClick={() => setPestanaMis('pedidos')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='pedidos'?'#4f7eff':'transparent',color:pestanaMis==='pedidos'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>🛍 Pedidos</button>
-              <button onClick={() => setPestanaMis('ventas')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='ventas'?'#4f7eff':'transparent',color:pestanaMis==='ventas'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>📦 Mis ventas</button>
-              <button onClick={() => setPestanaMis('en-venta')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='en-venta'?'#4f7eff':'transparent',color:pestanaMis==='en-venta'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>🎟 En venta</button>
-              <button onClick={() => setPestanaMis('pagos')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='pagos'?'#4f7eff':'transparent',color:pestanaMis==='pagos'?'#fff':'#8892a4',whiteSpace:'nowrap'}}>💰 Mis pagos</button>
+            <div style={{display:'flex',gap:'3px',marginBottom:'20px',background:'rgba(255,255,255,0.03)',borderRadius:'999px',padding:'4px',overflowX:'auto'}}>
+              <button onClick={() => setPestanaMis('pedidos')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='pedidos'?'#ffe23b':'transparent',color:pestanaMis==='pedidos'?'#141311':'#b9b4a6',whiteSpace:'nowrap'}}>Pedidos</button>
+              <button onClick={() => setPestanaMis('ventas')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='ventas'?'#ffe23b':'transparent',color:pestanaMis==='ventas'?'#141311':'#b9b4a6',whiteSpace:'nowrap'}}>Mis ventas</button>
+              <button onClick={() => setPestanaMis('en-venta')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='en-venta'?'#ffe23b':'transparent',color:pestanaMis==='en-venta'?'#141311':'#b9b4a6',whiteSpace:'nowrap'}}>En venta</button>
+              <button onClick={() => setPestanaMis('pagos')} style={{flex:1,minWidth:'68px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaMis==='pagos'?'#ffe23b':'transparent',color:pestanaMis==='pagos'?'#141311':'#b9b4a6',whiteSpace:'nowrap'}}>Mis pagos</button>
             </div>
-            {cargandoMis && <p style={{color:'#6b7280',fontSize:'13px'}}>Cargando...</p>}
+            {cargandoMis && <p style={{color:'#8f8a7d',fontSize:'13px'}}>Cargando...</p>}
             {!cargandoMis && pestanaMis === 'pedidos' && (
               misCompras.length === 0
-                ? <p style={{color:'#6b7280',fontSize:'13px'}}>No has comprado boletas aun.</p>
+                ? <p style={{color:'#8f8a7d',fontSize:'13px'}}>No has comprado boletas aun.</p>
                 : misCompras.map(function(o) {
                     const b = o.boletas
                     const ev = b && b.eventos
@@ -1249,13 +1237,13 @@ function App() {
                     const yaLiberado = pagoLiberado(o)
                     const horas = horasParaLiberar(o)
                     return (
-                          <div key={o.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
+                          <div key={o.id} style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                               <div>
-                                <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
-                                <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}{fecha ? ' · ' + fecha : ''}</p>
-                                <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b && b.tribuna}{b && b.fila ? ' · Fila ' + b.fila : ''}{b && b.silla ? ' · Silla ' + b.silla : ''}</p>
-                                <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>Ref: {o.codigo_orden}</p>
+                                <p style={{color:'#f5f1e4',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
+                                <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}{fecha ? ' · ' + fecha : ''}</p>
+                                <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b && b.tribuna}{b && b.fila ? ' · Fila ' + b.fila : ''}{b && b.silla ? ' · Silla ' + b.silla : ''}</p>
+                                <p style={{color:'#8f8a7d',fontSize:'11px',margin:'4px 0 0'}}>Ref: {o.codigo_orden}</p>
                               </div>
                               <div style={{textAlign:'right'}}>
                                 <p style={{color:'#22c55e',fontWeight:'800',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(o.total).toLocaleString('es-CO')}</p>
@@ -1263,7 +1251,7 @@ function App() {
                               </div>
                             </div>
                             {!esAdmin && (
-                              <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
+                              <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #34312b'}}>
                                 {/* Status tracker */}
                                 {(() => {
                                   const tpasos = [
@@ -1276,12 +1264,12 @@ function App() {
                                       {tpasos.map((paso, tidx) => (
                                         <div key={tidx} style={{flex:1,display:'flex',flexDirection:'column',alignItems:'center',position:'relative'}}>
                                           {tidx < tpasos.length - 1 && (
-                                            <div style={{position:'absolute',top:'11px',left:'50%',width:'100%',height:'2px',background:paso.done&&tpasos[tidx+1]?.done?'#22c55e':paso.done?'#f59e0b':'#1e2a3a',zIndex:0}} />
+                                            <div style={{position:'absolute',top:'11px',left:'50%',width:'100%',height:'2px',background:paso.done&&tpasos[tidx+1]?.done?'#22c55e':paso.done?'#f59e0b':'#34312b',zIndex:0}} />
                                           )}
-                                          <div style={{width:'22px',height:'22px',borderRadius:'50%',background:paso.done?'#22c55e':'#1e2a3a',border:paso.done?'none':'1px solid #2d3a55',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1,flexShrink:0}}>
+                                          <div style={{width:'22px',height:'22px',borderRadius:'50%',background:paso.done?'#22c55e':'#34312b',border:paso.done?'none':'1px solid #4a463d',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1,flexShrink:0}}>
                                             {paso.done && <span style={{color:'#fff',fontSize:'11px',fontWeight:'800'}}>✓</span>}
                                           </div>
-                                          <p style={{color:paso.done?'#eef0f6':'#4e5a6e',fontSize:'10px',fontWeight:paso.done?'700':'400',margin:'5px 0 0',textAlign:'center',lineHeight:1.3,padding:'0 2px'}}>{paso.label}</p>
+                                          <p style={{color:paso.done?'#f5f1e4':'#8f8a7d',fontSize:'10px',fontWeight:paso.done?'700':'400',margin:'5px 0 0',textAlign:'center',lineHeight:1.3,padding:'0 2px'}}>{paso.label}</p>
                                         </div>
                                       ))}
                                     </div>
@@ -1290,47 +1278,47 @@ function App() {
                                 {(() => {
                                   const plat = b?.plataforma && PLATAFORMAS[b.plataforma]
                                   return plat ? (
-                                    <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1e2a3a',borderRadius:'8px',padding:'10px 12px',marginBottom:'10px'}}>
-                                      <p style={{color:'#eef0f6',fontSize:'11px',fontWeight:'700',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'0.4px'}}>📲 Tu boleta está en {b.plataforma}</p>
-                                      <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 8px',lineHeight:1.6}}>{plat.instrComprador}</p>
+                                    <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid #34312b',borderRadius:'8px',padding:'10px 12px',marginBottom:'10px'}}>
+                                      <p style={{color:'#f5f1e4',fontSize:'11px',fontWeight:'700',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'0.4px'}}>Tu boleta está en {b.plataforma}</p>
+                                      <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 8px',lineHeight:1.6}}>{plat.instrComprador}</p>
                                       {o.archivo_url && (
-                                        <a href={o.archivo_url} target="_blank" rel="noreferrer" style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'6px',padding:'5px 12px',fontSize:'11px',fontWeight:'600',textDecoration:'none',display:'inline-block'}}>⬇ Ver comprobante de transferencia</a>
+                                        <a href={o.archivo_url} target="_blank" rel="noreferrer" style={{background:'rgba(255,226,59,0.15)',color:'#ffe23b',border:'1px solid rgba(255,226,59,0.25)',borderRadius:'6px',padding:'5px 12px',fontSize:'11px',fontWeight:'600',textDecoration:'none',display:'inline-block'}}>⬇ Ver comprobante de transferencia</a>
                                       )}
                                     </div>
                                   ) : o.archivo_url ? (
                                     <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px',marginBottom:'8px'}}>
-                                      <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Boleta entregada por el vendedor</p>
-                                      <a href={o.archivo_url} target="_blank" rel="noreferrer" style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',textDecoration:'none'}}>⬇ Descargar</a>
+                                      <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>Boleta entregada por el vendedor</p>
+                                      <a href={o.archivo_url} target="_blank" rel="noreferrer" style={{background:'rgba(255,226,59,0.15)',color:'#ffe23b',border:'1px solid rgba(255,226,59,0.25)',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',textDecoration:'none'}}>⬇ Descargar</a>
                                     </div>
                                   ) : (
                                     <p style={{color:'#f59e0b',fontSize:'12px',margin:'0 0 8px'}}>⏳ Esperando que el vendedor transfiera la boleta</p>
                                   )
                                 })()}
                                 {reembolsada ? (
-                                  <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>💸 Revisamos tu reclamo: te devolvemos el dinero por el mismo medio de pago. Puede tardar unos días hábiles.</p>
+                                  <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>Revisamos tu reclamo: te devolvemos el dinero por el mismo medio de pago. Puede tardar unos días hábiles.</p>
                                 ) : reclamoAbierto(o) ? (
                                   <div style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.25)',borderRadius:'8px',padding:'10px 12px'}}>
-                                    <p style={{color:'#fbbf24',fontSize:'12px',fontWeight:'700',margin:'0 0 4px'}}>🛑 Reportaste un problema — lo estamos revisando</p>
-                                    <p style={{color:'#8892a4',fontSize:'12px',margin:0,lineHeight:1.5}}>El pago al vendedor quedó congelado hasta resolverlo. Te escribiremos al correo de tu cuenta.</p>
+                                    <p style={{color:'#fbbf24',fontSize:'12px',fontWeight:'700',margin:'0 0 4px'}}>Reportaste un problema — lo estamos revisando</p>
+                                    <p style={{color:'#b9b4a6',fontSize:'12px',margin:0,lineHeight:1.5}}>El pago al vendedor quedó congelado hasta resolverlo. Te escribiremos al correo de tu cuenta.</p>
                                   </div>
                                 ) : o.liberado ? (
-                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Recibo confirmado — pago liberado al vendedor</p>
+                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>Recibo confirmado — pago liberado al vendedor</p>
                                 ) : yaLiberado ? (
-                                  <p style={{color:'#4e5a6e',fontSize:'12px',margin:'0'}}>✅ Pago liberado automáticamente al vendedor</p>
+                                  <p style={{color:'#8f8a7d',fontSize:'12px',margin:'0'}}>Pago liberado automáticamente al vendedor</p>
                                 ) : (
                                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px',marginTop:'6px'}}>
-                                    <p style={{color:'#8892a4',fontSize:'11px',margin:'0'}}>¿Ya la recibiste en la app? Se libera en {horas}h automáticamente.</p>
+                                    <p style={{color:'#b9b4a6',fontSize:'11px',margin:'0'}}>¿Ya la recibiste en la app? Se libera en {horas}h automáticamente.</p>
                                     {reclamoFormulario === o.id ? (
                                       <div style={{width:'100%'}}>
                                         <textarea value={reclamoTexto} onChange={e=>setReclamoTexto(e.target.value)} maxLength={1000} rows={3}
                                           placeholder="Cuéntanos qué pasó: no llegó la boleta, llegó otra tribuna, la app no la muestra..."
-                                          style={{width:'100%',boxSizing:'border-box',background:'#080b12',border:'1px solid #2d3f55',borderRadius:'8px',padding:'10px',color:'#eef0f6',fontSize:'13px',fontFamily:'inherit',resize:'vertical'}} />
+                                          style={{width:'100%',boxSizing:'border-box',background:'#141311',border:'1px solid #2d3f55',borderRadius:'8px',padding:'10px',color:'#f5f1e4',fontSize:'13px',fontFamily:'inherit',resize:'vertical'}} />
                                         <div style={{display:'flex',gap:'8px',marginTop:'8px'}}>
                                           <button onClick={()=>reportarProblema(o.id)} disabled={reclamoTexto.trim().length < 10 || enviandoReclamo}
-                                            style={{background:reclamoTexto.trim().length < 10?'#374151':'#d97706',color:'#fff',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:reclamoTexto.trim().length < 10?'not-allowed':'pointer'}}>
+                                            style={{background:reclamoTexto.trim().length < 10?'#4a463d':'#d97706',color:'#fff',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:reclamoTexto.trim().length < 10?'not-allowed':'pointer'}}>
                                             {enviandoReclamo ? 'Enviando...' : 'Enviar reclamo'}
                                           </button>
-                                          <button onClick={()=>{setReclamoFormulario(null);setReclamoTexto('')}} style={{background:'#374151',color:'#9ca3af',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',cursor:'pointer'}}>Cancelar</button>
+                                          <button onClick={()=>{setReclamoFormulario(null);setReclamoTexto('')}} style={{background:'#4a463d',color:'#b9b4a6',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',cursor:'pointer'}}>Cancelar</button>
                                         </div>
                                       </div>
                                     ) : (
@@ -1342,10 +1330,10 @@ function App() {
                                       <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
                                         <p style={{color:'#fbbf24',fontSize:'12px',margin:'0',flex:1}}>¿Ya recibiste la boleta? Esto libera el pago al vendedor.</p>
                                         <button onClick={()=>{confirmarRecibo(o.id);setConfirmarLiberar(null)}} style={{background:'#22c55e',color:'#fff',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',cursor:'pointer'}}>Sí, confirmar</button>
-                                        <button onClick={()=>setConfirmarLiberar(null)} style={{background:'#374151',color:'#9ca3af',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',cursor:'pointer'}}>Cancelar</button>
+                                        <button onClick={()=>setConfirmarLiberar(null)} style={{background:'#4a463d',color:'#b9b4a6',border:'none',borderRadius:'8px',padding:'6px 12px',fontSize:'12px',cursor:'pointer'}}>Cancelar</button>
                                       </div>
                                     ) : (
-                                      <button onClick={()=>setConfirmarLiberar(o.id)} style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>✅ Confirmar recibo</button>
+                                      <button onClick={()=>setConfirmarLiberar(o.id)} style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>Confirmar recibo</button>
                                     )}
                                   </div>
                                 )}
@@ -1356,27 +1344,27 @@ function App() {
                   })
             )}
             {!cargandoMis && pestanaMis === 'ventas' && (<>
-              <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'14px 16px',marginBottom:'14px'}}>
+              <div style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'12px',padding:'14px 16px',marginBottom:'14px'}}>
                 <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:editandoPago?'10px':'0'}}>
                   <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                    <span style={{fontSize:'18px'}}>💳</span>
+                    
                     <div>
-                      <p style={{color:'#8892a4',fontSize:'11px',fontWeight:'600',margin:'0 0 2px',textTransform:'uppercase',letterSpacing:'0.4px'}}>Mi dato de pago</p>
-                      {!editandoPago && <p style={{color:datosPagoVendedor?'#eef0f6':'#4e5a6e',fontSize:'13px',margin:'0',fontStyle:datosPagoVendedor?'normal':'italic'}}>{datosPagoVendedor||'No registrado — agrega tu Nequi o cuenta bancaria'}</p>}
+                      <p style={{color:'#b9b4a6',fontSize:'11px',fontWeight:'600',margin:'0 0 2px',textTransform:'uppercase',letterSpacing:'0.4px'}}>Mi dato de pago</p>
+                      {!editandoPago && <p style={{color:datosPagoVendedor?'#f5f1e4':'#8f8a7d',fontSize:'13px',margin:'0',fontStyle:datosPagoVendedor?'normal':'italic'}}>{datosPagoVendedor||'No registrado — agrega tu Nequi o cuenta bancaria'}</p>}
                     </div>
                   </div>
-                  {!editandoPago && <button onClick={()=>setEditandoPago(true)} style={{background:'rgba(79,126,255,0.12)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>✏️ Editar</button>}
+                  {!editandoPago && <button onClick={()=>setEditandoPago(true)} style={{background:'rgba(255,226,59,0.12)',color:'#ffe23b',border:'1px solid rgba(255,226,59,0.25)',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>Editar</button>}
                 </div>
                 {editandoPago && (
                   <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
-                    <input value={datosPagoVendedor} onChange={e=>setDatosPagoVendedor(e.target.value)} placeholder="Ej: 3001234567 Nequi · Banco Bogotá 123-456789" style={{flex:1,minWidth:'180px',background:'#080b12',border:'1px solid #2d3a55',borderRadius:'8px',padding:'9px 12px',color:'#eef0f6',fontSize:'13px',outline:'none'}} />
-                    <button onClick={guardarDatosPago} style={{background:'#4f7eff',color:'#fff',border:'none',borderRadius:'8px',padding:'9px 16px',fontSize:'13px',fontWeight:'600',cursor:'pointer'}}>Guardar</button>
-                    <button onClick={()=>setEditandoPago(false)} style={{background:'transparent',color:'#8892a4',border:'1px solid #1e2a3a',borderRadius:'8px',padding:'9px 12px',fontSize:'13px',cursor:'pointer'}}>✕</button>
+                    <input value={datosPagoVendedor} onChange={e=>setDatosPagoVendedor(e.target.value)} placeholder="Ej: 3001234567 Nequi · Banco Bogotá 123-456789" style={{flex:1,minWidth:'180px',background:'#141311',border:'1px solid #4a463d',borderRadius:'8px',padding:'9px 12px',color:'#f5f1e4',fontSize:'13px',outline:'none'}} />
+                    <button onClick={guardarDatosPago} style={{background:'#ffe23b',color:'#141311',border:'none',borderRadius:'8px',padding:'9px 16px',fontSize:'13px',fontWeight:'600',cursor:'pointer'}}>Guardar</button>
+                    <button onClick={()=>setEditandoPago(false)} style={{background:'transparent',color:'#b9b4a6',border:'1px solid #34312b',borderRadius:'8px',padding:'9px 12px',fontSize:'13px',cursor:'pointer'}}>✕</button>
                   </div>
                 )}
               </div>
               {misVentas.length === 0
-                ? <p style={{color:'#6b7280',fontSize:'13px'}}>No has publicado boletas aun.</p>
+                ? <p style={{color:'#8f8a7d',fontSize:'13px'}}>No has publicado boletas aun.</p>
                 : misVentas.map(function(b) {
                     const ev = b.eventos
                     const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
@@ -1384,52 +1372,52 @@ function App() {
                     const liberadoOrden = pagoLiberado(ordenPagada)
                     const hVenta = ordenPagada ? horasParaLiberar(ordenPagada) : 0
                     return (
-                          <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
+                          <div key={b.id} style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
                             <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                               <div>
-                                <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
-                                <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
-                                {ordenPagada && <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>Ref: {ordenPagada.codigo_orden}</p>}
+                                <p style={{color:'#f5f1e4',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
+                                <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
+                                {ordenPagada && <p style={{color:'#8f8a7d',fontSize:'11px',margin:'4px 0 0'}}>Ref: {ordenPagada.codigo_orden}</p>}
                               </div>
                               <div style={{textAlign:'right'}}>
-                                <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
-                                <span style={{background:b.estado==='vendida'?'rgba(34,197,94,0.1)':b.estado==='publicada'?'rgba(79,126,255,0.1)':'rgba(255,255,255,0.05)',color:b.estado==='vendida'?'#4ade80':b.estado==='publicada'?'#6b93ff':'#8892a4',fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>{b.estado==='vendida'?'Vendida':b.estado==='publicada'?'Publicada':'En verificación'}</span>
+                                <p style={{color:'#f5f1e4',fontWeight:'800',fontSize:'16px',margin:'0 0 4px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
+                                <span style={{background:b.estado==='vendida'?'rgba(34,197,94,0.1)':b.estado==='publicada'?'rgba(255,226,59,0.1)':'rgba(255,255,255,0.05)',color:b.estado==='vendida'?'#4ade80':b.estado==='publicada'?'#ffe23b':'#b9b4a6',fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'}}>{b.estado==='vendida'?'Vendida':b.estado==='publicada'?'Publicada':'En verificación'}</span>
                               </div>
                             </div>
                             {ordenPagada && (
-                              <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
+                              <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #34312b'}}>
                                 {ordenPagada.archivo_url ? (
-                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>✅ Comprobante de transferencia subido</p>
+                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>Comprobante de transferencia subido</p>
                                 ) : (() => {
                                   const plat = b.plataforma && PLATAFORMAS[b.plataforma]
                                   return (
                                     <div>
-                                      <p style={{color:'#f59e0b',fontSize:'12px',margin:'0 0 8px',fontWeight:'600'}}>📲 Transfiere la boleta a boletas@boleteriaco.com</p>
+                                      <p style={{color:'#f59e0b',fontSize:'12px',margin:'0 0 8px',fontWeight:'600'}}>Transfiere la boleta a boletas@boleteriaco.com</p>
                                       {plat && (
-                                        <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid #1e2a3a',borderRadius:'8px',padding:'10px 12px',marginBottom:'10px'}}>
-                                          <p style={{color:'#eef0f6',fontSize:'11px',fontWeight:'700',margin:'0 0 8px',textTransform:'uppercase',letterSpacing:'0.4px'}}>{b.plataforma}</p>
+                                        <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid #34312b',borderRadius:'8px',padding:'10px 12px',marginBottom:'10px'}}>
+                                          <p style={{color:'#f5f1e4',fontSize:'11px',fontWeight:'700',margin:'0 0 8px',textTransform:'uppercase',letterSpacing:'0.4px'}}>{b.plataforma}</p>
                                           {plat.pasosVendedor ? (
-                                            <ol style={{color:'#8892a4',fontSize:'12px',margin:'0 0 8px',paddingLeft:'16px',lineHeight:1.8}}>
+                                            <ol style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 8px',paddingLeft:'16px',lineHeight:1.8}}>
                                               {plat.pasosVendedor.map((paso, i) => <li key={i}>{paso}</li>)}
                                             </ol>
                                           ) : (
-                                            <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 8px',lineHeight:1.6}}>{plat.instrVendedor}</p>
+                                            <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 8px',lineHeight:1.6}}>{plat.instrVendedor}</p>
                                           )}
                                           {plat.notaVendedor && (
-                                            <div style={{background:'rgba(79,126,255,0.06)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'6px',padding:'8px 10px',marginBottom:'8px'}}>
-                                              <p style={{color:'#6b93ff',fontSize:'11px',margin:'0',lineHeight:1.5}}>ℹ️ {plat.notaVendedor}</p>
+                                            <div style={{background:'rgba(255,226,59,0.06)',border:'1px solid rgba(255,226,59,0.2)',borderRadius:'6px',padding:'8px 10px',marginBottom:'8px'}}>
+                                              <p style={{color:'#ffe23b',fontSize:'11px',margin:'0',lineHeight:1.5}}>ℹ️ {plat.notaVendedor}</p>
                                             </div>
                                           )}
                                           {plat.requisitoReceptor && (
                                             <div style={{background:'rgba(245,158,11,0.08)',border:'1px solid rgba(245,158,11,0.25)',borderRadius:'6px',padding:'8px 10px'}}>
-                                              <p style={{color:'#f59e0b',fontSize:'11px',margin:'0',lineHeight:1.5}}>⚠️ Requisito: {plat.requisitoReceptor}</p>
+                                              <p style={{color:'#f59e0b',fontSize:'11px',margin:'0',lineHeight:1.5}}>Requisito: {plat.requisitoReceptor}</p>
                                             </div>
                                           )}
                                         </div>
                                       )}
                                       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:'8px'}}>
-                                        <p style={{color:'#4e5a6e',fontSize:'11px',margin:'0'}}>Sube el comprobante de transferencia (screenshot)</p>
-                                        <label style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer',display:'inline-block'}}>
+                                        <p style={{color:'#8f8a7d',fontSize:'11px',margin:'0'}}>Sube el comprobante de transferencia (screenshot)</p>
+                                        <label style={{background:'rgba(255,226,59,0.15)',color:'#ffe23b',border:'1px solid rgba(255,226,59,0.25)',borderRadius:'6px',padding:'6px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer',display:'inline-block'}}>
                                           {subiendoArchivo === ordenPagada.id ? 'Subiendo...' : '⬆ Subir comprobante'}
                                           <input type="file" accept=".pdf,.jpg,.jpeg,.png" style={{display:'none'}} disabled={subiendoArchivo !== null} onChange={(e)=>{ if(e.target.files[0]) entregarBoleta(ordenPagada.id, e.target.files[0]) }} />
                                         </label>
@@ -1439,13 +1427,13 @@ function App() {
                                 })()}
                                 <div style={{marginTop:'8px'}}>
                                 {ordenPagada.pago_vendedor_enviado ? (
-                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>💸 Pago enviado — revisa tu {datosPagoVendedor ? datosPagoVendedor.split(' ')[0] : 'cuenta'}</p>
+                                  <p style={{color:'#4ade80',fontSize:'12px',margin:'0'}}>Pago enviado — revisa tu {datosPagoVendedor ? datosPagoVendedor.split(' ')[0] : 'cuenta'}</p>
                                 ) : reclamoAbierto(ordenPagada) ? (
-                                  <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>🛑 El comprador reportó un problema. El pago queda en revisión; te contactaremos por correo.</p>
+                                  <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>El comprador reportó un problema. El pago queda en revisión; te contactaremos por correo.</p>
                                 ) : liberadoOrden ? (
                                   <p style={{color:'#fbbf24',fontSize:'12px',margin:'0'}}>⏳ Pago listo — en proceso de transferencia a tu cuenta</p>
                                 ) : (
-                                  <p style={{color:'#8892a4',fontSize:'11px',margin:'0'}}>🔒 En custodia — el comprador tiene {hVenta}h para confirmar recibo</p>
+                                  <p style={{color:'#b9b4a6',fontSize:'11px',margin:'0'}}>En custodia — el comprador tiene {hVenta}h para confirmar recibo</p>
                                 )}
                                 </div>
                               </div>
@@ -1460,32 +1448,32 @@ function App() {
               (() => {
                 const enVenta = misVentas.filter(b => b.estado === 'publicada' && !(Array.isArray(b.ordenes) && b.ordenes.some(o => o.estado_pago === 'pagada')))
                 return enVenta.length === 0
-                  ? <p style={{color:'#6b7280',fontSize:'13px'}}>No tienes boletas en venta actualmente.</p>
+                  ? <p style={{color:'#8f8a7d',fontSize:'13px'}}>No tienes boletas en venta actualmente.</p>
                   : enVenta.map(function(b) {
                       const ev = b.eventos
                       const moneda = ev && ev.moneda === 'USD' ? 'US$' : '$'
                       return (
-                        <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
+                        <div key={b.id} style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'12px',padding:'16px',marginBottom:'10px'}}>
                           <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}}>
                             <div style={{flex:1,minWidth:0}}>
-                              <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
-                              <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}</p>
-                              <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
+                              <p style={{color:'#f5f1e4',fontWeight:'700',margin:'0 0 4px',fontSize:'14px'}}>{ev ? ev.nombre : 'Evento'}</p>
+                              <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>{ev ? ev.ciudad + (ev.estadio ? ' · ' + ev.estadio : '') : ''}</p>
+                              <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>Tribuna {b.tribuna}{b.fila ? ' · Fila ' + b.fila : ''}{b.silla ? ' · Silla ' + b.silla : ''}</p>
                             </div>
                             <div style={{textAlign:'right',flexShrink:0}}>
-                              <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'16px',margin:'0 0 6px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
-                              <span style={{background:'rgba(79,126,255,0.1)',color:'#6b93ff',fontSize:'11px',fontWeight:'700',padding:'3px 10px',borderRadius:'20px'}}>⏳ Esperando comprador</span>
+                              <p style={{color:'#f5f1e4',fontWeight:'800',fontSize:'16px',margin:'0 0 6px'}}>{moneda}{Number(b.precio).toLocaleString('es-CO')}</p>
+                              <span style={{background:'rgba(255,226,59,0.1)',color:'#ffe23b',fontSize:'11px',fontWeight:'700',padding:'3px 10px',borderRadius:'20px'}}>⏳ Esperando comprador</span>
                             </div>
                           </div>
-                          <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #1e2a3a'}}>
+                          <div style={{marginTop:'12px',paddingTop:'12px',borderTop:'1px solid #34312b'}}>
                             {confirmarRetirarBoleta === b.id ? (
                               <div style={{display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
                                 <p style={{color:'#f87171',fontSize:'12px',margin:'0',flex:1}}>¿Seguro? Se eliminará del listado.</p>
                                 <button onClick={()=>retirarBoletaVendedor(b.id)} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'5px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, retirar</button>
-                                <button onClick={()=>setConfirmarRetirarBoleta(null)} style={{background:'transparent',color:'#6b7280',border:'1px solid #1e2a3a',borderRadius:'6px',padding:'5px 10px',fontSize:'12px',cursor:'pointer'}}>Cancelar</button>
+                                <button onClick={()=>setConfirmarRetirarBoleta(null)} style={{background:'transparent',color:'#8f8a7d',border:'1px solid #34312b',borderRadius:'6px',padding:'5px 10px',fontSize:'12px',cursor:'pointer'}}>Cancelar</button>
                               </div>
                             ) : (
-                              <button onClick={()=>setConfirmarRetirarBoleta(b.id)} style={{background:'transparent',color:'#6b7280',border:'1px solid #1e2a3a',borderRadius:'6px',padding:'5px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>✕ Retirar del listado</button>
+                              <button onClick={()=>setConfirmarRetirarBoleta(b.id)} style={{background:'transparent',color:'#8f8a7d',border:'1px solid #34312b',borderRadius:'6px',padding:'5px 14px',fontSize:'12px',fontWeight:'600',cursor:'pointer'}}>Retirar del listado</button>
                             )}
                           </div>
                         </div>
@@ -1506,14 +1494,14 @@ function App() {
                   <>
                     <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom: enTransferencia.length > 0 ? '10px' : '20px'}}>
                       <div style={{background:'rgba(34,197,94,0.06)',border:'1px solid rgba(34,197,94,0.2)',borderRadius:'12px',padding:'16px'}}>
-                        <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 4px'}}>Recibido</p>
+                        <p style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 4px'}}>Recibido</p>
                         <p style={{color:'#22c55e',fontSize:'22px',fontWeight:'800',margin:'0'}}>${totalPagado.toLocaleString('es-CO')}</p>
-                        <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>{pagadas.length} venta{pagadas.length !== 1 ? 's' : ''}</p>
+                        <p style={{color:'#8f8a7d',fontSize:'11px',margin:'4px 0 0'}}>{pagadas.length} venta{pagadas.length !== 1 ? 's' : ''}</p>
                       </div>
-                      <div style={{background:'rgba(78,90,110,0.1)',border:'1px solid rgba(78,90,110,0.25)',borderRadius:'12px',padding:'16px'}}>
-                        <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 4px'}}>En custodia</p>
-                        <p style={{color:'#8892a4',fontSize:'22px',fontWeight:'800',margin:'0'}}>${totalEscrow.toLocaleString('es-CO')}</p>
-                        <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0'}}>{enEscrow.length} venta{enEscrow.length !== 1 ? 's' : ''}</p>
+                      <div style={{background:'rgba(143,138,125,0.1)',border:'1px solid rgba(143,138,125,0.25)',borderRadius:'12px',padding:'16px'}}>
+                        <p style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 4px'}}>En custodia</p>
+                        <p style={{color:'#b9b4a6',fontSize:'22px',fontWeight:'800',margin:'0'}}>${totalEscrow.toLocaleString('es-CO')}</p>
+                        <p style={{color:'#8f8a7d',fontSize:'11px',margin:'4px 0 0'}}>{enEscrow.length} venta{enEscrow.length !== 1 ? 's' : ''}</p>
                       </div>
                     </div>
                     {enTransferencia.length > 0 && (
@@ -1521,31 +1509,31 @@ function App() {
                         <span style={{fontSize:'24px',flexShrink:0}}>⏳</span>
                         <div>
                           <p style={{color:'#fbbf24',fontSize:'14px',fontWeight:'700',margin:'0 0 2px'}}>En transferencia — ${totalTransferencia.toLocaleString('es-CO')}</p>
-                          <p style={{color:'#8892a4',fontSize:'12px',margin:'0'}}>Tu pago está siendo procesado. Llegará pronto a tu cuenta registrada.</p>
+                          <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0'}}>Tu pago está siendo procesado. Llegará pronto a tu cuenta registrada.</p>
                         </div>
                       </div>
                     )}
                     {ordenesVentas.length === 0
-                      ? <p style={{color:'#6b7280',fontSize:'13px'}}>Aún no tienes ventas registradas.</p>
+                      ? <p style={{color:'#8f8a7d',fontSize:'13px'}}>Aún no tienes ventas registradas.</p>
                       : ordenesVentas.map(function(o, i) {
                           const liberado = pagoLiberado(o)
                           const enRevision = reclamoAbierto(o)
                           const moneda = o.moneda === 'USD' ? 'US$' : '$'
                           const neto = netoVendedor(o)
                           return (
-                            <div key={o.id || i} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'14px 16px',marginBottom:'10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
+                            <div key={o.id || i} style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'12px',padding:'14px 16px',marginBottom:'10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
                               <div>
-                                <p style={{color:'#eef0f6',fontWeight:'700',margin:'0 0 3px',fontSize:'13px'}}>Ref: {o.codigo_orden}</p>
-                                <p style={{color:'#4e5a6e',fontSize:'11px',margin:'0'}}>{new Date(o.creado_en).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}</p>
+                                <p style={{color:'#f5f1e4',fontWeight:'700',margin:'0 0 3px',fontSize:'13px'}}>Ref: {o.codigo_orden}</p>
+                                <p style={{color:'#8f8a7d',fontSize:'11px',margin:'0'}}>{new Date(o.creado_en).toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}</p>
                               </div>
                               <div style={{textAlign:'right'}}>
-                                <p style={{color:'#eef0f6',fontWeight:'800',fontSize:'15px',margin:'0 0 4px'}}>{moneda}{neto.toLocaleString('es-CO')} <span style={{color:'#4e5a6e',fontSize:'11px',fontWeight:'400'}}>(neto)</span></p>
+                                <p style={{color:'#f5f1e4',fontWeight:'800',fontSize:'15px',margin:'0 0 4px'}}>{moneda}{neto.toLocaleString('es-CO')} <span style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'400'}}>(neto)</span></p>
                                 <span style={{
-                                  background: o.pago_vendedor_enviado ? 'rgba(34,197,94,0.15)' : liberado ? 'rgba(245,158,11,0.1)' : 'rgba(78,90,110,0.2)',
-                                  color: o.pago_vendedor_enviado ? '#4ade80' : liberado ? '#fbbf24' : '#6b7a94',
+                                  background: o.pago_vendedor_enviado ? 'rgba(34,197,94,0.15)' : liberado ? 'rgba(245,158,11,0.1)' : 'rgba(143,138,125,0.2)',
+                                  color: o.pago_vendedor_enviado ? '#4ade80' : liberado ? '#fbbf24' : '#8f8a7d',
                                   fontSize:'11px',fontWeight:'700',padding:'3px 8px',borderRadius:'20px'
                                 }}>
-                                  {o.pago_vendedor_enviado ? '💸 Pagado' : enRevision ? '🛑 En revisión' : liberado ? '⏳ En transferencia' : '🔒 En custodia'}
+                                  {o.pago_vendedor_enviado ? 'Pagado' : enRevision ? 'En revisión' : liberado ? 'En transferencia' : 'En custodia'}
                                 </span>
                               </div>
                             </div>
@@ -1562,24 +1550,24 @@ function App() {
         )}
 
         {esAdmin && mostrarAdmin && (
-          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:350,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:350,background:'#141311',overflowY:'auto'}}>
             {/* NAV ADMIN */}
             <nav style={s.navSec}>
               <div style={s.navInner}>
-                <button onClick={()=>setMostrarAdmin(false)} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>⚙️ Admin</span>
+                <button onClick={()=>setMostrarAdmin(false)} style={{background:'transparent',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <span className="af-titulo-nav">Admin</span>
               </div>
             </nav>
             <div style={{maxWidth:'720px',margin:'0 auto',padding:'28px 20px 48px'}}>
               {/* PESTAÑAS ADMIN */}
               <div style={{display:'flex',gap:'3px',marginBottom:'24px',background:'rgba(255,255,255,0.03)',borderRadius:'10px',padding:'4px',overflowX:'auto'}}>
                 {[
-                  {key:'pendientes', label:'🔴 Pendientes', badge: boletasPendientes.length + ordenesLiberadas.filter(o=>!o.boletas?.usuarios?.es_admin).length + reclamosAbiertos.length},
-                  {key:'mis-boletas', label:'🎟 Mis boletas', badge: boletasAdmin.length},
-                  {key:'estadios', label:'🏟 Estadios', badge: 0},
-                  {key:'eventos', label:'📅 Eventos', badge: 0},
+                  {key:'pendientes', label:'Pendientes', badge: boletasPendientes.length + ordenesLiberadas.filter(o=>!o.boletas?.usuarios?.es_admin).length + reclamosAbiertos.length},
+                  {key:'mis-boletas', label:'Mis boletas', badge: boletasAdmin.length},
+                  {key:'estadios', label:'Estadios', badge: 0},
+                  {key:'eventos', label:'Eventos', badge: 0},
                 ].map(tab => (
-                  <button key={tab.key} onClick={()=>setPestanaAdmin(tab.key)} style={{flex:1,minWidth:'80px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaAdmin===tab.key?'#4f7eff':'transparent',color:pestanaAdmin===tab.key?'#fff':'#8892a4',whiteSpace:'nowrap',position:'relative'}}>
+                  <button key={tab.key} onClick={()=>setPestanaAdmin(tab.key)} style={{flex:1,minWidth:'80px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaAdmin===tab.key?'#ffe23b':'transparent',color:pestanaAdmin===tab.key?'#141311':'#b9b4a6',whiteSpace:'nowrap',position:'relative'}}>
                     {tab.label}{tab.badge > 0 ? ` (${tab.badge})` : ''}
                   </button>
                 ))}
@@ -1611,16 +1599,16 @@ function App() {
             {reclamosAbiertos.length > 0 && (
               <div style={{ marginBottom: '20px' }}>
                 <p style={{color:'#f87171',fontSize:'14px',fontWeight:'600',margin:'0 0 12px'}}>
-                  🛑 Reclamos de compradores ({reclamosAbiertos.length})
+                  Reclamos de compradores ({reclamosAbiertos.length})
                 </p>
                 {reclamosAbiertos.map(o => {
                   const b = o.boletas
                   return (
                     <div key={o.id} style={{background:'rgba(248,113,113,0.06)',border:'1px solid rgba(248,113,113,0.3)',borderRadius:'10px',padding:'14px',marginBottom:'10px'}}>
-                      <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>{b?.eventos?.nombre || 'Evento'} · Trib. {b?.tribuna}{b?.fila ? ' F.' + b.fila : ''}{b?.silla ? ' S.' + b.silla : ''}</p>
-                      <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Ref: {o.codigo_orden} · Pagado ${Number(o.total || 0).toLocaleString('es-CO')} · {b?.plataforma || ''}</p>
-                      <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Comprador: {o.comprador?.nombre || 'N/A'} — {o.comprador?.correo || ''}</p>
-                      <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 8px'}}>Vendedor: {b?.usuarios?.nombre || 'N/A'} — {b?.usuarios?.correo || ''}</p>
+                      <p style={{color:'#f5f1e4',fontWeight:'700',fontSize:'14px',margin:'0 0 4px'}}>{b?.eventos?.nombre || 'Evento'} · Trib. {b?.tribuna}{b?.fila ? ' F.' + b.fila : ''}{b?.silla ? ' S.' + b.silla : ''}</p>
+                      <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>Ref: {o.codigo_orden} · Pagado ${Number(o.total || 0).toLocaleString('es-CO')} · {b?.plataforma || ''}</p>
+                      <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>Comprador: {o.comprador?.nombre || 'N/A'} — {o.comprador?.correo || ''}</p>
+                      <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 8px'}}>Vendedor: {b?.usuarios?.nombre || 'N/A'} — {b?.usuarios?.correo || ''}</p>
                       <p style={{color:'#fca5a5',fontSize:'13px',margin:'0 0 12px',whiteSpace:'pre-wrap',lineHeight:1.5}}>“{o.reclamo_motivo}”</p>
                       <div style={{display:'flex',gap:'8px',flexWrap:'wrap'}}>
                         <button onClick={() => resolverReclamo(o.id, 'liberar')} style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'8px',padding:'7px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Resuelto: liberar pago al vendedor</button>
@@ -1645,14 +1633,14 @@ function App() {
                   return (
                     <div key={o.id} style={{background:'#1c2a1c',border:'1px solid #166534',borderRadius:'10px',padding:'14px',marginBottom:'10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'10px'}}>
                       <div>
-                        <p style={{color:'#f9fafb',fontWeight:'600',margin:'0 0 2px',fontSize:'13px'}}>{ev?.nombre || 'Evento'} · {ev?.ciudad || ''}</p>
-                        <p style={{color:'#9ca3af',fontSize:'12px',margin:'0 0 2px'}}>Vendedor: {b?.usuarios?.nombre || 'N/A'} — {b?.usuarios?.correo || ''}</p>
-                        <p style={{color:'#6b93ff',fontSize:'12px',margin:'0 0 2px'}}>💳 {b?.usuarios?.datos_pago || <span style={{color:'#4e5a6e',fontStyle:'italic'}}>Sin dato de pago registrado</span>}</p>
-                        <p style={{color:'#9ca3af',fontSize:'12px',margin:'0'}}>Ref: {o.codigo_orden} · Pagar: <strong style={{color:'#34d399'}}>${neto.toLocaleString('es-CO')}</strong> (92% del precio)</p>
+                        <p style={{color:'#f5f1e4',fontWeight:'600',margin:'0 0 2px',fontSize:'13px'}}>{ev?.nombre || 'Evento'} · {ev?.ciudad || ''}</p>
+                        <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>Vendedor: {b?.usuarios?.nombre || 'N/A'} — {b?.usuarios?.correo || ''}</p>
+                        <p style={{color:'#ffe23b',fontSize:'12px',margin:'0 0 2px'}}>{b?.usuarios?.datos_pago || <span style={{color:'#8f8a7d',fontStyle:'italic'}}>Sin dato de pago registrado</span>}</p>
+                        <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0'}}>Ref: {o.codigo_orden} · Pagar: <strong style={{color:'#34d399'}}>${neto.toLocaleString('es-CO')}</strong> (92% del precio)</p>
                       </div>
                       <button onClick={() => marcarPagadoVendedor(o.id)}
                         style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'8px 16px',fontSize:'13px',fontWeight:'600',cursor:'pointer',whiteSpace:'nowrap'}}>
-                        ✅ Marcar pagado
+                        Marcar pagado
                       </button>
                     </div>
                   )
@@ -1661,7 +1649,7 @@ function App() {
               </div>
             )}
             {ordenesLiberadas.filter(o => !o.boletas?.usuarios?.es_admin).length === 0 && (
-              <p style={{color:'#6b7280',fontSize:'13px',marginBottom:'16px'}}>No hay pagos pendientes de envío.</p>
+              <p style={{color:'#8f8a7d',fontSize:'13px',marginBottom:'16px'}}>No hay pagos pendientes de envío.</p>
             )}
               </>)}
 
@@ -1675,18 +1663,18 @@ function App() {
                   placeholder="Buscar por evento o equipo..."
                   value={busquedaBoleta}
                   onChange={e => setBusquedaBoleta(e.target.value)}
-                  style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'8px',padding:'8px 12px',color:'#eef0f6',fontSize:'13px',marginBottom:'12px',outline:'none'}}
+                  style={{width:'100%',boxSizing:'border-box',background:'#141311',border:'1px solid #4a463d',borderRadius:'8px',padding:'8px 12px',color:'#f5f1e4',fontSize:'13px',marginBottom:'12px',outline:'none'}}
                 />
                 {boletasAdmin.filter(b => {
                   if (!busquedaBoleta.trim()) return true
                   const q = busquedaBoleta.toLowerCase()
                   return (b.eventos?.nombre || '').toLowerCase().includes(q)
                 }).map(b => (
-                  <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'12px 14px',marginBottom:'8px'}}>
+                  <div key={b.id} style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'10px',padding:'12px 14px',marginBottom:'8px'}}>
                     <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px',flexWrap:'wrap'}}>
                       <div>
-                        <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{b.eventos?.nombre || 'Evento'}</p>
-                        <p style={{color:'#8892a4',fontSize:'12px',margin:0}}>
+                        <p style={{color:'#f5f1e4',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{b.eventos?.nombre || 'Evento'}</p>
+                        <p style={{color:'#b9b4a6',fontSize:'12px',margin:0}}>
                           {b.usuarios?.nombre} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}
                           {' '}<span style={{color: b.estado==='oculta' ? '#facc15' : b.estado==='reservada' ? '#fb923c' : '#4ade80', fontWeight:'700'}}>({b.estado})</span>
                         </p>
@@ -1695,11 +1683,11 @@ function App() {
                         {confirmarEliminarBoleta === b.id
                           ? <>
                               <button onClick={()=>{eliminarBoleta(b.id);setConfirmarEliminarBoleta(null)}} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, eliminar</button>
-                              <button onClick={()=>setConfirmarEliminarBoleta(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'6px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
+                              <button onClick={()=>setConfirmarEliminarBoleta(null)} style={{background:'transparent',border:'1px solid #34312b',borderRadius:'6px',color:'#8f8a7d',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
                             </>
                           : <>
                               {b.estado === 'oculta'
-                                ? <button onClick={()=>mostrarBoleta(b.id)} style={{background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Publicar</button>
+                                ? <button onClick={()=>mostrarBoleta(b.id)} style={{background:'#5c5222',color:'#ffe23b',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Publicar</button>
                                 : <button onClick={()=>ocultarBoleta(b.id)} style={{background:'#3d2a00',color:'#facc15',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Ocultar</button>
                               }
                               <button onClick={()=>{ setBoletaEditando(boletaEditando===b.id ? null : b.id); setFormEditarBoleta({tribuna:b.tribuna||'',fila:b.fila||'',silla:b.silla||'',precio:b.precio||''}) }} style={{background:'#1a2f4a',color:'#60a5fa',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Editar</button>
@@ -1711,22 +1699,22 @@ function App() {
                     {boletaEditando === b.id && (
                       <form onSubmit={guardarEdicionBoleta} style={{marginTop:'12px',display:'grid',gridTemplateColumns:'1fr 1fr 1fr 1fr',gap:'8px',alignItems:'flex-end'}}>
                         <div>
-                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Tribuna</label>
-                          <input value={formEditarBoleta.tribuna} onChange={e=>setFormEditarBoleta(f=>({...f,tribuna:e.target.value}))} required style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                          <label style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Tribuna</label>
+                          <input value={formEditarBoleta.tribuna} onChange={e=>setFormEditarBoleta(f=>({...f,tribuna:e.target.value}))} required style={{width:'100%',boxSizing:'border-box',background:'#141311',border:'1px solid #4a463d',borderRadius:'6px',padding:'6px 8px',color:'#f5f1e4',fontSize:'12px'}} />
                         </div>
                         <div>
-                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Fila</label>
-                          <input value={formEditarBoleta.fila} onChange={e=>setFormEditarBoleta(f=>({...f,fila:e.target.value}))} style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                          <label style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Fila</label>
+                          <input value={formEditarBoleta.fila} onChange={e=>setFormEditarBoleta(f=>({...f,fila:e.target.value}))} style={{width:'100%',boxSizing:'border-box',background:'#141311',border:'1px solid #4a463d',borderRadius:'6px',padding:'6px 8px',color:'#f5f1e4',fontSize:'12px'}} />
                         </div>
                         <div>
-                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Silla</label>
-                          <input value={formEditarBoleta.silla} onChange={e=>setFormEditarBoleta(f=>({...f,silla:e.target.value}))} style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                          <label style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Silla</label>
+                          <input value={formEditarBoleta.silla} onChange={e=>setFormEditarBoleta(f=>({...f,silla:e.target.value}))} style={{width:'100%',boxSizing:'border-box',background:'#141311',border:'1px solid #4a463d',borderRadius:'6px',padding:'6px 8px',color:'#f5f1e4',fontSize:'12px'}} />
                         </div>
                         <div>
-                          <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Precio</label>
-                          <input type="number" value={formEditarBoleta.precio} onChange={e=>setFormEditarBoleta(f=>({...f,precio:e.target.value}))} required style={{width:'100%',boxSizing:'border-box',background:'#0a0f1a',border:'1px solid #2a3a52',borderRadius:'6px',padding:'6px 8px',color:'#eef0f6',fontSize:'12px'}} />
+                          <label style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Precio</label>
+                          <input type="number" value={formEditarBoleta.precio} onChange={e=>setFormEditarBoleta(f=>({...f,precio:e.target.value}))} required style={{width:'100%',boxSizing:'border-box',background:'#141311',border:'1px solid #4a463d',borderRadius:'6px',padding:'6px 8px',color:'#f5f1e4',fontSize:'12px'}} />
                         </div>
-                        <button type="submit" style={{gridColumn:'1/-1',background:'#1e3a6a',color:'#93c5fd',border:'none',borderRadius:'6px',padding:'7px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Guardar cambios</button>
+                        <button type="submit" style={{gridColumn:'1/-1',background:'#5c5222',color:'#ffe23b',border:'none',borderRadius:'6px',padding:'7px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Guardar cambios</button>
                       </form>
                     )}
                   </div>
@@ -1740,48 +1728,48 @@ function App() {
               {pestanaAdmin === 'estadios' && (<>
             <p style={s.tituloAdmin}>Estadios</p>
             {estadios.length === 0
-              ? <p style={{color:'#4e5a6e',fontSize:'13px',marginBottom:'12px'}}>No hay estadios registrados.</p>
+              ? <p style={{color:'#8f8a7d',fontSize:'13px',marginBottom:'12px'}}>No hay estadios registrados.</p>
               : <div style={{marginBottom:'16px',display:'flex',flexDirection:'column',gap:'8px'}}>
                   {estadios.map(es => (
-                    <div key={es.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'10px 14px'}}>
+                    <div key={es.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid #34312b',borderRadius:'10px',padding:'10px 14px'}}>
                       {estadioEditando === es.id
                         ? <form onSubmit={guardarEstadio}>
                             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
-                              <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Nombre</label>
+                              <div><label style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Nombre</label>
                                 <input value={formEstadio.nombre} onChange={e=>setFormEstadio(f=>({...f,nombre:e.target.value}))} required style={s.input} /></div>
-                              <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Ciudad</label>
+                              <div><label style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Ciudad</label>
                                 <input value={formEstadio.ciudad} onChange={e=>setFormEstadio(f=>({...f,ciudad:e.target.value}))} required style={s.input} /></div>
                             </div>
-                            <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Tribunas</label>
+                            <label style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Tribunas</label>
                             <div style={{display:'flex',gap:'8px',marginBottom:'8px'}}>
                               <input value={tribunaEstadioTemp} onChange={e=>setTribunaEstadioTemp(e.target.value)}
                                 onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}}
                                 style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental General" />
                               <button type="button" onClick={()=>{const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}
-                                style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+                                style={{background:'#5c5222',border:'none',borderRadius:'8px',color:'#ffe23b',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
                             </div>
                             {formEstadio.tribunas.length > 0 && (
                               <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
                                 {formEstadio.tribunas.map(t => (
-                                  <span key={t} style={{background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#93c5fd',display:'flex',alignItems:'center',gap:'6px'}}>
+                                  <span key={t} style={{background:'rgba(255,226,59,0.1)',border:'1px solid rgba(255,226,59,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#ffe23b',display:'flex',alignItems:'center',gap:'6px'}}>
                                     {t}
-                                    <button type="button" onClick={()=>setFormEstadio(f=>({...f,tribunas:f.tribunas.filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
+                                    <button type="button" onClick={()=>setFormEstadio(f=>({...f,tribunas:f.tribunas.filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#8f8a7d',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
                                   </span>
                                 ))}
                               </div>
                             )}
                             <div style={{display:'flex',gap:'6px'}}>
-                              <button type="submit" style={{background:'#1e3a6a',border:'none',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'6px 14px'}}>Guardar</button>
-                              <button type="button" onClick={()=>setEstadioEditando(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
+                              <button type="submit" style={{background:'#5c5222',border:'none',borderRadius:'7px',color:'#ffe23b',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'6px 14px'}}>Guardar</button>
+                              <button type="button" onClick={()=>setEstadioEditando(null)} style={{background:'transparent',border:'1px solid #34312b',borderRadius:'7px',color:'#8f8a7d',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
                             </div>
                           </form>
                         : <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'8px'}}>
                             <div>
-                              <p style={{color:'#eef0f6',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{es.nombre}</p>
-                              <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 4px'}}>{es.ciudad}</p>
+                              <p style={{color:'#f5f1e4',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{es.nombre}</p>
+                              <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 4px'}}>{es.ciudad}</p>
                               {es.tribunas?.length > 0 && (
                                 <div style={{display:'flex',flexWrap:'wrap',gap:'4px'}}>
-                                  {es.tribunas.map(t => <span key={t} style={{background:'rgba(79,126,255,0.08)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'12px',padding:'2px 8px',fontSize:'11px',color:'#7aa2ff'}}>{t}</span>)}
+                                  {es.tribunas.map(t => <span key={t} style={{background:'rgba(255,226,59,0.08)',border:'1px solid rgba(255,226,59,0.2)',borderRadius:'12px',padding:'2px 8px',fontSize:'11px',color:'#7aa2ff'}}>{t}</span>)}
                                 </div>
                               )}
                             </div>
@@ -1789,11 +1777,11 @@ function App() {
                               {confirmarEliminarEstadio === es.id
                                 ? <>
                                     <button onClick={()=>eliminarEstadio(es.id)} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, eliminar</button>
-                                    <button onClick={()=>setConfirmarEliminarEstadio(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'6px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
+                                    <button onClick={()=>setConfirmarEliminarEstadio(null)} style={{background:'transparent',border:'1px solid #34312b',borderRadius:'6px',color:'#8f8a7d',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
                                   </>
                                 : <>
                                     <button onClick={()=>{setEstadioEditando(es.id);setFormEstadio({nombre:es.nombre,ciudad:es.ciudad,tribunas:[...(es.tribunas||[])]});setTribunaEstadioTemp('')}}
-                                      style={{background:'transparent',border:'1px solid #1e3a6a',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
+                                      style={{background:'transparent',border:'1px solid #5c5222',borderRadius:'7px',color:'#ffe23b',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
                                     <button onClick={()=>setConfirmarEliminarEstadio(es.id)} style={{background:'#3b0a0a',border:'none',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'5px 10px'}}>Eliminar</button>
                                   </>
                               }
@@ -1804,28 +1792,28 @@ function App() {
                   ))}
                 </div>
             }
-            <form onSubmit={crearEstadio} style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'14px',marginBottom:'20px'}}>
-              <p style={{color:'#4f7eff',fontSize:'12px',fontWeight:'700',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'0.4px'}}>+ Agregar estadio</p>
+            <form onSubmit={crearEstadio} style={{background:'rgba(255,255,255,0.02)',border:'1px solid #34312b',borderRadius:'10px',padding:'14px',marginBottom:'20px'}}>
+              <p style={{color:'#ffe23b',fontSize:'12px',fontWeight:'700',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'0.4px'}}>+ Agregar estadio</p>
               <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
-                <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Nombre</label>
+                <div><label style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Nombre</label>
                   <input value={formEstadio.nombre} onChange={e=>setFormEstadio(f=>({...f,nombre:e.target.value}))} required style={s.input} placeholder="El Campín" /></div>
-                <div><label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Ciudad</label>
+                <div><label style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'3px'}}>Ciudad</label>
                   <input value={formEstadio.ciudad} onChange={e=>setFormEstadio(f=>({...f,ciudad:e.target.value}))} required style={s.input} placeholder="Bogotá DC" /></div>
               </div>
-              <label style={{color:'#6b7280',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Tribunas</label>
+              <label style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'600',display:'block',marginBottom:'4px'}}>Tribunas</label>
               <div style={{display:'flex',gap:'8px',marginBottom:'8px'}}>
                 <input value={tribunaEstadioTemp} onChange={e=>setTribunaEstadioTemp(e.target.value)}
                   onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}}
                   style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental General" />
                 <button type="button" onClick={()=>{const t=tribunaEstadioTemp.trim();if(t&&!formEstadio.tribunas.includes(t)){setFormEstadio(f=>({...f,tribunas:[...f.tribunas,t]}));setTribunaEstadioTemp('')}}}
-                  style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+                  style={{background:'#5c5222',border:'none',borderRadius:'8px',color:'#ffe23b',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
               </div>
               {formEstadio.tribunas.length > 0 && (
                 <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'10px'}}>
                   {formEstadio.tribunas.map(t => (
-                    <span key={t} style={{background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#93c5fd',display:'flex',alignItems:'center',gap:'6px'}}>
+                    <span key={t} style={{background:'rgba(255,226,59,0.1)',border:'1px solid rgba(255,226,59,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#ffe23b',display:'flex',alignItems:'center',gap:'6px'}}>
                       {t}
-                      <button type="button" onClick={()=>setFormEstadio(f=>({...f,tribunas:f.tribunas.filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
+                      <button type="button" onClick={()=>setFormEstadio(f=>({...f,tribunas:f.tribunas.filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#8f8a7d',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
                     </span>
                   ))}
                 </div>
@@ -1838,13 +1826,13 @@ function App() {
               {pestanaAdmin === 'eventos' && (<>
             <p style={s.tituloAdmin}>Eventos registrados</p>
             {eventos.length === 0
-              ? <p style={{color:'#4e5a6e',fontSize:'13px',marginBottom:'16px'}}>No hay eventos.</p>
+              ? <p style={{color:'#8f8a7d',fontSize:'13px',marginBottom:'16px'}}>No hay eventos.</p>
               : <div style={{marginBottom:'20px',display:'flex',flexDirection:'column',gap:'8px'}}>
                   {[...eventos].sort((a,b)=> new Date(a.fecha||0)-new Date(b.fecha||0)).map(ev => (
-                    <div key={ev.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'10px 14px'}}>
+                    <div key={ev.id} style={{background:'rgba(255,255,255,0.04)',border:'1px solid #34312b',borderRadius:'10px',padding:'10px 14px'}}>
                       {eventoEditando === ev.id
                         ? <form onSubmit={editarEvento}>
-                            <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 10px'}}>Editando: {ev.nombre}</p>
+                            <p style={{color:'#f5f1e4',fontWeight:'700',fontSize:'13px',margin:'0 0 10px'}}>Editando: {ev.nombre}</p>
                             <input value={formEditar.nombre||''} onChange={e=>setFormEditar(f=>({...f,nombre:e.target.value}))} required style={{...s.input,marginBottom:'8px'}} placeholder="Nombre del evento" />
                             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
                               <select value={formEditar.deporte||''} onChange={e=>setFormEditar(f=>({...f,deporte:e.target.value}))} style={s.input}>
@@ -1860,39 +1848,39 @@ function App() {
                             </div>
                             <input type="datetime-local" value={formEditar.fechaHora||''} onChange={e=>setFormEditar(f=>({...f,fechaHora:e.target.value}))} required style={{...s.input,marginBottom:'8px'}} />
                             <div style={{marginBottom:'10px'}}>
-                              <p style={{color:'#8892a4',fontSize:'11px',margin:'0 0 6px',textTransform:'uppercase',letterSpacing:'0.05em'}}>Tribunas</p>
+                              <p style={{color:'#b9b4a6',fontSize:'11px',margin:'0 0 6px',textTransform:'uppercase',letterSpacing:'0.05em'}}>Tribunas</p>
                               <div style={{display:'flex',gap:'8px',marginBottom:'6px'}}>
                                 <input value={tribunaInputTemp} onChange={e=>setTribunaInputTemp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaInputTemp.trim();if(t&&!(formEditar.tribunas||[]).includes(t)){setFormEditar(f=>({...f,tribunas:[...(f.tribunas||[]),t]}));setTribunaInputTemp('')}}}} style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental Preferencial" />
-                                <button type="button" onClick={()=>{const t=tribunaInputTemp.trim();if(t&&!(formEditar.tribunas||[]).includes(t)){setFormEditar(f=>({...f,tribunas:[...(f.tribunas||[]),t]}));setTribunaInputTemp('')}}} style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+                                <button type="button" onClick={()=>{const t=tribunaInputTemp.trim();if(t&&!(formEditar.tribunas||[]).includes(t)){setFormEditar(f=>({...f,tribunas:[...(f.tribunas||[]),t]}));setTribunaInputTemp('')}}} style={{background:'#5c5222',border:'none',borderRadius:'8px',color:'#ffe23b',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
                               </div>
                               {(formEditar.tribunas||[]).length > 0 && (
                                 <div style={{display:'flex',flexWrap:'wrap',gap:'6px'}}>
                                   {(formEditar.tribunas||[]).map(t => (
-                                    <span key={t} style={{background:'rgba(147,197,253,0.1)',border:'1px solid #1e3a6a',borderRadius:'20px',color:'#93c5fd',fontSize:'11px',padding:'3px 10px',display:'flex',alignItems:'center',gap:'6px'}}>
+                                    <span key={t} style={{background:'rgba(147,197,253,0.1)',border:'1px solid #5c5222',borderRadius:'20px',color:'#ffe23b',fontSize:'11px',padding:'3px 10px',display:'flex',alignItems:'center',gap:'6px'}}>
                                       {t}
-                                      <button type="button" onClick={()=>setFormEditar(f=>({...f,tribunas:(f.tribunas||[]).filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
+                                      <button type="button" onClick={()=>setFormEditar(f=>({...f,tribunas:(f.tribunas||[]).filter(x=>x!==t)}))} style={{background:'transparent',border:'none',color:'#8f8a7d',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>×</button>
                                     </span>
                                   ))}
                                 </div>
                               )}
                             </div>
                             <div style={{display:'flex',gap:'8px'}}>
-                              <button type="submit" style={{background:'#1a3a6a',border:'none',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'6px 14px'}}>Guardar</button>
-                              <button type="button" onClick={()=>{setEventoEditando(null);setFormEditar({});setTribunaInputTemp('')}} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
+                              <button type="submit" style={{background:'#1a3a6a',border:'none',borderRadius:'7px',color:'#ffe23b',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'6px 14px'}}>Guardar</button>
+                              <button type="button" onClick={()=>{setEventoEditando(null);setFormEditar({});setTribunaInputTemp('')}} style={{background:'transparent',border:'1px solid #34312b',borderRadius:'7px',color:'#8f8a7d',fontSize:'12px',cursor:'pointer',padding:'6px 12px'}}>Cancelar</button>
                             </div>
                           </form>
                         : <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px'}}>
                             <div style={{flex:1,minWidth:0}}>
-                              <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.nombre}</p>
-                              {ev.fecha && <p style={{color: new Date(ev.fecha + 'T12:00:00') < new Date() ? '#6b7280' : '#8892a4',fontSize:'11px',margin:0}}>{new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}{new Date(ev.fecha + 'T12:00:00') < new Date() ? ' · pasado' : ''}</p>}
+                              <p style={{color:'#f5f1e4',fontWeight:'700',fontSize:'13px',margin:'0 0 2px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{ev.nombre}</p>
+                              {ev.fecha && <p style={{color: new Date(ev.fecha + 'T12:00:00') < new Date() ? '#8f8a7d' : '#b9b4a6',fontSize:'11px',margin:0}}>{new Date(ev.fecha + 'T12:00:00').toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'})}{new Date(ev.fecha + 'T12:00:00') < new Date() ? ' · pasado' : ''}</p>}
                             </div>
                             {confirmarEliminarEvento === ev.id
                               ? <div style={{display:'flex',gap:'6px',flexShrink:0}}>
                                   <button onClick={() => eliminarEvento(ev.id)} style={{background:'#7f1d1d',border:'none',borderRadius:'7px',color:'#fca5a5',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'5px 10px'}}>Sí, eliminar</button>
-                                  <button onClick={() => setConfirmarEliminarEvento(null)} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'7px',color:'#6b7280',fontSize:'12px',cursor:'pointer',padding:'5px 10px'}}>Cancelar</button>
+                                  <button onClick={() => setConfirmarEliminarEvento(null)} style={{background:'transparent',border:'1px solid #34312b',borderRadius:'7px',color:'#8f8a7d',fontSize:'12px',cursor:'pointer',padding:'5px 10px'}}>Cancelar</button>
                                 </div>
                               : <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                                  <button onClick={() => { setEventoEditando(ev.id); setTribunaInputTemp(''); setFormEditar({ nombre: ev.nombre, deporte: ev.deporte, ciudad: ev.ciudad, estadio: ev.estadio, moneda: ev.moneda, fechaHora: ev.fecha && ev.hora ? ev.fecha + 'T' + ev.hora : '', tribunas: ev.tribunas || [] }) }} style={{background:'transparent',border:'1px solid #1e3a6a',borderRadius:'7px',color:'#93c5fd',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
+                                  <button onClick={() => { setEventoEditando(ev.id); setTribunaInputTemp(''); setFormEditar({ nombre: ev.nombre, deporte: ev.deporte, ciudad: ev.ciudad, estadio: ev.estadio, moneda: ev.moneda, fechaHora: ev.fecha && ev.hora ? ev.fecha + 'T' + ev.hora : '', tribunas: ev.tribunas || [] }) }} style={{background:'transparent',border:'1px solid #5c5222',borderRadius:'7px',color:'#ffe23b',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Editar</button>
                                   <button onClick={() => setConfirmarEliminarEvento(ev.id)} style={{background:'transparent',border:'1px solid #3a1e1e',borderRadius:'7px',color:'#f87171',fontSize:'12px',fontWeight:'600',cursor:'pointer',padding:'5px 10px'}}>Eliminar</button>
                                 </div>
                             }
@@ -1943,14 +1931,14 @@ function App() {
                 <label style={s.label}>Tribunas del evento</label>
                 <div style={{display:'flex',gap:'8px',marginBottom:'8px'}}>
                   <input value={tribunaInputTemp} onChange={e=>setTribunaInputTemp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'){e.preventDefault();const t=tribunaInputTemp.trim();if(t&&!formEvento.tribunas.includes(t)){setFormEvento({...formEvento,tribunas:[...formEvento.tribunas,t]});setTribunaInputTemp('')}}}} style={{...s.input,marginBottom:0,flex:1}} placeholder="Ej: Oriental Preferencial" />
-                  <button type="button" onClick={()=>{const t=tribunaInputTemp.trim();if(t&&!formEvento.tribunas.includes(t)){setFormEvento({...formEvento,tribunas:[...formEvento.tribunas,t]});setTribunaInputTemp('')}}} style={{background:'#1e3a6a',border:'none',borderRadius:'8px',color:'#93c5fd',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
+                  <button type="button" onClick={()=>{const t=tribunaInputTemp.trim();if(t&&!formEvento.tribunas.includes(t)){setFormEvento({...formEvento,tribunas:[...formEvento.tribunas,t]});setTribunaInputTemp('')}}} style={{background:'#5c5222',border:'none',borderRadius:'8px',color:'#ffe23b',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:'0 14px',flexShrink:0}}>+ Agregar</button>
                 </div>
                 {formEvento.tribunas.length > 0 && (
                   <div style={{display:'flex',flexWrap:'wrap',gap:'6px',marginBottom:'8px'}}>
                     {formEvento.tribunas.map(t => (
-                      <span key={t} style={{background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#93c5fd',display:'flex',alignItems:'center',gap:'6px'}}>
+                      <span key={t} style={{background:'rgba(255,226,59,0.1)',border:'1px solid rgba(255,226,59,0.3)',borderRadius:'20px',padding:'3px 10px',fontSize:'12px',color:'#ffe23b',display:'flex',alignItems:'center',gap:'6px'}}>
                         {t}
-                        <button type="button" onClick={()=>setFormEvento({...formEvento,tribunas:formEvento.tribunas.filter(x=>x!==t)})} style={{background:'transparent',border:'none',color:'#6b7280',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>x</button>
+                        <button type="button" onClick={()=>setFormEvento({...formEvento,tribunas:formEvento.tribunas.filter(x=>x!==t)})} style={{background:'transparent',border:'none',color:'#8f8a7d',cursor:'pointer',fontSize:'14px',padding:0,lineHeight:1}}>x</button>
                       </span>
                     ))}
                   </div>
@@ -1966,11 +1954,11 @@ function App() {
 
         {/* ── Vista Publicar Boleta ── */}
         {mostrarFormulario && usuario && (
-          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
+            <nav style={{background:'rgba(20,19,17,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #34312b',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
-                <button onClick={()=>{setMostrarFormulario(false);setSilasExtra([])}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>➕ Publicar boleta</p>
+                <button onClick={()=>{setMostrarFormulario(false);setSilasExtra([])}} style={{background:'transparent',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p className="af-titulo-nav" style={{margin:0}}>Publicar boleta</p>
               </div>
             </nav>
             <div style={{maxWidth:'560px',margin:'0 auto',padding:'28px 20px 60px'}}>
@@ -1984,8 +1972,8 @@ function App() {
                   const ev = eventos.find(e => e.id === form.eventoId)
                   const info = ev ? [ev.ciudad, ev.estadio].filter(Boolean).join(' · ') : ''
                   return info ? (
-                    <p style={{color:'#6b93ff',fontSize:'12px',margin:'-8px 0 14px',display:'flex',alignItems:'center',gap:'6px'}}>
-                      <span>📍</span><span>{info}</span>
+                    <p style={{color:'#ffe23b',fontSize:'12px',margin:'-8px 0 14px',display:'flex',alignItems:'center',gap:'6px'}}>
+                      <span>{info}</span>
                     </p>
                   ) : null
                 })()}
@@ -1995,7 +1983,7 @@ function App() {
                   {Object.keys(PLATAFORMAS).map(p => <option key={p} value={p}>{p}</option>)}
                 </select>
                 {form.plataforma && PLATAFORMAS[form.plataforma] && (
-                  <p style={{color:'#8892a4',fontSize:'11px',margin:'-10px 0 12px',lineHeight:1.5}}>
+                  <p style={{color:'#b9b4a6',fontSize:'11px',margin:'-10px 0 12px',lineHeight:1.5}}>
                     ℹ️ {form.plataforma === 'TuBoletaPass' ? 'Santa Fe, América, Llaneros, Tolima' : form.plataforma === 'Quentro' ? 'Millonarios, Atlético Nacional' : form.plataforma === 'Warena' ? 'Cúcuta, Junior' : 'Ind. Medellín'}
                   </p>
                 )}
@@ -2027,7 +2015,7 @@ function App() {
                     labelStyle={s.label}
                   />
                 ))}
-                <button type="button" onClick={()=>setSilasExtra([...silasExtra,{tribuna:form.tribuna||'',fila:'',silla:''}])} style={{background:'transparent',border:'1px dashed #1e2a3a',borderRadius:'8px',padding:'8px',fontSize:'12px',color:'#4e5a6e',cursor:'pointer',width:'100%',marginBottom:'16px'}}>+ Añadir otra silla</button>
+                <button type="button" onClick={()=>setSilasExtra([...silasExtra,{tribuna:form.tribuna||'',fila:'',silla:''}])} style={{background:'transparent',border:'1px dashed #34312b',borderRadius:'8px',padding:'8px',fontSize:'12px',color:'#8f8a7d',cursor:'pointer',width:'100%',marginBottom:'16px'}}>+ Añadir otra silla</button>
                 <button type="submit" style={s.botonSubmit}>Publicar {silasExtra.length > 0 ? silasExtra.length+1+' boletas' : 'boleta'}</button>
                 {mensaje && <p style={s.mensaje}>{mensaje}</p>}
               </form>
@@ -2037,11 +2025,11 @@ function App() {
 
                 {/* ── Página de Login ── */}
         {paginaActual === 'login' && (
-          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
+            <nav style={{background:'rgba(20,19,17,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #34312b',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
-                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Iniciar sesión</p>
+                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#f5f1e4',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Iniciar sesión</p>
                 <div style={{width:'60px'}}></div>
               </div>
             </nav>
@@ -2054,13 +2042,13 @@ function App() {
                 <button type="submit" style={s.botonSubmit}>Entrar</button>
                 <p style={{textAlign:'center',marginTop:'12px'}}>
                   <button type="button" onClick={() => { setPaginaActual('recuperar'); setMensajeAuth('') }}
-                    style={{background:'none',border:'none',color:'#6366f1',fontSize:'13px',cursor:'pointer',textDecoration:'underline'}}>
+                    style={{background:'none',border:'none',color:'#ffe23b',fontSize:'13px',cursor:'pointer',textDecoration:'underline'}}>
                     ¿Olvidaste tu contraseña?
                   </button>
                 </p>
                 <p style={{textAlign:'center',marginTop:'8px'}}>
                   <button type="button" onClick={() => { setPaginaActual('registro'); setMensajeAuth('') }}
-                    style={{background:'none',border:'none',color:'#8892a4',fontSize:'13px',cursor:'pointer'}}>
+                    style={{background:'none',border:'none',color:'#b9b4a6',fontSize:'13px',cursor:'pointer'}}>
                     ¿No tienes cuenta? Regístrate
                   </button>
                 </p>
@@ -2072,17 +2060,17 @@ function App() {
 
         {/* ── Página de Recuperar contraseña ── */}
         {paginaActual === 'recuperar' && (
-          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
+            <nav style={{background:'rgba(20,19,17,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #34312b',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
-                <button onClick={()=>setPaginaActual('login')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Recuperar contraseña</p>
+                <button onClick={()=>setPaginaActual('login')} style={{background:'transparent',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#f5f1e4',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Recuperar contraseña</p>
                 <div style={{width:'60px'}}></div>
               </div>
             </nav>
             <div style={{maxWidth:'480px',margin:'0 auto',padding:'40px 20px 60px'}}>
               <form onSubmit={manejarRecuperacion} style={s.tarjetaForm}>
-                <p style={{color:'#9ca3af',fontSize:'13px',marginBottom:'16px'}}>Ingresa tu correo y te enviamos un link para crear una nueva contraseña.</p>
+                <p style={{color:'#b9b4a6',fontSize:'13px',marginBottom:'16px'}}>Ingresa tu correo y te enviamos un link para crear una nueva contraseña.</p>
                 <label style={s.label}>Correo</label>
                 <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
                 <button type="submit" style={s.botonSubmit}>Enviar link</button>
@@ -2094,11 +2082,11 @@ function App() {
 
         {/* ── Página de Nueva contraseña ── */}
         {paginaActual === 'nueva-password' && (
-          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
+            <nav style={{background:'rgba(20,19,17,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #34312b',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
-                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Nueva contraseña</p>
+                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#f5f1e4',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Nueva contraseña</p>
                 <div style={{width:'60px'}}></div>
               </div>
             </nav>
@@ -2115,11 +2103,11 @@ function App() {
 
         {/* ── Página de Registro ── */}
         {paginaActual === 'registro' && (
-          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-            <nav style={{background:'rgba(13,17,23,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #1e2a3a',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
+            <nav style={{background:'rgba(20,19,17,0.95)',backdropFilter:'blur(12px)',borderBottom:'1px solid #34312b',position:'sticky',top:0,zIndex:10,padding:'0 20px'}}>
               <div style={{maxWidth:'720px',margin:'0 auto',display:'flex',justifyContent:'space-between',alignItems:'center',height:'60px'}}>
-                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <p style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Crear cuenta</p>
+                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <p style={{color:'#f5f1e4',fontSize:'16px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>Crear cuenta</p>
                 <div style={{width:'60px'}}></div>
               </div>
             </nav>
@@ -2127,7 +2115,7 @@ function App() {
               <form onSubmit={manejarRegistro} style={s.tarjetaForm}>
                 <label style={s.label}>Nombre</label>
                 <input name="nombre" value={formAuth.nombre} onChange={manejarCambioAuth} required style={s.input} />
-                <label style={s.label}>🪪 Número de documento</label>
+                <label style={s.label}>Número de documento</label>
                 <input name="documento" placeholder="Ej: 1020304050" value={formAuth.documento} onChange={manejarCambioAuth} required style={s.input} inputMode="numeric" />
                 <label style={s.label}>Correo</label>
                 <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
@@ -2135,13 +2123,13 @@ function App() {
                 <input name="password" type="password" value={formAuth.password} onChange={manejarCambioAuth} required style={s.input} />
                 <label style={s.label}>Confirmar contraseña</label>
                 <input name="nuevaPassword" type="password" value={formAuth.nuevaPassword} onChange={manejarCambioAuth} required style={s.input} />
-                <label style={s.label}>📱 Dato de pago (Nequi o banco)</label>
+                <label style={s.label}>Dato de pago (Nequi o banco)</label>
                 <input name="datosPago" placeholder="Ej: 3001234567 Nequi · Banco Bogotá 123-456789" value={formAuth.datosPago} onChange={manejarCambioAuth} style={s.input} />
-                <p style={{color:'#4e5a6e',fontSize:'11px',margin:'-8px 0 12px',lineHeight:1.5}}>Aquí te enviamos tu pago cuando vendes una boleta.</p>
+                <p style={{color:'#8f8a7d',fontSize:'11px',margin:'-8px 0 12px',lineHeight:1.5}}>Aquí te enviamos tu pago cuando vendes una boleta.</p>
                 <button type="submit" style={s.botonSubmit}>Crear cuenta</button>
                 <p style={{textAlign:'center',marginTop:'12px'}}>
                   <button type="button" onClick={() => { setPaginaActual('login'); setMensajeAuth('') }}
-                    style={{background:'none',border:'none',color:'#8892a4',fontSize:'13px',cursor:'pointer'}}>
+                    style={{background:'none',border:'none',color:'#b9b4a6',fontSize:'13px',cursor:'pointer'}}>
                     ¿Ya tienes cuenta? Inicia sesión
                   </button>
                 </p>
@@ -2161,7 +2149,7 @@ function App() {
             <button type="submit" style={s.botonSubmit}>Entrar</button>
             <p style={{textAlign:'center',marginTop:'12px'}}>
               <button type="button" onClick={() => { setVistaAuth('recuperar'); setMensajeAuth('') }}
-                style={{background:'none',border:'none',color:'#6366f1',fontSize:'13px',cursor:'pointer',textDecoration:'underline'}}>
+                style={{background:'none',border:'none',color:'#ffe23b',fontSize:'13px',cursor:'pointer',textDecoration:'underline'}}>
                 ¿Olvidaste tu contraseña?
               </button>
             </p>
@@ -2172,13 +2160,13 @@ function App() {
         {vistaAuth === 'recuperar' && (
           <form onSubmit={manejarRecuperacion} style={s.tarjetaForm}>
             <p style={s.tituloForm}>Recuperar contraseña</p>
-            <p style={{color:'#9ca3af',fontSize:'13px',marginBottom:'16px'}}>Ingresa tu correo y te enviamos un link para crear una nueva contraseña.</p>
+            <p style={{color:'#b9b4a6',fontSize:'13px',marginBottom:'16px'}}>Ingresa tu correo y te enviamos un link para crear una nueva contraseña.</p>
             <label style={s.label}>Correo</label>
             <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
             <button type="submit" style={s.botonSubmit}>Enviar link</button>
             <p style={{textAlign:'center',marginTop:'12px'}}>
               <button type="button" onClick={() => { setVistaAuth('login'); setMensajeAuth('') }}
-                style={{background:'none',border:'none',color:'#6b7280',fontSize:'13px',cursor:'pointer'}}>
+                style={{background:'none',border:'none',color:'#8f8a7d',fontSize:'13px',cursor:'pointer'}}>
                 ← Volver al inicio de sesión
               </button>
             </p>
@@ -2201,7 +2189,7 @@ function App() {
             <p style={s.tituloForm}>Crear cuenta</p>
             <label style={s.label}>Nombre</label>
             <input name="nombre" value={formAuth.nombre} onChange={manejarCambioAuth} required style={s.input} />
-            <label style={s.label}>🪪 Número de documento</label>
+            <label style={s.label}>Número de documento</label>
             <input name="documento" placeholder="Ej: 1020304050" value={formAuth.documento} onChange={manejarCambioAuth} required style={s.input} inputMode="numeric" />
             <label style={s.label}>Correo</label>
             <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
@@ -2209,185 +2197,13 @@ function App() {
             <input name="password" type="password" value={formAuth.password} onChange={manejarCambioAuth} required style={s.input} />
             <label style={s.label}>Confirmar contraseña</label>
 <input name="nuevaPassword" type="password" value={formAuth.nuevaPassword} onChange={manejarCambioAuth} required style={s.input} />
-            <label style={s.label}>📱 Dato de pago (Nequi o banco)</label>
+            <label style={s.label}>Dato de pago (Nequi o banco)</label>
             <input name="datosPago" placeholder="Ej: 3001234567 Nequi · Banco Bogotá 123-456789" value={formAuth.datosPago} onChange={manejarCambioAuth} style={s.input} />
-            <p style={{color:'#4e5a6e',fontSize:'11px',margin:'-8px 0 12px',lineHeight:1.5}}>Aquí te enviamos tu pago cuando vendes una boleta.</p>
+            <p style={{color:'#8f8a7d',fontSize:'11px',margin:'-8px 0 12px',lineHeight:1.5}}>Aquí te enviamos tu pago cuando vendes una boleta.</p>
             <button type="submit" style={s.botonSubmit}>Crear cuenta</button>
             {mensajeAuth && <p style={s.mensaje}>{mensajeAuth}</p>}
           </form>
         )}
-
-        {/* ── BARRA DE BÚSQUEDA ── */}
-        <div style={{margin:'28px 0 0'}}>
-          <div style={{position:'relative',marginBottom:'12px'}}>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style={{position:'absolute',left:'14px',top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}}>
-              <circle cx="6.5" cy="6.5" r="5" stroke="#6b82a0" strokeWidth="1.5"/>
-              <path d="M10.5 10.5L14 14" stroke="#6b82a0" strokeWidth="1.5" strokeLinecap="round"/>
-            </svg>
-            <input type="text" placeholder="Buscar equipo o evento..." value={busquedaPublica} onChange={e=>setBusquedaPublica(e.target.value)} style={{width:'100%',boxSizing:'border-box',background:'#0f1928',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'11px 16px 11px 38px',color:'#eef0f6',fontSize:'14px',outline:'none'}}/>
-          </div>
-          {!cargando && boletas.length>0 && (()=>{
-            const ciudades=[...new Set(boletas.map(b=>b.eventos?.ciudad).filter(Boolean))]
-            const deportes=[...new Set(boletas.map(b=>b.eventos?.deporte).filter(Boolean))]
-            return (
-              <div style={{display:'flex',gap:'8px',flexWrap:'wrap',marginBottom:'16px'}}>
-                <select value={filtros.ciudad} onChange={e=>setFiltros(f=>({...f,ciudad:e.target.value}))} style={{flex:'1',minWidth:'130px',background:'#0f1928',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'8px 14px',color:'#eef0f6',fontSize:'12px',cursor:'pointer',outline:'none'}}>
-                  <option value=''>Todas las ciudades</option>
-                  {ciudades.map(c=><option key={c} value={c}>{c}</option>)}
-                </select>
-                <select value={filtros.deporte} onChange={e=>setFiltros(f=>({...f,deporte:e.target.value}))} style={{flex:'1',minWidth:'130px',background:'#0f1928',border:'1px solid #1e2a3a',borderRadius:'10px',padding:'8px 14px',color:'#eef0f6',fontSize:'12px',cursor:'pointer',outline:'none'}}>
-                  <option value=''>Todos los deportes</option>
-                  {deportes.map(d=><option key={d} value={d}>{d}</option>)}
-                </select>
-                {(filtros.ciudad||filtros.deporte)&&<button onClick={()=>setFiltros({ciudad:'',deporte:'',precioMax:''})} style={{background:'transparent',border:'1px solid #1e2a3a',color:'#6b82a0',borderRadius:'10px',padding:'8px 14px',cursor:'pointer',fontSize:'12px'}}>Limpiar</button>}
-              </div>
-            )
-          })()}
-          <div id="partidos" style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'16px',scrollMarginTop:'76px'}}>
-            <div style={{textAlign:'left'}}>
-              <p style={{color:'#eef0f6',fontSize:'17px',fontWeight:'800',margin:'0 0 2px',letterSpacing:'-0.4px'}}>Próximos partidos</p>
-              <p style={{color:'#4e5a6e',fontSize:'12px',margin:0}}>{(() => {
-                const conBoletas = new Set(boletas.filter(b=>b.estado==='publicada'&&b.evento_id).map(b=>b.evento_id)).size
-                return conBoletas > 0 ? `${conBoletas} con boletas disponibles` : 'Sé el primero en publicar boletas'
-              })()}</p>
-            </div>
-            {usuario&&(
-              <button onClick={()=>setMostrarFormulario(true)} style={{background:'rgba(79,126,255,0.12)',color:'#6b93ff',border:'1px solid rgba(79,126,255,0.25)',borderRadius:'10px',padding:'9px 18px',fontSize:'13px',fontWeight:'700',cursor:'pointer',flexShrink:0}}>
-                + Vender
-              </button>
-            )}
-          </div>
-        </div>
-
-
-        {cargando && <p style={s.vacio}>Cargando eventos...</p>}
-
-        {/* ── TARJETAS DE EVENTOS ── */}
-        {(()=>{
-          const boletasFiltradas = boletas.filter(b => {
-            if (b.estado !== 'publicada') return false
-            if (filtros.ciudad && (b.eventos?.ciudad || '').toLowerCase() !== filtros.ciudad.toLowerCase()) return false
-            if (filtros.deporte && (b.eventos?.deporte || '').toLowerCase() !== filtros.deporte.toLowerCase()) return false
-            if (busquedaPublica.trim()) {
-              const q = busquedaPublica.toLowerCase()
-              const nombre = (b.eventos?.nombre || '').toLowerCase()
-              const ciudad = (b.eventos?.ciudad || '').toLowerCase()
-              if (!nombre.includes(q) && !ciudad.includes(q)) return false
-            }
-            return true
-          })
-          // Próximos partidos sin boletas publicadas: se muestran para invitar a vender
-          const hoy = new Date().toLocaleDateString('en-CA')  // AAAA-MM-DD en hora local
-          const idsConBoletas = new Set(boletasFiltradas.map(b => String(b.evento_id || b.eventos?.id || b.id)))
-          const q = busquedaPublica.trim().toLowerCase()
-          const proximosSinBoletas = eventos.filter(ev => {
-            if (!ev.fecha || ev.fecha < hoy || idsConBoletas.has(String(ev.id))) return false
-            if (filtros.ciudad && (ev.ciudad || '').toLowerCase() !== filtros.ciudad.toLowerCase()) return false
-            if (filtros.deporte && (ev.deporte || '').toLowerCase() !== filtros.deporte.toLowerCase()) return false
-            if (q && !(ev.nombre || '').toLowerCase().includes(q) && !(ev.ciudad || '').toLowerCase().includes(q)) return false
-            return true
-          })
-          const hayProximos = eventos.some(ev => ev.fecha && ev.fecha >= hoy)
-          if (!cargando && boletas.length === 0 && !hayProximos) return (
-            <div style={{textAlign:'center',padding:'60px 20px 40px',display:'flex',flexDirection:'column',alignItems:'center',gap:'16px'}}>
-              <div style={{fontSize:'52px',lineHeight:1}}>🎟️</div>
-              <h2 style={{margin:0,fontSize:'22px',fontWeight:'800',color:'#eef0f6'}}>Aún no hay boletas publicadas</h2>
-              <p style={{margin:0,fontSize:'15px',color:'#8892a4',maxWidth:'320px',lineHeight:'1.6'}}>Sé el primero en vender. Publica tu boleta en minutos y llega a compradores en toda Colombia.</p>
-              <button
-                onClick={() => { if (!usuario) { setVistaAuth('registro'); return } setMostrarFormulario(true) }}
-                style={{marginTop:'8px',background:'#4f7eff',color:'#fff',border:'none',borderRadius:'12px',padding:'14px 32px',fontSize:'15px',fontWeight:'700',cursor:'pointer',boxShadow:'0 0 28px rgba(79,126,255,0.3)'}}>
-                Publicar mi boleta
-              </button>
-            </div>
-          )
-          // Group by evento_id
-          const eventosMap = {}
-          boletasFiltradas.forEach(b => {
-            const eid = b.evento_id || (b.eventos && b.eventos.id) || b.id
-            if (!eventosMap[eid]) eventosMap[eid] = { info: b.eventos, boletas: [] }
-            eventosMap[eid].boletas.push(b)
-          })
-          const eventosArr = [
-            ...Object.entries(eventosMap),
-            ...proximosSinBoletas.map(ev => [String(ev.id), { info: ev, boletas: [], sinBoletas: true }]),
-          ].sort((a, b) => {
-            const fa = a[1].info?.fecha || ''
-            const fb = b[1].info?.fecha || ''
-            return fa.localeCompare(fb)
-          })
-          if (!cargando && eventosArr.length === 0 && (boletas.length > 0 || hayProximos)) return (
-            <p style={s.vacio}>No hay eventos que coincidan con la búsqueda.</p>
-          )
-          return eventosArr.map(([eid, ev]) => {
-            const info = ev.info
-            const precios = ev.boletas.map(b => Number(b.precio)).filter(p => p > 0)
-            const precioMin = precios.length > 0 ? Math.min(...precios) : 0
-            const moneda = info?.moneda || 'COP'
-            const esAdminEvento = ev.boletas.some(b => b.publicada_por_admin === true || b.usuarios?.es_admin === true)
-            const [equipo1, equipo2] = extraerEquipos(info?.nombre || '')
-            const fechaObj = info?.fecha ? new Date(info.fecha + 'T12:00:00') : null
-            const diaN = fechaObj ? fechaObj.getDate() : ''
-            const mesAbr = fechaObj ? fechaObj.toLocaleDateString('es-CO',{month:'short'}).replace('.','').toUpperCase() : ''
-            const anioN = fechaObj ? fechaObj.getFullYear() : ''
-            const horaStr = info?.hora ? info.hora.slice(0,5) : ''
-            return (
-              <div
-                key={eid}
-                onClick={() => {
-                  if (ev.sinBoletas) { venderParaEvento(eid); return }
-                  setEventoSeleccionado({eid, ev}); setSeccionMapa(null); setPaginaActual('evento')
-                }}
-                style={{background:'linear-gradient(135deg,#0f1a2e 0%,#0c1220 100%)',border:'1px solid #1e2a3a',borderRadius:'18px',padding:'20px 16px',marginBottom:'12px',cursor:'pointer',display:'flex',flexDirection:'column',gap:'14px'}}
-                onMouseEnter={e=>e.currentTarget.style.borderColor='#4f7eff'}
-                onMouseLeave={e=>e.currentTarget.style.borderColor='#1e2a3a'}
-              >
-                {/* Top: grid 3 cols — fecha | escudos centrados | flecha */}
-                <div style={{display:'grid',gridTemplateColumns:'80px 1fr 24px',alignItems:'center',gap:'8px'}}>
-                  {fechaObj ? (
-                    <div style={{background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'10px',padding:'8px 12px',textAlign:'center'}}>
-                      <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'800',margin:0,textTransform:'uppercase',letterSpacing:'0.8px'}}>{mesAbr}</p>
-                      <p style={{color:'#eef0f6',fontSize:'22px',fontWeight:'900',margin:'2px 0',lineHeight:'1'}}>{diaN}</p>
-                      <p style={{color:'#8892a4',fontSize:'10px',fontWeight:'600',margin:0}}>{anioN}</p>
-                      {horaStr && <p style={{color:'#6b93ff',fontSize:'10px',fontWeight:'700',margin:'3px 0 0',background:'rgba(79,126,255,0.15)',borderRadius:'6px',padding:'1px 4px'}}>{horaStr}</p>}
-                    </div>
-                  ) : <div/>}
-                  <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:'16px'}}>
-                    <EscudoSVG nombre={equipo1} size={60} />
-                    {equipo2 && <>
-                      <span style={{color:'#2a3a52',fontSize:'13px',fontWeight:'800',letterSpacing:'1px'}}>VS</span>
-                      <EscudoSVG nombre={equipo2} size={60} />
-                    </>}
-                  </div>
-                  <span style={{color:'#4e5a6e',fontSize:'18px',textAlign:'right'}}>›</span>
-                </div>
-                {/* Nombre + estadio centrados */}
-                <div style={{textAlign:'center'}}>
-                  <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',margin:'0 0 4px',lineHeight:'1.3'}}>{info?.nombre || 'Evento'}</p>
-                  <p style={{color:'#6b7a94',fontSize:'12px',margin:0}}>{[info?.ciudad, info?.estadio].filter(Boolean).join(' · ')}</p>
-                </div>
-                {/* Footer: precio + badge */}
-                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',borderTop:'1px solid #111d2b',paddingTop:'12px'}}>
-                  {ev.sinBoletas ? (
-                    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'10px',width:'100%'}}>
-                      <p style={{color:'#8892a4',fontSize:'12px',margin:0,textAlign:'left'}}>Aún sin boletas publicadas</p>
-                      <span style={{background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.3)',color:'#6b93ff',fontSize:'12px',fontWeight:'700',padding:'6px 12px',borderRadius:'8px',whiteSpace:'nowrap'}}>Sé el primero en vender</span>
-                    </div>
-                  ) : (
-                  <div>
-                    <p style={{color:'#4ade80',fontSize:'14px',fontWeight:'800',margin:'0 0 1px'}}>
-                      {`desde ${calcularTotal(precioMin, moneda, esAdminEvento)}`}
-                    </p>
-                    <p style={{color:'#4e5a6e',fontSize:'11px',margin:0}}>{ev.boletas.length} entrada{ev.boletas.length !== 1 ? 's' : ''} disponible{ev.boletas.length !== 1 ? 's' : ''}</p>
-                  </div>
-                  )}
-                  {esAdminEvento && (
-                    <span style={{background:'rgba(79,126,255,0.15)',border:'1px solid rgba(79,126,255,0.25)',color:'#6b93ff',fontSize:'10px',fontWeight:'700',padding:'4px 10px',borderRadius:'20px'}}>✓ Verificado</span>
-                  )}
-                </div>
-              </div>
-            )
-          })
-        })()}
 
         {/* ── PÁGINA DE EVENTO ── */}
         {paginaActual === 'evento' && eventoSeleccionado && (() => {
@@ -2411,38 +2227,34 @@ function App() {
           const esTecho = (info?.estadio||'').toLowerCase().includes('techo')
           const esPascual = (info?.estadio||'').toLowerCase().includes('pascual')
           return (
-            <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+            <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
               {/* NAV */}
               <nav style={s.navSec}>
                 <div style={s.navInner}>
-                  <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                  <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>🏟 Evento</span>
+                  <button onClick={()=>{setPaginaActual('inicio');setSeccionMapa(null)}} style={{background:'transparent',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                  <span className="af-titulo-nav">Evento</span>
                 </div>
               </nav>
               <div style={{maxWidth:'680px',margin:'0 auto',padding:'0 20px 80px'}}>
 
                 {/* HERO */}
-                <div style={{padding:'24px 0 20px',borderBottom:'1px solid #111d2b',marginBottom:'20px'}}>
-                  <div style={{display:'flex',justifyContent:'center',alignItems:'center',gap:'20px',marginBottom:'14px'}}>
-                    <EscudoSVG nombre={equipo1} size={52} />
+                <div className="af-franja" style={{marginBottom:'24px'}}>
+                  <div className="af-escudos">
+                    <EscudoSVG nombre={equipo1} size={56} />
                     {equipo2 && <>
-                      <span style={{color:'#293748',fontSize:'13px',fontWeight:'700',letterSpacing:'1px'}}>VS</span>
-                      <EscudoSVG nombre={equipo2} size={52} />
+                      <span className="af-escudos-vs">VS</span>
+                      <EscudoSVG nombre={equipo2} size={56} />
                     </>}
                   </div>
-                  <h1 style={{color:'#eef0f6',fontSize:'19px',fontWeight:'800',margin:'0 0 8px',lineHeight:'1.25',textAlign:'center'}}>{info?.nombre}</h1>
-                  <div style={{display:'flex',justifyContent:'center',flexWrap:'wrap',gap:'6px',alignItems:'center'}}>
-                    {fechaStr && <span style={{color:'#a78bfa',fontSize:'12px',fontWeight:'600',background:'rgba(167,139,250,0.1)',padding:'4px 10px',borderRadius:'20px'}}>{fechaStr}{horaStr ? ` · ${horaStr}` : ''}</span>}
-                    {info?.estadio && <span style={{color:'#6b7a94',fontSize:'12px',fontWeight:'500'}}>{[info?.ciudad, info?.estadio].filter(Boolean).join(' · ')}</span>}
-                  </div>
+                  <h1 className="af-franja-titulo">{info?.nombre}</h1>
+                  {fechaStr && <span className="af-franja-dato">{fechaStr}{horaStr ? ` · ${horaStr}` : ''}</span>}
+                  {info?.estadio && <span className="af-franja-lugar">{[info?.estadio, info?.ciudad].filter(Boolean).join(' · ')}</span>}
                 </div>
 
                 {/* MAPA */}
                 {(esElCampin || esAtanasio || esTecho || esPascual) ? (
                   <div style={{marginBottom:'20px'}}>
-                    <p style={{color:'#4e5a6e',fontSize:'10px',fontWeight:'700',textAlign:'center',margin:'0 0 10px',textTransform:'uppercase',letterSpacing:'1px'}}>
-                      🗺️ Toca una tribuna para ver las boletas
-                    </p>
+                    <p className="af-rotulo">Toca una tribuna para ver las boletas</p>
                     <Suspense fallback={<div style={{height:'260px'}} />}>
                     {esElCampin ? (
                       <MapaElCampin
@@ -2472,30 +2284,30 @@ function App() {
                     </Suspense>
                     {/* Leyenda */}
                     <div style={{display:'flex',justifyContent:'center',gap:'16px',marginTop:'10px',flexWrap:'wrap'}}>
-                      {[['rgba(61,219,122,0.7)','Disponible'],['rgba(79,126,255,0.8)','Seleccionado'],['rgba(255,255,255,0.15)','Sin disponibilidad']].map(([col,lbl])=>(
+                      {[['rgba(61,219,122,0.7)','Disponible'],['rgba(255,226,59,0.8)','Seleccionado'],['rgba(255,255,255,0.15)','Sin disponibilidad']].map(([col,lbl])=>(
                         <div key={lbl} style={{display:'flex',alignItems:'center',gap:'5px'}}>
                           <span style={{width:'10px',height:'10px',borderRadius:'2px',background:col,display:'inline-block',flexShrink:0}}/>
-                          <span style={{color:'#6b7a94',fontSize:'11px',fontWeight:'500'}}>{lbl}</span>
+                          <span style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'500'}}>{lbl}</span>
                         </div>
                       ))}
                     </div>
                   </div>
                 ) : (
-                  <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1a2332',borderRadius:'14px',padding:'18px',marginBottom:'20px',textAlign:'center'}}>
-                    <p style={{color:'#4f7eff',fontSize:'12px',fontWeight:'700',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>Mapa del estadio</p>
-                    <p style={{color:'#4e5a6e',fontSize:'13px',margin:0}}>🗺️ Próximamente — selección interactiva de tribuna</p>
+                  <div style={{background:'rgba(255,255,255,0.02)',border:'1px solid #1e1c19',borderRadius:'14px',padding:'18px',marginBottom:'20px',textAlign:'center'}}>
+                    <p style={{color:'#ffe23b',fontSize:'12px',fontWeight:'700',margin:'0 0 4px',textTransform:'uppercase',letterSpacing:'1px'}}>Mapa del estadio</p>
+                    <p style={{color:'#8f8a7d',fontSize:'13px',margin:0}}>Próximamente: selección interactiva de tribuna</p>
                   </div>
                 )}
 
 
                 {/* ── BANNER ¿CÓMO FUNCIONA? ── */}
-                <div style={{background:'rgba(79,126,255,0.06)',border:'1px solid rgba(79,126,255,0.18)',borderRadius:'14px',marginBottom:'20px',overflow:'hidden'}}>
+                <div style={{background:'rgba(255,226,59,0.06)',border:'1px solid rgba(255,226,59,0.18)',borderRadius:'14px',marginBottom:'20px',overflow:'hidden'}}>
                   <button
                     onClick={()=>setInstruccionesAbiertas(!instruccionesAbiertas)}
                     style={{width:'100%',background:'none',border:'none',padding:'14px 16px',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',gap:'8px'}}
                   >
-                    <span style={{color:'#6b93ff',fontSize:'13px',fontWeight:'800',letterSpacing:'-0.2px'}}>ℹ️ ¿Cómo funciona la compra?</span>
-                    <span style={{color:'#4f7eff',fontSize:'14px',transition:'transform 0.2s',display:'inline-block',transform:instruccionesAbiertas?'rotate(180deg)':'rotate(0deg)'}}>▾</span>
+                    <span style={{color:'#ffe23b',fontSize:'14px',fontWeight:'800'}}>¿Cómo funciona la compra?</span>
+                    <span style={{color:'#ffe23b',fontSize:'14px',transition:'transform 0.2s',display:'inline-block',transform:instruccionesAbiertas?'rotate(180deg)':'rotate(0deg)'}}>▾</span>
                   </button>
                   {instruccionesAbiertas && (
                     <div style={{padding:'0 16px 16px'}}>
@@ -2506,19 +2318,19 @@ function App() {
                         {n:'4', text:'Confirmas que la recibiste → el vendedor cobra'},
                       ].map(({n,text})=>(
                         <div key={n} style={{display:'flex',gap:'10px',marginBottom:'8px',alignItems:'flex-start'}}>
-                          <span style={{background:'rgba(79,126,255,0.15)',color:'#6b93ff',fontSize:'11px',fontWeight:'800',borderRadius:'50%',width:'20px',height:'20px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'1px'}}>{n}</span>
-                          <p style={{color:'#8892a4',fontSize:'13px',lineHeight:'1.5',margin:0}}>{text}</p>
+                          <span style={{background:'rgba(255,226,59,0.15)',color:'#ffe23b',fontSize:'11px',fontWeight:'800',borderRadius:'50%',width:'20px',height:'20px',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'1px'}}>{n}</span>
+                          <p style={{color:'#b9b4a6',fontSize:'13px',lineHeight:'1.5',margin:0}}>{text}</p>
                         </div>
                       ))}
                       {/* Sección plataformas */}
-                      <div style={{marginTop:'14px',borderTop:'1px solid rgba(79,126,255,0.15)',paddingTop:'14px'}}>
-                        <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 10px'}}>📲 ¿Cómo recibo mi boleta?</p>
+                      <div style={{marginTop:'14px',borderTop:'1px solid rgba(255,226,59,0.15)',paddingTop:'14px'}}>
+                        <p style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 10px'}}>¿Cómo recibo mi boleta?</p>
                         <div style={{display:'flex',gap:'6px',flexWrap:'wrap',marginBottom:'12px'}}>
                           {Object.keys(PLATAFORMAS).map(plat=>(
                             <button
                               key={plat}
                               onClick={()=>setPlatBannerSeleccionada(platBannerSeleccionada===plat?null:plat)}
-                              style={{background:platBannerSeleccionada===plat?PLATAFORMAS[plat].color:'rgba(255,255,255,0.05)',border:`1px solid ${platBannerSeleccionada===plat?PLATAFORMAS[plat].color:'rgba(255,255,255,0.1)'}`,borderRadius:'20px',color:platBannerSeleccionada===plat?'#fff':'#8892a4',fontSize:'12px',fontWeight:'600',padding:'6px 12px',cursor:'pointer',transition:'all 0.15s'}}
+                              style={{background:platBannerSeleccionada===plat?PLATAFORMAS[plat].color:'rgba(255,255,255,0.05)',border:`1px solid ${platBannerSeleccionada===plat?PLATAFORMAS[plat].color:'rgba(255,255,255,0.1)'}`,borderRadius:'20px',color:platBannerSeleccionada===plat?'#fff':'#b9b4a6',fontSize:'12px',fontWeight:'600',padding:'6px 12px',cursor:'pointer',transition:'all 0.15s'}}
                             >{plat}</button>
                           ))}
                         </div>
@@ -2527,19 +2339,19 @@ function App() {
                             {PLATAFORMAS[platBannerSeleccionada].pasosComprador.map((paso,i)=>(
                               <div key={i} style={{display:'flex',gap:'8px',marginBottom:i<PLATAFORMAS[platBannerSeleccionada].pasosComprador.length-1?'8px':0,alignItems:'flex-start'}}>
                                 <span style={{color:PLATAFORMAS[platBannerSeleccionada].color,fontSize:'11px',fontWeight:'800',flexShrink:0,minWidth:'14px',marginTop:'2px'}}>{i+1}.</span>
-                                <p style={{color:'#8892a4',fontSize:'12px',lineHeight:'1.5',margin:0}}>{paso}</p>
+                                <p style={{color:'#b9b4a6',fontSize:'12px',lineHeight:'1.5',margin:0}}>{paso}</p>
                               </div>
                             ))}
                             {PLATAFORMAS[platBannerSeleccionada].requisitoReceptor && (
                               <div style={{marginTop:'10px',paddingTop:'10px',borderTop:`1px solid ${PLATAFORMAS[platBannerSeleccionada].color}33`,display:'flex',gap:'8px',alignItems:'flex-start'}}>
-                                <span style={{fontSize:'13px',flexShrink:0}}>⚠️</span>
+                                
                                 <p style={{color:'#c9a227',fontSize:'12px',lineHeight:'1.5',margin:0,fontStyle:'italic'}}>{PLATAFORMAS[platBannerSeleccionada].requisitoReceptor}</p>
                               </div>
                             )}
                           </div>
                         )}
                         {!platBannerSeleccionada && (
-                          <p style={{color:'#4e5a6e',fontSize:'12px',margin:0,fontStyle:'italic'}}>Toca la app de tu evento para ver los pasos</p>
+                          <p style={{color:'#8f8a7d',fontSize:'12px',margin:0,fontStyle:'italic'}}>Toca la app de tu evento para ver los pasos</p>
                         )}
                       </div>
                     </div>
@@ -2551,7 +2363,7 @@ function App() {
                   <div style={{display:'flex',gap:'8px',overflowX:'auto',paddingBottom:'4px',marginBottom:'16px'}}>
                     {tribunas.map(t => (
                       <button key={t} onClick={()=>setSeccionMapa(seccionMapa===t?null:t)}
-                        style={{background:seccionActual===t?'#4f7eff':'rgba(255,255,255,0.04)',border:seccionActual===t?'none':'1px solid #1a2332',borderRadius:'20px',color:seccionActual===t?'#fff':'#8892a4',fontSize:'12px',fontWeight:'600',padding:'7px 14px',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}
+                        style={{background:seccionActual===t?'#ffe23b':'rgba(255,255,255,0.04)',border:seccionActual===t?'none':'1px solid #1e1c19',borderRadius:'20px',color:seccionActual===t?'#141311':'#b9b4a6',fontSize:'12px',fontWeight:'600',padding:'7px 14px',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0}}
                       >{t}</button>
                     ))}
                   </div>
@@ -2561,15 +2373,15 @@ function App() {
                 {seccionActual ? (
                   <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'12px'}}>
                     <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                      <span style={{width:'10px',height:'10px',borderRadius:'50%',background:'#4f7eff',display:'inline-block',flexShrink:0}}/>
-                      <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700'}}>Tribuna {seccionActual}</span>
+                      <span style={{width:'10px',height:'10px',borderRadius:'50%',background:'#ffe23b',display:'inline-block',flexShrink:0}}/>
+                      <span style={{color:'#f5f1e4',fontSize:'15px',fontWeight:'700'}}>Tribuna {seccionActual}</span>
                     </div>
-                    <span style={{color:'#6b93ff',fontSize:'12px',fontWeight:'600',background:'rgba(79,126,255,0.1)',padding:'4px 10px',borderRadius:'20px'}}>
+                    <span style={{color:'#ffe23b',fontSize:'12px',fontWeight:'600',background:'rgba(255,226,59,0.1)',padding:'4px 10px',borderRadius:'20px'}}>
                       {boletasSeccion.length} disponible{boletasSeccion.length!==1?'s':''}
                     </span>
                   </div>
                 ) : (
-                  <p style={{color:'#6b7a94',fontSize:'13px',fontWeight:'600',margin:'0 0 12px'}}>
+                  <p style={{color:'#8f8a7d',fontSize:'13px',fontWeight:'600',margin:'0 0 12px'}}>
                     {boletasSeccion.length} entrada{boletasSeccion.length!==1?'s':''} disponible{boletasSeccion.length!==1?'s':''}
                   </p>
                 )}
@@ -2581,27 +2393,22 @@ function App() {
                   const enCarrito = carrito.some(ci => ci.id === b.id)
                   const precioFinal = calcularTotal(b.precio, moneda, esAdminB)
                   return (
-                    <div key={b.id} style={{background:enCarrito?'rgba(61,219,122,0.05)':'#0d1420',border:enCarrito?'1px solid rgba(74,222,128,0.3)':'1px solid #1a2332',borderRadius:'14px',padding:'14px 16px',marginBottom:'10px',transition:'all 0.15s'}}>
-                      {/* Badge */}
-                      {esAdminB && (
-                        <div style={{display:'inline-flex',alignItems:'center',gap:'4px',background:'rgba(79,126,255,0.1)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'20px',padding:'3px 10px',marginBottom:'10px'}}>
-                          <span style={{color:'#6b93ff',fontSize:'10px',fontWeight:'700'}}>✓ Verificado · Boletería CO</span>
-                        </div>
-                      )}
-                      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}}>
-                        <div style={{flex:1,minWidth:0}}>
-                          <p style={{color:'#eef0f6',fontSize:'14px',fontWeight:'700',margin:'0 0 3px'}}>
-                            {b.tribuna ? `Tribuna ${b.tribuna}` : 'General'}
-                            {b.fila ? ` · Fila ${b.fila}` : ''}
-                            {b.silla ? ` · Silla ${b.silla}` : ''}
-                          </p>
-                          <p style={{color:enCarrito?'#4ade80':'#3de37a',fontSize:'18px',fontWeight:'800',margin:0,letterSpacing:'-0.5px'}}>{precioFinal}</p>
-                        </div>
+                    <div key={b.id} className={`af-boleta${enCarrito ? ' es-elegida' : ''}`}>
+                      <div className="af-boleta-cuerpo">
+                        {esAdminB && <span className="af-boleta-sello">Verificada · Boletería CO</span>}
+                        <p className="af-boleta-lugar">
+                          {b.tribuna ? `Tribuna ${b.tribuna}` : 'General'}
+                          {b.fila ? ` · Fila ${b.fila}` : ''}
+                          {b.silla ? ` · Silla ${b.silla}` : ''}
+                        </p>
+                        <p className="af-boleta-precio">{precioFinal}</p>
+                      </div>
+                      <div className="af-boleta-talon">
                         <button
+                          className="af-boleta-boton"
                           onClick={() => enCarrito ? setCarrito(carrito.filter(ci=>ci.id!==b.id)) : setCarrito([...carrito, b])}
-                          style={{background:enCarrito?'transparent':'#4f7eff',border:enCarrito?'1px solid rgba(74,222,128,0.4)':'none',borderRadius:'10px',color:enCarrito?'#4ade80':'#fff',fontSize:'12px',fontWeight:'700',padding:'8px 14px',cursor:'pointer',whiteSpace:'nowrap',flexShrink:0,transition:'all 0.15s'}}
                         >
-                          {enCarrito ? '✓ En carrito' : 'Añadir al carrito'}
+                          {enCarrito ? 'En el carrito · quitar' : 'Añadir al carrito'}
                         </button>
                       </div>
                     </div>
@@ -2611,10 +2418,10 @@ function App() {
                 {/* MAPA GOOGLE MAPS */}
                 {info?.estadio && (
                   <div style={{marginTop:'28px',marginBottom:'8px'}}>
-                    <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.8px',margin:'0 0 10px',display:'flex',alignItems:'center',gap:'6px'}}>
-                      📍 Cómo llegar
+                    <p style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.8px',margin:'0 0 10px',display:'flex',alignItems:'center',gap:'6px'}}>
+                      Cómo llegar
                     </p>
-                    <div style={{borderRadius:'14px',overflow:'hidden',border:'1px solid #1a2332',height:'200px'}}>
+                    <div style={{borderRadius:'14px',overflow:'hidden',border:'1px solid #1e1c19',height:'200px'}}>
                       <iframe
                         title="Ubicación del estadio"
                         width="100%"
@@ -2632,7 +2439,7 @@ function App() {
                 {carrito.length > 0 && (
                   <button
                     onClick={()=>setPaginaActual('carrito')}
-                    style={{position:'sticky',bottom:'20px',width:'100%',background:'#4f7eff',border:'none',borderRadius:'14px',color:'#fff',fontSize:'15px',fontWeight:'700',cursor:'pointer',padding:'16px',marginTop:'12px',boxShadow:'0 4px 24px rgba(79,126,255,0.45)'}}
+                    style={{position:'sticky',bottom:'20px',width:'100%',background:'#ffe23b',border:'none',borderRadius:'999px',color:'#141311',fontSize:'15px',fontWeight:'700',cursor:'pointer',padding:'16px',marginTop:'12px',boxShadow:'0 14px 30px -12px rgba(0,0,0,0.7)'}}
                   >
                     Ver carrito ({carrito.length} entrada{carrito.length!==1?'s':''}) →
                   </button>
@@ -2645,19 +2452,19 @@ function App() {
 
         {/* CARRITO */}
         {paginaActual === 'carrito' && (
-          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+          <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
             <nav style={s.navSec}>
               <div style={s.navInner}>
-                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-                <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',letterSpacing:'-0.3px'}}>🛒 Carrito</span>
+                <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+                <span className="af-titulo-nav">Carrito</span>
               </div>
             </nav>
             <div style={{maxWidth:'480px',margin:'0 auto',padding: esMobile ? '24px 16px 48px' : '32px 20px 48px'}}>
               {carrito.length === 0 ? (
                 <div style={{textAlign:'center',padding:'60px 0'}}>
-                  <div style={{fontSize:'48px',marginBottom:'16px'}}>🛒</div>
-                  <p style={{color:'#8892a4',fontSize:'16px',fontWeight:'600',margin:'0 0 8px'}}>Tu carrito está vacío</p>
-                  <p style={{color:'#4e5a6e',fontSize:'13px',margin:'0 0 24px'}}>Añade boletas desde el listado principal</p>
+                  <div style={{marginBottom:'16px',display:'flex',justifyContent:'center'}}><Icono nombre="carrito" size={56} color="#ffe23b" /></div>
+                  <p style={{color:'#b9b4a6',fontSize:'16px',fontWeight:'600',margin:'0 0 8px'}}>Tu carrito está vacío</p>
+                  <p style={{color:'#8f8a7d',fontSize:'13px',margin:'0 0 24px'}}>Añade boletas desde el listado principal</p>
                   <button onClick={()=>setPaginaActual('inicio')} style={s.botonSubmit}>Ver boletas disponibles</button>
                 </div>
               ) : (
@@ -2669,17 +2476,17 @@ function App() {
                     const esAdminB = b.publicada_por_admin === true
                     const totB = esAdminB ? subB : Math.round(subB * 1.15 / 1000) * 1000
                     return (
-                      <div key={b.id} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'16px 18px',marginBottom:'12px'}}>
+                      <div key={b.id} style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'14px',padding:'16px 18px',marginBottom:'12px'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}}>
                           <div style={{flex:1,minWidth:0}}>
-                            <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'14px',margin:'0 0 4px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.eventos?.nombre || 'Evento'}</p>
-                            <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 6px'}}>
+                            <p style={{color:'#f5f1e4',fontWeight:'700',fontSize:'14px',margin:'0 0 4px',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{b.eventos?.nombre || 'Evento'}</p>
+                            <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 6px'}}>
                               {b.tribuna}{b.fila ? ` · Fila ${b.fila}` : ''}{b.silla ? ` · Silla ${b.silla}` : ''}
-                              {b.plataforma ? <span style={{marginLeft:'6px',background:'rgba(79,126,255,0.1)',color:'#4f7eff',borderRadius:'4px',padding:'1px 6px',fontSize:'11px'}}>{b.plataforma}</span> : null}
+                              {b.plataforma ? <span style={{marginLeft:'6px',background:'rgba(255,226,59,0.1)',color:'#ffe23b',borderRadius:'4px',padding:'1px 6px',fontSize:'11px'}}>{b.plataforma}</span> : null}
                             </p>
-                            <p style={{color:'#4f7eff',fontWeight:'700',fontSize:'14px',margin:0}}>{formatearPrecio(totB, monB)}</p>
+                            <p style={{color:'#ffe23b',fontWeight:'700',fontSize:'14px',margin:0}}>{formatearPrecio(totB, monB)}</p>
                           </div>
-                          <button onClick={()=>setCarrito(carrito.filter(c=>c.id!==b.id))} style={{background:'transparent',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#6b7280',cursor:'pointer',padding:'6px 10px',fontSize:'12px',whiteSpace:'nowrap',flexShrink:0}}>✕ Quitar</button>
+                          <button onClick={()=>setCarrito(carrito.filter(c=>c.id!==b.id))} style={{background:'transparent',border:'1px solid #34312b',borderRadius:'8px',color:'#8f8a7d',cursor:'pointer',padding:'6px 10px',fontSize:'12px',whiteSpace:'nowrap',flexShrink:0}}>Quitar</button>
                         </div>
                       </div>
                     )
@@ -2690,16 +2497,16 @@ function App() {
                     const monC = carrito[0]?.eventos?.moneda || 'COP'
                     const totalC = carrito.reduce((s, b) => s + (b.publicada_por_admin === true ? Number(b.precio) : Math.round(Number(b.precio) * 1.15 / 1000) * 1000), 0)
                     return (
-                      <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginTop:'8px',marginBottom:'24px'}}>
-                        <p style={{color:'#8892a4',fontSize:'11px',fontWeight:'700',letterSpacing:'0.5px',textTransform:'uppercase',margin:'0 0 14px'}}>Resumen</p>
+                      <div style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'14px',padding:'20px',marginTop:'8px',marginBottom:'24px'}}>
+                        <p style={{color:'#b9b4a6',fontSize:'11px',fontWeight:'700',letterSpacing:'0.5px',textTransform:'uppercase',margin:'0 0 14px'}}>Resumen</p>
                         <div style={{display:'flex',justifyContent:'space-between',marginBottom:'8px'}}>
-                          <span style={{color:'#8892a4',fontSize:'14px'}}>{carrito.length} {carrito.length===1?'boleta':'boletas'}</span>
-                          <span style={{color:'#eef0f6',fontSize:'14px',fontWeight:'600'}}>{formatearPrecio(totalC, monC)}</span>
+                          <span style={{color:'#b9b4a6',fontSize:'14px'}}>{carrito.length} {carrito.length===1?'boleta':'boletas'}</span>
+                          <span style={{color:'#f5f1e4',fontSize:'14px',fontWeight:'600'}}>{formatearPrecio(totalC, monC)}</span>
                         </div>
 
-                        <div style={{borderTop:'1px solid #1e2a3a',paddingTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                          <span style={{color:'#eef0f6',fontSize:'16px',fontWeight:'800'}}>Total</span>
-                          <span style={{color:'#4f7eff',fontSize:'22px',fontWeight:'800'}}>{formatearPrecio(totalC, monC)}</span>
+                        <div style={{borderTop:'1px solid #34312b',paddingTop:'14px',display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                          <span style={{color:'#f5f1e4',fontSize:'16px',fontWeight:'800'}}>Total</span>
+                          <span style={{color:'#ffe23b',fontSize:'22px',fontWeight:'800'}}>{formatearPrecio(totalC, monC)}</span>
                         </div>
                       </div>
                     )
@@ -2708,17 +2515,17 @@ function App() {
                   {/* Avisos de plataformas */}
                   {[...new Set(carrito.filter(b=>b.plataforma&&PLATAFORMAS[b.plataforma]).map(b=>b.plataforma))].map(plat => (
                     <div key={plat} style={{background:'rgba(245,158,11,0.06)',border:'1px solid rgba(245,158,11,0.18)',borderRadius:'12px',padding:'14px 16px',marginBottom:'12px'}}>
-                      <p style={{color:'#f59e0b',fontSize:'13px',fontWeight:'700',margin:'0 0 8px'}}>📲 Para recibir tu boleta en {plat}:</p>
+                      <p style={{color:'#f59e0b',fontSize:'13px',fontWeight:'700',margin:'0 0 8px'}}>Para recibir tu boleta en {plat}:</p>
                       {PLATAFORMAS[plat].pasosComprador ? (
-                        <ol style={{color:'#8892a4',fontSize:'12px',margin:'0 0 8px',paddingLeft:'16px',lineHeight:1.8}}>
+                        <ol style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 8px',paddingLeft:'16px',lineHeight:1.8}}>
                           {PLATAFORMAS[plat].pasosComprador.map((paso, i) => <li key={i}>{paso}</li>)}
                         </ol>
                       ) : (
-                        <p style={{color:'#8892a4',fontSize:'12px',margin:'0 0 8px',lineHeight:1.5}}>{PLATAFORMAS[plat].instrComprador}</p>
+                        <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 8px',lineHeight:1.5}}>{PLATAFORMAS[plat].instrComprador}</p>
                       )}
                       {PLATAFORMAS[plat].requisitoReceptor && (
                         <div style={{background:'rgba(245,158,11,0.1)',borderRadius:'6px',padding:'8px 10px'}}>
-                          <p style={{color:'#f59e0b',fontSize:'11px',margin:'0',lineHeight:1.5}}>⚠️ {PLATAFORMAS[plat].requisitoReceptor}</p>
+                          <p style={{color:'#f59e0b',fontSize:'11px',margin:'0',lineHeight:1.5}}>{PLATAFORMAS[plat].requisitoReceptor}</p>
                         </div>
                       )}
                     </div>
@@ -2726,43 +2533,43 @@ function App() {
 
                   {/* Campo de entrega */}
                   {[...new Set(carrito.filter(b=>b.plataforma&&PLATAFORMAS[b.plataforma]).map(b=>b.plataforma))].length > 0 && (
-                    <div style={{background:'rgba(79,126,255,0.06)',border:'1px solid rgba(79,126,255,0.2)',borderRadius:'12px',padding:'14px 16px',marginBottom:'16px'}}>
-                      <p style={{color:'#6b93ff',fontSize:'13px',fontWeight:'700',margin:'0 0 12px'}}>📋 ¿Dónde te enviamos tu boleta?</p>
+                    <div style={{background:'rgba(255,226,59,0.06)',border:'1px solid rgba(255,226,59,0.2)',borderRadius:'12px',padding:'14px 16px',marginBottom:'16px'}}>
+                      <p style={{color:'#ffe23b',fontSize:'13px',fontWeight:'700',margin:'0 0 12px'}}>¿Dónde te enviamos tu boleta?</p>
                       {[...new Set(carrito.filter(b=>b.plataforma&&PLATAFORMAS[b.plataforma]).map(b=>b.plataforma))].map(plat => {
                         const tipo = PLATAFORMAS[plat]?.tipoEntrega
                         return (
                           <div key={plat} style={{marginBottom:'10px'}}>
-                            <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>
-                              {tipo === 'email' ? `📧 Tu correo registrado en ${plat}` : `🪪 Tu número de documento registrado en ${plat}`}
+                            <label style={{color:'#b9b4a6',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>
+                              {tipo === 'email' ? `Tu correo registrado en ${plat}` : `Tu número de documento registrado en ${plat}`}
                             </label>
                             <input
                               type={tipo === 'email' ? 'email' : 'text'}
                               placeholder={tipo === 'email' ? 'correo@ejemplo.com' : 'Ej: 1234567890'}
                               value={datosEntrega[plat] || ''}
                               onChange={e => setDatosEntrega(prev => ({...prev, [plat]: e.target.value}))}
-                              style={{width:'100%',background:'#080b12',border:'1px solid #1e2a3a',borderRadius:'8px',padding:'10px 12px',color:'#eef0f6',fontSize:'13px',boxSizing:'border-box',outline:'none'}}
+                              style={{width:'100%',background:'#141311',border:'1px solid #34312b',borderRadius:'8px',padding:'10px 12px',color:'#f5f1e4',fontSize:'13px',boxSizing:'border-box',outline:'none'}}
                             />
                           </div>
                         )
                       })}
-                      <p style={{color:'#4e5a6e',fontSize:'11px',margin:'4px 0 0',lineHeight:1.5}}>Boletería CO transferirá tu boleta a este dato registrado en la app.</p>
+                      <p style={{color:'#8f8a7d',fontSize:'11px',margin:'4px 0 0',lineHeight:1.5}}>Boletería CO transferirá tu boleta a este dato registrado en la app.</p>
                     </div>
                   )}
 
                   <button
                     onClick={manejarCompraCarrito}
                     disabled={comprando === 'carrito'}
-                    style={{...s.botonSubmit,fontSize:'16px',padding:'15px',background:comprando==='carrito'?'#2d3a55':'#4f7eff',cursor:comprando==='carrito'?'not-allowed':'pointer',marginTop:'4px'}}
+                    style={{...s.botonSubmit,fontSize:'16px',padding:'15px',background:comprando==='carrito'?'#4a463d':'#ffe23b',cursor:comprando==='carrito'?'not-allowed':'pointer',marginTop:'4px'}}
                   >
-                    {comprando === 'carrito' ? '⏳ Procesando...' : `💳 Pagar ${carrito.length > 1 ? carrito.length + ' boletas' : ''}`}
+                    {comprando === 'carrito' ? 'Procesando…' : `Pagar ${carrito.length > 1 ? carrito.length + ' boletas' : ''}`}
                   </button>
-                  <div style={{marginTop:'16px',borderTop:'1px solid #111d2b',paddingTop:'14px'}}>
-                    <p style={{color:'#4e5a6e',fontSize:'10px',textAlign:'center',margin:'0 0 12px',letterSpacing:'0.5px',textTransform:'uppercase',fontWeight:'600'}}>Pagos procesados por Wompi</p>
+                  <div style={{marginTop:'16px',borderTop:'1px solid #2a2824',paddingTop:'14px'}}>
+                    <p style={{color:'#8f8a7d',fontSize:'10px',textAlign:'center',margin:'0 0 12px',letterSpacing:'0.5px',textTransform:'uppercase',fontWeight:'600'}}>Pagos procesados por Wompi</p>
                     {/* Tarjeta */}
                     <div style={{marginBottom:'10px'}}>
-                      <p style={{color:'#4e5a6e',fontSize:'10px',fontWeight:'600',margin:'0 0 5px',letterSpacing:'0.3px'}}>Tarjeta débito o crédito</p>
+                      <p style={{color:'#8f8a7d',fontSize:'10px',fontWeight:'600',margin:'0 0 5px',letterSpacing:'0.3px'}}>Tarjeta débito o crédito</p>
                       <div style={{display:'flex',gap:'5px',alignItems:'center'}}>
-                        <svg width="36" height="22" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg" style={{borderRadius:'4px',background:'#0f1623',border:'1px solid #1e2a3a'}}>
+                        <svg width="36" height="22" viewBox="0 0 36 22" xmlns="http://www.w3.org/2000/svg" style={{borderRadius:'4px',background:'#1e1c19',border:'1px solid #34312b'}}>
                           <circle cx="13" cy="11" r="7" fill="#EB001B"/>
                           <circle cx="23" cy="11" r="7" fill="#F79E1B"/>
                           <path d="M18 4.8A7 7 0 0 1 23 11a7 7 0 0 1-5 6.2A7 7 0 0 1 13 11a7 7 0 0 1 5-6.2z" fill="#FF5F00"/>
@@ -2777,12 +2584,12 @@ function App() {
                     </div>
                     {/* Transferencia */}
                     <div style={{marginBottom:'10px'}}>
-                      <p style={{color:'#4e5a6e',fontSize:'10px',fontWeight:'600',margin:'0 0 5px',letterSpacing:'0.3px'}}>Transferencia</p>
+                      <p style={{color:'#8f8a7d',fontSize:'10px',fontWeight:'600',margin:'0 0 5px',letterSpacing:'0.3px'}}>Transferencia</p>
                       <div style={{display:'flex',flexWrap:'wrap',gap:'5px',alignItems:'center'}}>
                         <div style={{background:'#FDDA24',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center'}}>
                           <span style={{color:'#111',fontSize:'9px',fontWeight:'800'}}>Bancolombia</span>
                         </div>
-                        <div style={{background:'#0f1623',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center',border:'1px solid #1e2a3a'}}>
+                        <div style={{background:'#1e1c19',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center',border:'1px solid #34312b'}}>
                           <span style={{color:'#FF0080',fontSize:'11px',fontWeight:'900',letterSpacing:'-0.3px'}}>Nequi</span>
                         </div>
                         <div style={{background:'#003DA5',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center'}}>
@@ -2795,9 +2602,9 @@ function App() {
                     </div>
                     {/* Crédito */}
                     <div>
-                      <p style={{color:'#4e5a6e',fontSize:'10px',fontWeight:'600',margin:'0 0 5px',letterSpacing:'0.3px'}}>Paga con crédito</p>
+                      <p style={{color:'#8f8a7d',fontSize:'10px',fontWeight:'600',margin:'0 0 5px',letterSpacing:'0.3px'}}>Paga con crédito</p>
                       <div style={{display:'flex',gap:'5px',alignItems:'center'}}>
-                        <div style={{background:'#0f1623',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center',border:'1px solid #1e2a3a'}}>
+                        <div style={{background:'#1e1c19',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center',border:'1px solid #34312b'}}>
                           <span style={{color:'#FF0080',fontSize:'11px',fontWeight:'900',letterSpacing:'-0.3px'}}>Nequi</span>
                         </div>
                         <div style={{background:'#FF6B00',borderRadius:'4px',padding:'3px 7px',height:'22px',display:'flex',alignItems:'center'}}>
@@ -2805,7 +2612,7 @@ function App() {
                         </div>
                       </div>
                     </div>
-                    <p style={{color:'#4e5a6e',fontSize:'11px',textAlign:'center',marginTop:'10px',margin:'10px 0 0'}}>🔒 Un solo cargo para todo el carrito</p>
+                    <p style={{color:'#8f8a7d',fontSize:'11px',textAlign:'center',marginTop:'10px',margin:'10px 0 0'}}>Un solo cargo para todo el carrito</p>
                   </div>
                 </>
               )}
@@ -2814,77 +2621,77 @@ function App() {
         )}
 
       {paginaActual === 'mi-perfil' && usuario && (
-        <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+        <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
           <nav style={s.navSec}>
             <div style={s.navInner}>
-              <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
-              <p style={{color:'#eef0f6',fontSize:'15px',fontWeight:'800',margin:0,letterSpacing:'-0.3px'}}>👤 Mi perfil</p>
+              <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:0}}>← Volver</button>
+              <p className="af-titulo-nav" style={{margin:0}}>Mi perfil</p>
             </div>
           </nav>
           <div style={{maxWidth:'540px',margin:'0 auto',padding:'28px 20px 64px'}}>
           <div style={{display:'flex',alignItems:'center',gap:'14px',marginBottom:'32px'}}>
-            <div style={{width:'52px',height:'52px',borderRadius:'50%',background:'linear-gradient(135deg,#4f7eff,#a05fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',flexShrink:0}}>
+            <div style={{width:'52px',height:'52px',borderRadius:'50%',background:'linear-gradient(135deg,#ffe23b,#a05fff)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'22px',flexShrink:0}}>
               {(perfilData.nombre||usuario.email||'?')[0].toUpperCase()}
             </div>
             <div>
-              <h1 style={{fontSize:'22px',fontWeight:'900',color:'#eef0f6',margin:'0 0 2px'}}>Mi perfil</h1>
-              <p style={{color:'#4e5a6e',fontSize:'13px',margin:0}}>{usuario.email}</p>
+              <h1 style={{fontSize:'22px',fontWeight:'900',color:'#f5f1e4',margin:'0 0 2px'}}>Mi perfil</h1>
+              <p style={{color:'#8f8a7d',fontSize:'13px',margin:0}}>{usuario.email}</p>
             </div>
           </div>
 
           {/* Datos personales */}
-          <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px',marginBottom:'16px'}}>
-            <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 18px'}}>Datos personales</p>
+          <div style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'14px',padding:'20px',marginBottom:'16px'}}>
+            <p style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:'0 0 18px'}}>Datos personales</p>
 
             <div style={{marginBottom:'14px'}}>
-              <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Nombre completo</label>
+              <label style={{color:'#b9b4a6',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Nombre completo</label>
               <input
                 value={perfilData.nombre}
                 onChange={e=>setPerfilData(d=>({...d,nombre:e.target.value}))}
                 placeholder="Tu nombre completo"
-                style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+                style={{width:'100%',background:'#141311',border:'1px solid #34312b',borderRadius:'8px',color:'#f5f1e4',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
               />
             </div>
 
             <div style={{marginBottom:'14px'}}>
-              <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Número de documento</label>
+              <label style={{color:'#b9b4a6',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Número de documento</label>
               <input
                 value={perfilData.documento}
                 onChange={e=>setPerfilData(d=>({...d,documento:e.target.value}))}
                 placeholder="Cédula o pasaporte"
-                style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+                style={{width:'100%',background:'#141311',border:'1px solid #34312b',borderRadius:'8px',color:'#f5f1e4',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
               />
             </div>
 
             <div style={{marginBottom:'14px'}}>
-              <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Teléfono / celular</label>
+              <label style={{color:'#b9b4a6',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Teléfono / celular</label>
               <input
                 value={perfilData.telefono}
                 onChange={e=>setPerfilData(d=>({...d,telefono:e.target.value}))}
                 placeholder="Ej: 3001234567"
-                style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+                style={{width:'100%',background:'#141311',border:'1px solid #34312b',borderRadius:'8px',color:'#f5f1e4',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
               />
             </div>
 
             <div style={{marginBottom:'18px'}}>
-              <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Correo electrónico</label>
+              <label style={{color:'#b9b4a6',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Correo electrónico</label>
               <input
                 value={usuario.email}
                 readOnly
-                style={{width:'100%',background:'rgba(13,17,26,0.5)',border:'1px solid #131c28',borderRadius:'8px',color:'#4e5a6e',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',cursor:'not-allowed'}}
+                style={{width:'100%',background:'rgba(13,17,26,0.5)',border:'1px solid #131c28',borderRadius:'8px',color:'#8f8a7d',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',cursor:'not-allowed'}}
               />
-              <p style={{color:'#2e3a4e',fontSize:'11px',margin:'4px 0 0'}}>El correo no se puede cambiar desde aquí.</p>
+              <p style={{color:'#4a463d',fontSize:'11px',margin:'4px 0 0'}}>El correo no se puede cambiar desde aquí.</p>
             </div>
 
             <div style={{marginBottom:'18px'}}>
-              <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>💳 Dato de pago (Nequi / cuenta bancaria)</label>
+              <label style={{color:'#b9b4a6',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Dato de pago (Nequi / cuenta bancaria)</label>
               <input
                 value={perfilData.datosPago || ''}
                 onChange={e=>setPerfilData(d=>({...d,datosPago:e.target.value}))}
                 placeholder="Ej: 3001234567 Nequi · Bancolombia 123-456789"
-                style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+                style={{width:'100%',background:'#141311',border:'1px solid #34312b',borderRadius:'8px',color:'#f5f1e4',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
               />
-              <p style={{color:'#2e3a4e',fontSize:'11px',margin:'4px 0 0'}}>Aquí te enviamos el pago cuando vendes una boleta.</p>
+              <p style={{color:'#4a463d',fontSize:'11px',margin:'4px 0 0'}}>Aquí te enviamos el pago cuando vendes una boleta.</p>
             </div>
 
             {perfilMensaje && !perfilCambiandoPassword && (
@@ -2894,37 +2701,37 @@ function App() {
             <button
               onClick={guardarPerfil}
               disabled={perfilGuardando}
-              style={{width:'100%',background:'#4f7eff',border:'none',borderRadius:'10px',color:'#fff',fontSize:'14px',fontWeight:'700',padding:'12px',cursor:'pointer',opacity:perfilGuardando?0.6:1}}>
+              style={{width:'100%',background:'#ffe23b',border:'none',borderRadius:'10px',color:'#141311',fontSize:'14px',fontWeight:'700',padding:'12px',cursor:'pointer',opacity:perfilGuardando?0.6:1}}>
               {perfilGuardando?'Guardando...':'Guardar cambios'}
             </button>
           </div>
 
           {/* Cambiar contraseña */}
-          <div style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'14px',padding:'20px'}}>
+          <div style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'14px',padding:'20px'}}>
             <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer'}} onClick={()=>{setPerfilCambiandoPassword(!perfilCambiandoPassword);setPerfilMensaje('')}}>
-              <p style={{color:'#6b7a94',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:0}}>Cambiar contraseña</p>
-              <span style={{color:'#4e5a6e',fontSize:'18px',lineHeight:1,transform:perfilCambiandoPassword?'rotate(180deg)':'rotate(0deg)',transition:'transform 0.2s'}}>▾</span>
+              <p style={{color:'#8f8a7d',fontSize:'11px',fontWeight:'700',textTransform:'uppercase',letterSpacing:'0.6px',margin:0}}>Cambiar contraseña</p>
+              <span style={{color:'#8f8a7d',fontSize:'18px',lineHeight:1,transform:perfilCambiandoPassword?'rotate(180deg)':'rotate(0deg)',transition:'transform 0.2s'}}>▾</span>
             </div>
             {perfilCambiandoPassword && (
               <div style={{marginTop:'16px'}}>
                 <div style={{marginBottom:'12px'}}>
-                  <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Nueva contraseña</label>
+                  <label style={{color:'#b9b4a6',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Nueva contraseña</label>
                   <input
                     type="password"
                     value={perfilPassNueva}
                     onChange={e=>setPerfilPassNueva(e.target.value)}
                     placeholder="Mínimo 6 caracteres"
-                    style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+                    style={{width:'100%',background:'#141311',border:'1px solid #34312b',borderRadius:'8px',color:'#f5f1e4',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
                   />
                 </div>
                 <div style={{marginBottom:'16px'}}>
-                  <label style={{color:'#8892a4',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Confirmar contraseña</label>
+                  <label style={{color:'#b9b4a6',fontSize:'12px',fontWeight:'600',display:'block',marginBottom:'6px'}}>Confirmar contraseña</label>
                   <input
                     type="password"
                     value={perfilPassConfirm}
                     onChange={e=>setPerfilPassConfirm(e.target.value)}
                     placeholder="Repite la nueva contraseña"
-                    style={{width:'100%',background:'#0d111a',border:'1px solid #1e2a3a',borderRadius:'8px',color:'#eef0f6',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
+                    style={{width:'100%',background:'#141311',border:'1px solid #34312b',borderRadius:'8px',color:'#f5f1e4',fontSize:'14px',padding:'10px 12px',boxSizing:'border-box',outline:'none'}}
                   />
                 </div>
                 {perfilMensaje && perfilCambiandoPassword && (
@@ -2944,7 +2751,7 @@ function App() {
       )}
 
       {paginaActual === 'como-funciona' && (
-        <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
+        <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
           <Suspense fallback={null}>
           <ComoFunciona
             onVolver={()=>setPaginaActual('inicio')}
@@ -2959,11 +2766,13 @@ function App() {
       )}
 
       {paginaActual === 'privacidad' && (
-        <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#080b12',overflowY:'auto'}}>
-        <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 60px',textAlign:'left'}}>
-          <button onClick={()=>setPaginaActual('inicio')} style={{background:'transparent',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'14px',fontWeight:'600',display:'flex',alignItems:'center',gap:'6px',padding:'0 0 28px'}}>← Volver</button>
-          <h1 style={{fontSize:'26px',fontWeight:'900',color:'#eef0f6',margin:'0 0 6px'}}>Política de Privacidad</h1>
-          <p style={{color:'#4e5a6e',fontSize:'13px',margin:'0 0 36px'}}>Última actualización: septiembre 2026</p>
+        <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
+        <div style={{maxWidth:'720px',margin:'0 auto',padding:'0 20px 60px',textAlign:'left'}}>
+          <div className="af-franja cf-franja" style={{marginBottom:'36px'}}>
+            <button className="cf-volver" onClick={()=>setPaginaActual('inicio')}>← Volver</button>
+            <h1 className="af-franja-titulo cf-titulo">Política de privacidad</h1>
+            <p className="cf-bajada" style={{marginBottom:0}}>Última actualización: septiembre 2026</p>
+          </div>
 
           {[
             {titulo:'1. Responsable del tratamiento', texto:`Boletería CO (en adelante "la Plataforma"), con dominio boleteriaco.com y correo de contacto soporte@boleteriaco.com, es responsable del tratamiento de los datos personales recopilados a través de este sitio web, en cumplimiento de la Ley 1581 de 2012 y el Decreto 1377 de 2013.`},
@@ -3000,8 +2809,8 @@ Para ejercer estos derechos, escríbenos a soporte@boleteriaco.com.`},
 soporte@boleteriaco.com`},
           ].map(({titulo, texto}) => (
             <div key={titulo} style={{marginBottom:'28px'}}>
-              <h2 style={{fontSize:'16px',fontWeight:'800',color:'#eef0f6',margin:'0 0 10px'}}>{titulo}</h2>
-              <p style={{fontSize:'14px',color:'#8892a4',lineHeight:'1.75',margin:0,whiteSpace:'pre-line'}}>{texto}</p>
+              <h2 style={{fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',color:'#ffe23b',margin:'0 0 10px'}}>{titulo}</h2>
+              <p style={{fontSize:'14px',color:'#b9b4a6',lineHeight:'1.75',margin:0,whiteSpace:'pre-line'}}>{texto}</p>
             </div>
           ))}
 
@@ -3011,69 +2820,19 @@ soporte@boleteriaco.com`},
       )}
 
 
-        {/* SECCIÓN DE SEGURIDAD */}
-        <div style={{maxWidth:'720px',margin:'0 auto',padding:'40px 20px 0'}}>
-          <h3 style={{color:'#eef0f6',fontSize:'18px',fontWeight:'800',textAlign:'center',margin:'0 0 6px',letterSpacing:'-0.3px'}}>¿Por qué confiar en Boletería CO?</h3>
-          <p style={{color:'#8892a4',fontSize:'13px',textAlign:'center',margin:'0 0 24px'}}>Tu dinero y tu boleta están protegidos en cada compra</p>
-          <div style={{display:'grid',gridTemplateColumns:esMobile?'1fr':'repeat(2,1fr)',gap:'10px'}}>
-            {[
-              {icon:'candado', title:'Custodia de pago', desc:'Tu dinero queda retenido hasta que recibas tu boleta y confirmes la entrega.'},
-              {icon:'escudo', title:'Vendedores verificados', desc:'Solo vendemos boletas de usuarios con cuenta real. Sin intermediarios desconocidos.'},
-              {icon:'celular', title:'Solo cesión oficial', desc:'Transferencias directas desde TuBoletaPass, Quentro, W Arena y DIM Plus. Sin capturas ni PDFs.'},
-              {icon:'soporte', title:'Soporte garantizado', desc:'Si algo falla, te ayudamos. Escríbenos a soporte@boleteriaco.com.'},
-            ].map(({icon,title,desc}) => (
-              <div key={title} style={{background:'#0f1623',border:'1px solid #1e2a3a',borderRadius:'12px',padding:'16px',textAlign:'left'}}>
-                <div style={{width:'40px',height:'40px',borderRadius:'10px',background:'rgba(79,126,255,0.12)',border:'1px solid rgba(79,126,255,0.25)',display:'flex',alignItems:'center',justifyContent:'center',marginBottom:'10px'}}>
-                  <Icono nombre={icon} color="#6b93ff" />
-                </div>
-                <p style={{color:'#eef0f6',fontWeight:'700',fontSize:'13px',margin:'0 0 6px'}}>{title}</p>
-                <p style={{color:'#8892a4',fontSize:'12px',margin:'0',lineHeight:1.6}}>{desc}</p>
               </div>
-            ))}
-          </div>
-        </div>
-
-
-      {/* ── Preguntas frecuentes ── */}
-      <section style={{maxWidth:'680px',margin:'56px auto 48px',padding:'0 20px'}}>
-          <h2 style={{color:'#eef0f6',fontSize:'20px',fontWeight:'900',textAlign:'center',margin:'0 0 24px',letterSpacing:'-0.3px'}}>Preguntas frecuentes</h2>
-          {[
-            {
-              q: '¿Cómo sé que no me estafan?',
-              a: 'Tu dinero queda en custodia con Boletería CO hasta que tú confirmes que recibiste la boleta. Solo después de tu confirmación el vendedor cobra. Si algo sale mal, nosotros respondemos.'
-            },
-            {
-              q: '¿Cómo llega la boleta?',
-              a: 'Depende de la plataforma: en TuBoletaPass y Quentro te la transferimos por correo electrónico; en W Arena y DIM Plus por número de documento. Antes de pagar te mostramos exactamente los pasos.'
-            },
-            {
-              q: '¿Cuánto demora?',
-              a: 'En la mayoría de casos menos de 24 horas. Cuando tu pago se confirma, el vendedor recibe una notificación inmediata para transferirte la boleta.'
-            },
-            {
-              q: '¿Cuánto cobra Boletería CO?',
-              a: 'Al comprador se le suma aproximadamente un 15% sobre el precio publicado (redondeado a los $1.000 más cercanos). Al vendedor se le retiene un 8% del precio de venta. Sin cobros ocultos.'
-            },
-          ].map(({ q, a }, i) => (
-            <div key={i} style={{borderBottom:'1px solid #1e2a3a',overflow:'hidden'}}>
-              <button
-                onClick={() => setFaqAbierto(faqAbierto === i ? null : i)}
-                style={{width:'100%',background:'none',border:'none',padding:'16px 0',display:'flex',alignItems:'center',justifyContent:'space-between',cursor:'pointer',gap:'12px'}}
-              >
-                <span style={{color:'#eef0f6',fontSize:'15px',fontWeight:'700',textAlign:'left',lineHeight:'1.4'}}>{q}</span>
-                <span style={{color:'#4f7eff',fontSize:'18px',flexShrink:0,transition:'transform 0.2s',transform:faqAbierto===i?'rotate(45deg)':'rotate(0deg)'}}>+</span>
-              </button>
-              {faqAbierto === i && (
-                <p style={{color:'#8892a4',fontSize:'14px',lineHeight:'1.7',margin:'0 0 16px',paddingRight:'32px'}}>{a}</p>
-              )}
-            </div>
-          ))}
-      </section>
-      <footer style={{borderTop:'1px solid #1e2a3a', marginTop:'48px', paddingTop:'28px', paddingBottom:'32px', textAlign:'center'}}>
-        <p style={{color:'#4e5a6e', fontSize:'13px', margin:'0 0 8px', fontWeight:'700', letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#4f7eff'}}>CO</span></p>
-        <p style={{color:'#4e5a6e', fontSize:'12px', margin:0}}>© 2026 · <button onClick={()=>setPaginaActual('como-funciona')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0}}>Cómo funciona</button> · <a href='/terminos.html' target='_blank' style={{color:'#8892a4', textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#8892a4',cursor:'pointer',fontSize:'12px',padding:0,textDecoration:'none'}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
-      </footer>
-      </div>
+      <Inicio
+        {...(import.meta.env.DEV && window.location.search.includes('demo')
+          ? { boletas: BOLETAS_DEMO, eventos: EVENTOS_DEMO, cargando: false }
+          : { boletas, eventos, cargando })}
+        busqueda={busquedaPublica} setBusqueda={setBusquedaPublica}
+        filtros={filtros} setFiltros={setFiltros}
+        calcularTotal={calcularTotal}
+        abrirEvento={(eid, ev) => { setEventoSeleccionado({ eid, ev }); setSeccionMapa(null); setPaginaActual('evento') }}
+        venderParaEvento={venderParaEvento}
+        onVender={() => venderParaEvento('')}
+        irA={(pagina) => { setPaginaActual(pagina); cerrarOverlays() }}
+      />
     </div>
   )
 }

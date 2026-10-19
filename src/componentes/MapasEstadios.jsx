@@ -37,13 +37,13 @@ export function MapaElCampin({avail, selected, onSelect}) {
   return (
     <svg viewBox="0 0 420 380" xmlns="http://www.w3.org/2000/svg" style={{width:'100%',height:'auto',display:'block',borderRadius:'8px'}}>
       <defs><clipPath id="fcc"><rect x={fx} y={fy} width={fw} height={fh} rx="8"/></clipPath></defs>
-      <rect width="420" height="380" fill="#06101c" rx="10"/>
+      <rect width="420" height="380" fill="#141311" rx="10"/>
       {SECS.map(sec=>{
         const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
         return (
           <path key={sec.id} d={ringPath(sec)}
-            fill={isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'}
-            stroke={isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'}
+            fill={isSel?'rgba(255,226,59,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'}
+            stroke={isSel?'#ffe23b':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'}
             strokeWidth={isSel?2:1}
             style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}
             onClick={()=>isAvail&&onSelect(sec.id)}
@@ -70,10 +70,10 @@ export function MapaElCampin({avail, selected, onSelect}) {
         )
       })}
       {/* Compass markers */}
-      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
-      <text x="210" y="372" textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
-      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
-      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
+      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill="rgba(255,226,59,0.75)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
+      <text x="210" y="372" textAnchor="middle" dominantBaseline="middle" fontSize="10" fontWeight="800" fill="rgba(255,226,59,0.75)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
+      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(185,180,166,0.75)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
+      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(185,180,166,0.75)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
     </svg>
   )
 }
@@ -111,8 +111,8 @@ export function MapaAtanasio({avail, selected, onSelect}) {
       <ellipse cx={CX} cy={CY} rx={170} ry={110} fill="#0f172a" opacity="0.5"/>
       {SECS.map(sec=>{
         const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
-        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
-        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
+        const fill=isSel?'rgba(255,226,59,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
+        const stroke=isSel?'#ffe23b':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
         const [lx,ly]=midPt(sec)
         return (
           <g key={sec.id} onClick={()=>isAvail&&onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}>
@@ -142,10 +142,10 @@ export function MapaAtanasio({avail, selected, onSelect}) {
         <circle cx={fx+38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
         <circle cx={fx+fw-38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
       </g>
-      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
-      <text x="210" y="378" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
-      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
-      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
+      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(255,226,59,0.75)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
+      <text x="210" y="378" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(255,226,59,0.75)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
+      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(185,180,166,0.75)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
+      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(185,180,166,0.75)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
     </svg>
   )
 }
@@ -183,11 +183,11 @@ export function MapaPascualGuerrero({avail, selected, onSelect}) {
       <defs>
         <clipPath id="pgc"><ellipse cx={CX} cy={CY} rx={95} ry={50}/></clipPath>
       </defs>
-      <rect width="420" height="390" fill="#06101c" rx="10"/>
+      <rect width="420" height="390" fill="#141311" rx="10"/>
       {SECS.map(sec=>{
         const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
-        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
-        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
+        const fill=isSel?'rgba(255,226,59,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
+        const stroke=isSel?'#ffe23b':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
         const [lx,ly]=midPt(sec)
         return (
           <g key={sec.id} onClick={()=>isAvail&&onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default',transition:'fill 0.15s'}}>
@@ -217,10 +217,10 @@ export function MapaPascualGuerrero({avail, selected, onSelect}) {
         <circle cx={fx+38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
         <circle cx={fx+fw-38} cy={CY} r={1.5} fill="#4ade80" opacity="0.5"/>
       </g>
-      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
-      <text x="210" y="378" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
-      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
-      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
+      <text x="210" y="14" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(255,226,59,0.75)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>ORIENTAL</text>
+      <text x="210" y="378" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(255,226,59,0.75)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>OCCIDENTAL</text>
+      <text x="12" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(185,180,166,0.75)" style={{pointerEvents:'none'}} transform="rotate(-90,12,195)">NORTE</text>
+      <text x="408" y="195" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(185,180,166,0.75)" style={{pointerEvents:'none'}} transform="rotate(90,408,195)">SUR</text>
     </svg>
   )
 }
@@ -244,8 +244,8 @@ export function MapaEstadioTecho({avail, selected, onSelect}) {
       </defs>
       {SECS.map((sec)=>{
         const isAvail=(avail[sec.id]||[]).length>0, isSel=selected===sec.id
-        const fill=isSel?'rgba(79,126,255,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
-        const stroke=isSel?'#4f7eff':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
+        const fill=isSel?'rgba(255,226,59,0.5)':isAvail?'rgba(61,219,122,0.25)':'rgba(255,255,255,0.04)'
+        const stroke=isSel?'#ffe23b':isAvail?'rgba(61,219,122,0.55)':'rgba(255,255,255,0.08)'
         return (
           <g key={sec.id} onClick={()=>isAvail && onSelect(sec.id)} style={{cursor:isAvail?'pointer':'default'}}>
             <path d={sec.d} fill={fill} stroke={stroke} strokeWidth="1.5" opacity={isSel?1:isAvail?0.85:0.4}/>
@@ -273,10 +273,10 @@ export function MapaEstadioTecho({avail, selected, onSelect}) {
         <circle cx={fx+fw/2} cy={fy+fh-50} r={2} fill="#4ade80" opacity="0.5"/>
       </g>
       {/* Compass */}
-      <text x="267" y="18" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>NORTE</text>
-      <text x="267" y="490" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(148,163,184,0.7)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>SUR</text>
-      <text x="16" y="262" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none'}} transform="rotate(-90,16,262)">OCCIDENTAL</text>
-      <text x="474" y="262" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(168,139,250,0.7)" style={{pointerEvents:'none'}} transform="rotate(90,474,262)">ORIENTAL</text>
+      <text x="267" y="18" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(185,180,166,0.75)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>NORTE</text>
+      <text x="267" y="490" textAnchor="middle" dominantBaseline="middle" fontSize="9" fontWeight="800" fill="rgba(185,180,166,0.75)" style={{pointerEvents:'none',letterSpacing:'0.5px'}}>SUR</text>
+      <text x="16" y="262" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(255,226,59,0.75)" style={{pointerEvents:'none'}} transform="rotate(-90,16,262)">OCCIDENTAL</text>
+      <text x="474" y="262" textAnchor="middle" dominantBaseline="middle" fontSize="8" fontWeight="800" fill="rgba(255,226,59,0.75)" style={{pointerEvents:'none'}} transform="rotate(90,474,262)">ORIENTAL</text>
     </svg>
   )
 }
