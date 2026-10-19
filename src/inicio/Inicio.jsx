@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react'
 import EscudoSVG from '../componentes/EscudoSVG'
 import { extraerEquipos } from '../lib/equipos'
+import { esArtistico } from '../lib/categorias'
 import AnilloBoletas from './AnilloBoletas'
 import { FOTOS_ANILLO } from './fotos'
 import './inicio.css'
 
-// Categorías que cuentan como evento artístico (columna `deporte` de eventos)
-const ARTISTICOS = ['concierto', 'teatro', 'festival', 'stand-up', 'standup', 'comedia', 'musica', 'música']
-const esArtistico = (info) => ARTISTICOS.includes((info?.deporte || '').trim().toLowerCase())
+const esArtisticoInfo = (info) => esArtistico(info?.deporte)
 
 const PREGUNTAS = [
   { q: '¿Cómo sé que no me estafan?', a: 'Tu dinero queda en custodia con Boletería CO hasta que tú confirmes que recibiste la boleta. Solo después de tu confirmación el vendedor cobra. Si algo sale mal, tocas "Tengo un problema" antes de 72 horas y congelamos el pago mientras lo revisamos.' },
@@ -91,8 +90,8 @@ export default function Inicio({
       .sort((a, b) => `${a[1].info?.fecha || ''} ${a[1].info?.hora || ''}`.localeCompare(`${b[1].info?.fecha || ''} ${b[1].info?.hora || ''}`))
   }, [boletas, eventos, busqueda, filtros.ciudad, hoy])
 
-  const deportivos = todos.filter(([, ev]) => !esArtistico(ev.info))
-  const artisticos = todos.filter(([, ev]) => esArtistico(ev.info))
+  const deportivos = todos.filter(([, ev]) => !esArtisticoInfo(ev.info))
+  const artisticos = todos.filter(([, ev]) => esArtisticoInfo(ev.info))
   const lista = pestana === 'deportivos' ? deportivos : artisticos
   const ciudades = [...new Set(boletas.map(b => b.eventos?.ciudad).filter(Boolean))]
 
@@ -277,7 +276,7 @@ export default function Inicio({
                   const p = fechaPartes(info)
                   const precios = ev.boletas.map(b => Number(b.precio)).filter(x => x > 0)
                   const esAdminEv = ev.boletas.some(b => b.publicada_por_admin === true || b.usuarios?.es_admin === true)
-                  const [e1, e2] = esArtistico(info) ? [] : extraerEquipos(info?.nombre || '')
+                  const [e1, e2] = esArtisticoInfo(info) ? [] : extraerEquipos(info?.nombre || '')
                   const abrir = () => (ev.sinBoletas ? venderParaEvento(eid) : abrirEvento(eid, ev))
                   return (
                     <li key={eid}>
