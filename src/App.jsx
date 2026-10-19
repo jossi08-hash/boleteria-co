@@ -12,6 +12,7 @@ import Icono from './componentes/Icono'
 import Inicio from './inicio/Inicio'
 import './estilo/afiche.css'
 import { EVENTOS_DEMO, BOLETAS_DEMO } from './inicio/demo'
+import { CREDITOS } from './inicio/fotos'
 
 // Se cargan solo al abrir la página que los usa
 const ComoFunciona = lazy(() => import('./ComoFunciona'))
@@ -2762,6 +2763,30 @@ function App() {
             }}
           />
           </Suspense>
+        </div>
+      )}
+
+      {paginaActual === 'creditos' && (
+        <div style={{position:'fixed',top:esMobile?'52px':'60px',left:0,right:0,bottom:0,zIndex:300,background:'#141311',overflowY:'auto',overflowX:'hidden'}}>
+        <div style={{maxWidth:'720px',margin:'0 auto',padding:'0 20px 60px',textAlign:'left'}}>
+          <div className="af-franja cf-franja" style={{marginBottom:'32px'}}>
+            <button className="cf-volver" onClick={()=>setPaginaActual('inicio')}>← Volver</button>
+            <h1 className="af-franja-titulo cf-titulo">Créditos de fotos</h1>
+            <p className="cf-bajada" style={{marginBottom:0}}>Las fotos de artistas y estadios del sitio se usan bajo licencias Creative Commons. Estos son sus autores.</p>
+          </div>
+          <ul style={{listStyle:'none',margin:0,padding:0}}>
+            {CREDITOS.map(c => (
+              <li key={c.quien} style={{padding:'16px 0',borderBottom:'1px solid #34312b'}}>
+                <p style={{fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',color:'#f5f1e4',margin:'0 0 4px'}}>{c.quien}</p>
+                <p style={{color:'#b9b4a6',fontSize:'15px',margin:0}}>Foto: <a href={c.url} target="_blank" rel="noreferrer" style={{color:'#ffe23b'}}>{c.autor}</a> · {c.licencia}</p>
+              </li>
+            ))}
+            <li style={{padding:'16px 0'}}>
+              <p style={{fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',color:'#f5f1e4',margin:'0 0 4px'}}>Estadios y tribunas</p>
+              <p style={{color:'#b9b4a6',fontSize:'15px',margin:0}}>Fotos de <a href="https://unsplash.com" target="_blank" rel="noreferrer" style={{color:'#ffe23b'}}>Unsplash</a> · Licencia Unsplash</p>
+            </li>
+          </ul>
+        </div>
         </div>
       )}
 

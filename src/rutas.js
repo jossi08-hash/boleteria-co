@@ -3,6 +3,7 @@ export const TITULO_BASE = 'Boletería CO'
 export const RUTAS = {
   'como-funciona': { url: '/como-funciona', titulo: 'Cómo funciona' },
   'privacidad': { url: '/privacidad', titulo: 'Política de privacidad' },
+  'creditos': { url: '/creditos', titulo: 'Créditos de fotos' },
   'carrito': { url: '/carrito', titulo: 'Carrito' },
   'mis-boletas': { url: '/mis-boletas', titulo: 'Mis boletas', requiereSesion: true },
   'mi-perfil': { url: '/mi-perfil', titulo: 'Mi perfil', requiereSesion: true },
