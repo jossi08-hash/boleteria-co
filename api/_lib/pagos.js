@@ -2,6 +2,8 @@
 
 export const SUPABASE_URL = 'https://ssyelddmusabkxwijghn.supabase.co'
 
+import { correo, boleta as datosBoleta, monto, aviso, parrafo, boton, escapar } from './plantilla.js'
+
 const FROM = 'Boletería CO <noreply@boleteriaco.com>'
 
 export function supa(path, opts = {}) {
@@ -67,9 +69,12 @@ export async function confirmarPago(referencia, montoCentavos) {
 
   const esperado = montoEsperadoCentavos(ordenes)
   if (esperado !== Number(montoCentavos)) {
-    await enviarCorreo(await correoAdmin(), `⚠️ Pago con monto incorrecto — ${referencia}`,
-      `<p>Wompi aprobó un pago por <strong>${fmt(Number(montoCentavos) / 100)}</strong> para la referencia <strong>${referencia}</strong>, ` +
-      `pero el total esperado era <strong>${fmt(esperado / 100)}</strong>. Las órdenes NO se marcaron como pagadas. Revisa el pago en Wompi.</p>`)
+    await enviarCorreo(await correoAdmin(), `Pago con monto incorrecto — ${referencia}`, correo({
+      titulo: 'Pago con monto incorrecto',
+      previa: `Referencia ${referencia}: revisa el pago en Wompi`,
+      contenido: aviso('Las órdenes NO se marcaron como pagadas', 'Revisa el pago en Wompi antes de hacer cualquier cosa.') +
+        datosBoleta([['Referencia', referencia], ['Pagado en Wompi', fmt(Number(montoCentavos) / 100)], ['Total esperado', fmt(esperado / 100)]])
+    }))
     return { ok: false, error: 'Monto no coincide' }
   }
 
@@ -131,6 +136,7 @@ const INSTRUCCIONES_VENDEDOR = {
   'Quentro': 'Abre Quentro → Mis Entradas → selecciona la entrada → icono de flecha → ingresa boletas@boleteriaco.com.',
   'Warena': 'Abre W Arena → perfil → entradas → Transferir → ingresa el documento de identidad registrado en la cuenta de boletas@boleteriaco.com.',
   'Dim Plus': 'Abre DIM Plus → Mis boletas → Ver boleta → Ceder boleta → llena los datos de la cuenta boletas@boleteriaco.com.',
+  'Ticketmaster': 'Abre Ticketmaster → Mis boletos → selecciona el evento → Transferir boletos → ingresa el correo boletas@boleteriaco.com.',
 }
 
 async function enviarCorreosVenta(ordenes) {
@@ -153,47 +159,51 @@ async function enviarCorreosVenta(ordenes) {
     const instr = INSTRUCCIONES_VENDEDOR[plataforma] || ''
     const vendedor = boleta.usuarios || {}
     const ref = orden.codigo_orden
-    const detalle = `
-      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;">
-        <p style="margin:0 0 8px;"><strong>Evento:</strong> ${eventoNombre}${ev.ciudad ? ` · ${ev.ciudad}` : ''}</p>
-        ${eventoFecha ? `<p style="margin:0 0 8px;"><strong>Fecha:</strong> ${eventoFecha}</p>` : ''}
-        <p style="margin:0 0 8px;"><strong>Ubicación:</strong> ${ubicacion || 'N/A'}</p>
-        ${plataforma ? `<p style="margin:0 0 8px;"><strong>Plataforma:</strong> ${plataforma}</p>` : ''}
-        <p style="margin:0;"><strong>Referencia:</strong> ${ref}</p>
-      </div>`
-    const pie = '<hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;"><p style="color:#9ca3af;font-size:12px;">Boletería CO · boleteriaco.com</p>'
-    const caja = html => `<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px;">${html}${pie}</div>`
+    const detalle = datosBoleta([
+      ['Evento', escapar(eventoNombre) + (ev.ciudad ? ` · ${escapar(ev.ciudad)}` : '')],
+      ['Fecha', eventoFecha],
+      ['Ubicación', escapar(ubicacion) || 'Sin especificar'],
+      ['Plataforma', escapar(plataforma)],
+      ['Referencia', ref],
+    ])
 
     if (boleta.publicada_por_admin === true) {
-      promesas.push(enviarCorreo(admin, `🎟️ Nueva venta — enviar boleta al comprador | ${eventoNombre}`, caja(`
-        <h1 style="color:#6366f1;font-size:22px;">Nueva venta — acción requerida</h1>
-        <p style="color:#374151;">Se pagó una boleta publicada por <strong>Boletería CO</strong>. Total pagado: <strong>${fmt(totalEsperado(boleta))}</strong>.</p>
-        ${detalle}
-        <p style="color:#dc2626;font-weight:bold;">⚠️ Envía la boleta al comprador lo antes posible.</p>`)))
+      promesas.push(enviarCorreo(admin, `Nueva venta — enviar boleta al comprador | ${eventoNombre}`, correo({
+        titulo: 'Nueva venta: envía la boleta',
+        previa: `Se pagó una boleta de Boletería CO para ${eventoNombre}`,
+        contenido: parrafo('Se pagó una boleta publicada por <strong>Boletería CO</strong>.') +
+          monto('Total pagado', fmt(totalEsperado(boleta))) + detalle +
+          aviso('Acción requerida', 'Envía la boleta al comprador lo antes posible.')
+      })))
     } else {
       if (vendedor.correo) {
-        promesas.push(enviarCorreo(vendedor.correo, `¡Vendiste tu boleta para ${eventoNombre}! — Acción requerida`, caja(`
-          <h1 style="color:#16a34a;font-size:24px;">¡Vendiste una boleta! 🎉</h1>
-          <p style="color:#374151;">Hola ${vendedor.nombre || ''}, se completó el pago de tu boleta por <strong>${fmt(boleta.precio)}</strong>.</p>
-          ${detalle}
-          <div style="background:#fef3c7;border:1px solid #f59e0b;border-radius:8px;padding:16px;margin:20px 0;">
-            <p style="margin:0 0 8px;color:#92400e;font-weight:bold;">⚠️ Acción requerida: transfiere tu boleta a Boletería CO</p>
-            ${instr ? `<p style="margin:0;color:#78350f;font-size:13px;line-height:1.6;">${instr}</p>` : ''}
-          </div>`)))
+        promesas.push(enviarCorreo(vendedor.correo, `¡Vendiste tu boleta para ${eventoNombre}! — Acción requerida`, correo({
+          titulo: '¡Vendiste tu boleta!',
+          previa: `Transfiere tu boleta de ${eventoNombre} a Boletería CO`,
+          contenido: parrafo(`Hola ${escapar(vendedor.nombre || '')}, el comprador ya pagó y su plata quedó en custodia con nosotros.`) +
+            monto('Precio de venta', fmt(boleta.precio), 'Te pagamos el precio de venta menos el 8% cuando el comprador confirme que recibió la boleta (o a las 72 horas sin reclamos).') +
+            detalle +
+            aviso('Acción requerida: transfiere tu boleta a Boletería CO', instr || 'Transfiérela desde la app oficial del evento a boletas@boleteriaco.com.')
+        })))
       }
-      promesas.push(enviarCorreo(admin, `🔔 Nueva venta de tercero — esperar boleta | ${eventoNombre}`, caja(`
-        <h1 style="color:#f59e0b;font-size:22px;">Nueva venta — boleta en camino</h1>
-        <p style="color:#374151;">Se vendió una boleta de <strong>${vendedor.nombre || 'N/A'}</strong> (${vendedor.correo || 'N/A'}). Ya le pedimos que la transfiera a Boletería CO.</p>
-        ${detalle}`)))
+      promesas.push(enviarCorreo(admin, `Nueva venta de tercero — esperar boleta | ${eventoNombre}`, correo({
+        titulo: 'Nueva venta: boleta en camino',
+        previa: `El vendedor debe transferir la boleta de ${eventoNombre}`,
+        contenido: parrafo(`Se vendió una boleta de <strong>${escapar(vendedor.nombre || 'N/A')}</strong> (${escapar(vendedor.correo || 'N/A')}). Ya le pedimos que la transfiera a Boletería CO.`) + detalle
+      })))
     }
 
     const comprador = compradores.find(c => c.id === orden.comprador_id)
     if (comprador?.correo) {
-      promesas.push(enviarCorreo(comprador.correo, `¡Tu compra fue exitosa! ${eventoNombre}`, caja(`
-        <h1 style="color:#6366f1;font-size:24px;">¡Compra confirmada! 🎟️</h1>
-        <p style="color:#374151;">Hola ${comprador.nombre || ''}, tu pago fue aprobado. Total: <strong>${fmt(totalEsperado(boleta))}</strong>.</p>
-        ${detalle}
-        <p style="color:#374151;">Recibirás tu boleta en las próximas horas. Cuando la tengas, confírmalo en "Mis boletas". Si tienes algún problema, escríbenos a <a href="mailto:soporte@boleteriaco.com" style="color:#6366f1;">soporte@boleteriaco.com</a>.</p>`)))
+      promesas.push(enviarCorreo(comprador.correo, `¡Tu compra fue exitosa! ${eventoNombre}`, correo({
+        titulo: '¡Compra confirmada!',
+        previa: `Tu plata quedó en custodia hasta que recibas tu boleta de ${eventoNombre}`,
+        contenido: parrafo(`Hola ${escapar(comprador.nombre || '')}, tu pago fue aprobado.`) +
+          monto('Total pagado', fmt(totalEsperado(boleta)), 'Tu plata queda en custodia: el vendedor no la recibe hasta que confirmes que la boleta llegó.') +
+          detalle +
+          parrafo('Recibirás tu boleta en las próximas horas por la app oficial del evento. Cuando la tengas, confírmalo en "Mis boletas". Si algo sale mal, toca "Tengo un problema" antes de 72 horas.') +
+          boton('Ir a Mis boletas', 'https://boleteriaco.com/mis-boletas')
+      })))
     }
   }
 

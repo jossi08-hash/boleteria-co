@@ -4,6 +4,7 @@ import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, en
 import { supabase } from './lib/supabase'
 import { PLATAFORMAS, sugerirPlataforma } from './datos/plataformas'
 import { extraerEquipos } from './lib/equipos'
+import { DEPORTES, ARTISTICOS, esArtistico } from './lib/categorias'
 import { reclamoAbierto, pagoLiberado, horasParaLiberar } from './lib/ordenes'
 import { TITULO_BASE, RUTAS, paginaDesdeUrl, urlDePagina } from './rutas'
 import EscudoSVG from './componentes/EscudoSVG'
@@ -1028,7 +1029,7 @@ function App() {
       <h2 style={{color:'#f5f1e4',fontSize:'20px',fontWeight:'900',textAlign:'center',margin:'0 0 24px',letterSpacing:'-0.3px',borderTop:'1px solid #34312b',paddingTop:'40px'}}>Preguntas frecuentes</h2>
       {[
         {q:'¿Cómo sé que no me estafan?',a:'Tu dinero queda en custodia con Boletería CO hasta que tú confirmes que recibiste la boleta. Solo después de tu confirmación el vendedor cobra. Si algo sale mal, nosotros respondemos.'},
-        {q:'¿Cómo llega la boleta?',a:'Depende de la plataforma: en TuBoletaPass y Quentro te la transferimos por correo electrónico; en W Arena y DIM Plus por número de documento. Antes de pagar te mostramos exactamente los pasos.'},
+        {q:'¿Cómo llega la boleta?',a:'Depende de la plataforma: en TuBoletaPass, Quentro y Ticketmaster te la transferimos por correo electrónico; en W Arena y DIM Plus por número de documento. Antes de pagar te mostramos exactamente los pasos.'},
         {q:'¿Cuánto demora?',a:'En la mayoría de casos menos de 24 horas. Cuando tu pago se confirma, el vendedor recibe una notificación inmediata para transferirte la boleta.'},
         {q:'¿Cuánto cobra Boletería CO?',a:'Al comprador se le suma aproximadamente un 15% sobre el precio publicado (redondeado a los $1.000 más cercanos). Al vendedor se le retiene un 8% del precio de venta. Sin cobros ocultos.'},
       ].map(({q,a},i)=>(
@@ -1837,7 +1838,7 @@ function App() {
                             <input value={formEditar.nombre||''} onChange={e=>setFormEditar(f=>({...f,nombre:e.target.value}))} required style={{...s.input,marginBottom:'8px'}} placeholder="Nombre del evento" />
                             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'8px',marginBottom:'8px'}}>
                               <select value={formEditar.deporte||''} onChange={e=>setFormEditar(f=>({...f,deporte:e.target.value}))} style={s.input}>
-                                <option>Futbol</option><option>Baloncesto</option><option>Tenis</option><option>Ciclismo</option><option>Otro</option>
+                                <optgroup label="Deportivos">{DEPORTES.map(d => <option key={d}>{d}</option>)}</optgroup><optgroup label="Artísticos">{ARTISTICOS.map(d => <option key={d}>{d}</option>)}</optgroup>
                               </select>
                               <select value={formEditar.moneda||''} onChange={e=>setFormEditar(f=>({...f,moneda:e.target.value}))} style={s.input}>
                                 <option value="COP">COP</option><option value="USD">USD</option>
@@ -1898,7 +1899,7 @@ function App() {
               <div style={s.row2}>
                 <div><label style={s.label}>Deporte</label>
                   <select name="deporte" value={formEvento.deporte} onChange={manejarCambioEvento} style={s.input}>
-                    <option>Futbol</option><option>Baloncesto</option><option>Tenis</option><option>Ciclismo</option><option>Otro</option>
+                    <optgroup label="Deportivos">{DEPORTES.map(d => <option key={d}>{d}</option>)}</optgroup><optgroup label="Artísticos">{ARTISTICOS.map(d => <option key={d}>{d}</option>)}</optgroup>
                   </select>
                 </div>
                 <div><label style={s.label}>Moneda</label>
@@ -1985,7 +1986,7 @@ function App() {
                 </select>
                 {form.plataforma && PLATAFORMAS[form.plataforma] && (
                   <p style={{color:'#b9b4a6',fontSize:'11px',margin:'-10px 0 12px',lineHeight:1.5}}>
-                    ℹ️ {form.plataforma === 'TuBoletaPass' ? 'Santa Fe, América, Llaneros, Tolima' : form.plataforma === 'Quentro' ? 'Millonarios, Atlético Nacional' : form.plataforma === 'Warena' ? 'Cúcuta, Junior' : 'Ind. Medellín'}
+                    {PLATAFORMAS[form.plataforma].uso}
                   </p>
                 )}
                 <label style={s.label}>Tribuna</label>
@@ -2210,7 +2211,8 @@ function App() {
         {paginaActual === 'evento' && eventoSeleccionado && (() => {
           const { ev } = eventoSeleccionado
           const info = ev.info
-          const [equipo1, equipo2] = extraerEquipos(info?.nombre || '')
+          const artistico = esArtistico(info?.deporte)
+          const [equipo1, equipo2] = artistico ? [null, null] : extraerEquipos(info?.nombre || '')
           const fechaStr = info?.fecha ? new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}) : ''
           const horaStr = info?.hora ? info.hora.slice(0,5) : ''
           const disponibles = ev.boletas.filter(b => b.estado === 'publicada')
@@ -2240,20 +2242,20 @@ function App() {
 
                 {/* HERO */}
                 <div className="af-franja" style={{marginBottom:'24px'}}>
-                  <div className="af-escudos">
+                  {!artistico && <div className="af-escudos">
                     <EscudoSVG nombre={equipo1} size={56} />
                     {equipo2 && <>
                       <span className="af-escudos-vs">VS</span>
                       <EscudoSVG nombre={equipo2} size={56} />
                     </>}
-                  </div>
+                  </div>}
                   <h1 className="af-franja-titulo">{info?.nombre}</h1>
                   {fechaStr && <span className="af-franja-dato">{fechaStr}{horaStr ? ` · ${horaStr}` : ''}</span>}
                   {info?.estadio && <span className="af-franja-lugar">{[info?.estadio, info?.ciudad].filter(Boolean).join(' · ')}</span>}
                 </div>
 
                 {/* MAPA */}
-                {(esElCampin || esAtanasio || esTecho || esPascual) ? (
+                {artistico ? null : (esElCampin || esAtanasio || esTecho || esPascual) ? (
                   <div style={{marginBottom:'20px'}}>
                     <p className="af-rotulo">Toca una tribuna para ver las boletas</p>
                     <Suspense fallback={<div style={{height:'260px'}} />}>
@@ -2360,7 +2362,7 @@ function App() {
                 </div>
 
                 {/* TRIBUNA PILLS (non-Campín) */}
-                {!esElCampin && !esAtanasio && !esTecho && !esPascual && tribunas.length > 1 && (
+                {(artistico || (!esElCampin && !esAtanasio && !esTecho && !esPascual)) && tribunas.length > 1 && (
                   <div style={{display:'flex',gap:'8px',overflowX:'auto',paddingBottom:'4px',marginBottom:'16px'}}>
                     {tribunas.map(t => (
                       <button key={t} onClick={()=>setSeccionMapa(seccionMapa===t?null:t)}

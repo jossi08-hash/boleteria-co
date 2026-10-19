@@ -29,6 +29,8 @@ const EQUIPOS = [
   { claves: ['llaneros'], sigla: 'LLA', colores: ['#ffffff', '#111111'], forma: 'corona' },
   { claves: ['chico'], sigla: 'CHI', colores: ['#1d3f94', '#ffffff'], forma: 'clasico' },
   { claves: ['cucuta'], sigla: 'CUC', colores: ['#c8102e', '#111111'], forma: 'clasico' },
+  { claves: ['alianza'], sigla: 'ALI', colores: ['#1d3f94', '#ffffff', '#c8102e'], forma: 'circulo' },
+  { claves: ['jaguares'], sigla: 'JAG', colores: ['#0b6b35', '#f5c400'], forma: 'ojiva' },
   { claves: ['union magdalena', 'magdalena'], sigla: 'UNI', colores: ['#1d3f94', '#ffffff', '#c8102e'], forma: 'redondeado' },
 ]
 
@@ -41,9 +43,9 @@ export function datosEquipo(nombre) {
   const n = normalizar(nombre)
   const equipo = EQUIPOS.find(e => e.claves.some(c => n.includes(c)))
   if (equipo) return equipo
-  // Equipo sin datos: azul de la marca, forma clásica y las 3 primeras letras de su palabra principal
+  // Equipo sin datos: tinta y amarillo de la marca, forma clásica y las 3 primeras letras de su palabra principal
   const palabra = n.split(/\s+/).find(w => w.length > 2 && !PREFIJOS.has(w)) || n.replace(/\s+/g, '')
-  return { sigla: palabra.slice(0, 3).toUpperCase() || '?', colores: ['#4f7eff', '#ffffff'], forma: 'clasico' }
+  return { sigla: palabra.slice(0, 3).toUpperCase() || '?', colores: ['#141311', '#ffe23b'], forma: 'clasico' }
 }
 
 export function extraerEquipos(nombre) {

@@ -1,5 +1,7 @@
 export const config = { runtime: 'edge' }
 
+import { correo, boleta as datosBoleta, monto, aviso, parrafo, escapar } from './_lib/plantilla.js'
+
 const SUPABASE_URL = 'https://ssyelddmusabkxwijghn.supabase.co'
 
 export default async function handler(req) {
@@ -100,30 +102,21 @@ export default async function handler(req) {
     body: JSON.stringify({
       from: 'Boletería CO <noreply@boleteriaco.com>',
       to: correoAdmin,
-      subject: `💸 Pagar vendedor — ${eventoNombre} · ${netoFmt}`,
-      html: `
-        <div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px;">
-          <h1 style="color:#34d399;font-size:22px;">Pago pendiente al vendedor</h1>
-          <p style="color:#374151;">El comprador confirmó recibo. Ya puedes enviarle el pago al vendedor.</p>
-          <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px;margin:20px 0;">
-            <p style="margin:0 0 10px;font-size:20px;font-weight:900;color:#15803d;">💸 Enviar: ${netoFmt}</p>
-            ${datosPago
-              ? `<p style="margin:0 0 4px;color:#374151;font-size:14px;"><strong>📱 Dato de pago:</strong></p>
-                 <p style="margin:0;font-size:16px;font-weight:700;color:#166534;background:#dcfce7;padding:10px 14px;border-radius:6px;">${datosPago}</p>`
-              : `<p style="margin:0;color:#dc2626;font-weight:600;">⚠️ El vendedor no tiene dato de pago registrado. Contáctalo directamente.</p>`
-            }
-          </div>
-          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:20px 0;">
-            <p style="margin:0 0 6px;"><strong>Vendedor:</strong> ${nombreVendedor} · ${correoVendedor}</p>
-            <p style="margin:0 0 6px;"><strong>Evento:</strong> ${eventoNombre}${eventoCity ? ' · ' + eventoCity : ''}</p>
-            <p style="margin:0 0 6px;"><strong>Ubicación:</strong> ${ubicacion || 'N/A'}</p>
-            ${boleta?.plataforma ? `<p style="margin:0 0 6px;"><strong>Plataforma:</strong> ${boleta.plataforma}</p>` : ''}
-            <p style="margin:0;"><strong>Referencia:</strong> ${referencia}</p>
-          </div>
-          <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;">
-          <p style="color:#9ca3af;font-size:12px;">Boletería CO · boleteriaco.com</p>
-        </div>
-      `
+      subject: `Pagar vendedor — ${eventoNombre} · ${netoFmt}`,
+      html: correo({
+        titulo: 'Pago pendiente al vendedor',
+        previa: `El comprador confirmó recibo · enviar ${netoFmt}`,
+        contenido: parrafo('El comprador confirmó que recibió la boleta. Ya puedes enviarle el pago al vendedor.') +
+          monto('Enviar al vendedor', netoFmt, datosPago ? `Dato de pago: <strong>${escapar(datosPago)}</strong>` : '') +
+          (datosPago ? '' : aviso('Sin dato de pago', 'El vendedor no tiene dato de pago registrado. Contáctalo directamente.')) +
+          datosBoleta([
+            ['Vendedor', `${escapar(nombreVendedor)} · ${escapar(correoVendedor)}`],
+            ['Evento', escapar(eventoNombre) + (eventoCity ? ' · ' + escapar(eventoCity) : '')],
+            ['Ubicación', escapar(ubicacion) || 'Sin especificar'],
+            ['Plataforma', escapar(boleta?.plataforma || '')],
+            ['Referencia', referencia],
+          ])
+      })
     })
   })
 

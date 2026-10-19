@@ -84,8 +84,8 @@ assert.deepEqual(r, {ok:true, confirmadas:2})
 assert.equal(db.ordenes[0].estado_pago, 'pagada'); assert.equal(db.ordenes[1].estado_pago, 'pagada')
 const asuntos = correos().map(c => c.to+' | '+c.subject)
 assert.ok(asuntos.some(a => a.startsWith('vend@x.com | ¡Vendiste')))
-assert.ok(asuntos.some(a => a.startsWith('admin@x.com | 🎟️ Nueva venta')))   // boleta admin
-assert.ok(asuntos.some(a => a.startsWith('admin@x.com | 🔔')))
+assert.ok(asuntos.some(a => a.startsWith('admin@x.com | Nueva venta — enviar boleta')))   // boleta admin
+assert.ok(asuntos.some(a => a.startsWith('admin@x.com | Nueva venta de tercero')))
 assert.equal(asuntos.filter(a => a.startsWith('comp@x.com')).length, 2)
 console.log('✓ pago aprobado marca 2 órdenes y envía', asuntos.length, 'correos')
 // repetido (webhook + regreso del comprador): no duplica

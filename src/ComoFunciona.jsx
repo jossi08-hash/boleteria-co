@@ -5,7 +5,7 @@ const PASOS = {
   comprador: [
     { titulo: 'Busca tu evento', desc: 'Explora los partidos disponibles, elige tu tribuna en el mapa del estadio y revisa el precio final antes de pagar.' },
     { titulo: 'Paga seguro', desc: 'Pagas de forma segura con Wompi. Tu dinero queda en custodia con Boletería CO: el vendedor todavía no lo recibe.' },
-    { titulo: 'Recibe tu boleta', desc: 'Te transferimos la boleta por la plataforma oficial del evento (TuBoletaPass, Quentro, W Arena o DIM Plus). Antes de pagar te mostramos los pasos exactos.' },
+    { titulo: 'Recibe tu boleta', desc: 'Te transferimos la boleta por la plataforma oficial del evento (TuBoletaPass, Quentro, W Arena, DIM Plus o Ticketmaster). Antes de pagar te mostramos los pasos exactos.' },
     { titulo: 'Confirma la entrega', desc: 'Cuando la boleta aparezca en tu app, confírmalo en "Mis boletas". Si algo salió mal, toca "Tengo un problema" antes de 72 horas y congelamos el pago al vendedor mientras lo revisamos.' },
   ],
   vendedor: [
