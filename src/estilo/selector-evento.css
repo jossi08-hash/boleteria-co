@@ -1,0 +1,52 @@
+/* Selector de evento del formulario de publicar (mundo afiche, sobre tinta) */
+.sel-ev, .sel-ev-elegido { margin-bottom: 18px; text-align: left; }
+
+.sel-ev-buscador {
+  display: flex; align-items: center; gap: 10px;
+  background: #141311; border: 1.5px solid #4a463d; border-radius: 999px;
+  padding: 0 16px; color: #b9b4a6;
+}
+.sel-ev-buscador:focus-within { border-color: #ffe23b; }
+.sel-ev-buscador input {
+  flex: 1; min-width: 0; height: 48px; background: transparent; border: 0; outline: none;
+  color: #f5f1e4; font: 500 16px 'Archivo', sans-serif;
+}
+.sel-ev-buscador input:focus-visible { outline: none; }
+
+.sel-ev-tipos { display: flex; gap: 6px; margin: 12px 0 4px; padding: 4px; background: #141311; border-radius: 999px; }
+.sel-ev-tipos button {
+  flex: 1; border: 0; border-radius: 999px; padding: 10px 8px; cursor: pointer;
+  background: transparent; color: #b9b4a6; font: 700 14px 'Archivo', sans-serif;
+}
+.sel-ev-tipos button span { opacity: .7; font-weight: 600; margin-left: 2px; }
+.sel-ev-tipos button[aria-selected='true'] { background: #ffe23b; color: #141311; }
+
+.sel-ev-lista { max-height: 420px; overflow-y: auto; margin-top: 8px; padding-right: 2px; overscroll-behavior: contain; }
+.sel-ev-grupo + .sel-ev-grupo { margin-top: 10px; }
+.sel-ev-dia {
+  position: sticky; top: 0; z-index: 1; margin: 0; padding: 10px 2px 8px;
+  background: #1e1c19; font: 800 18px/1 'Big Shoulders Display', sans-serif; text-transform: uppercase; color: #ffe23b;
+}
+
+.sel-ev-fila {
+  width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; cursor: pointer;
+  background: #fbf8ee; color: #141311; border: 0; border-radius: 12px; padding: 12px 14px; margin-bottom: 8px;
+  transition: transform .2s cubic-bezier(.16, 1, .3, 1), background-color .2s;
+}
+.sel-ev-fila:hover { background: #fff; }
+.sel-ev-fila:active { transform: scale(.985); }
+.sel-ev-fila.es-elegido { background: #fff6c2; box-shadow: inset 0 0 0 2px #141311; }
+.sel-ev-escudos { display: flex; flex: none; }
+.sel-ev-escudos > * + * { margin-left: -6px; }
+.sel-ev-textos { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.sel-ev-nombre { font: 800 20px/1.05 'Big Shoulders Display', sans-serif; text-transform: uppercase; overflow-wrap: anywhere; }
+.sel-ev-lugar { font: 500 13px/1.3 'Archivo', sans-serif; color: #5a554a; }
+
+.sel-ev-vacio { margin: 12px 2px; font: 400 14px/1.5 'Archivo', sans-serif; color: #b9b4a6; }
+
+.sel-ev-elegido .sel-ev-fila { margin-bottom: 6px; }
+.sel-ev-fecha-elegida { display: block; font: 700 13px 'Archivo', sans-serif; color: #ffe23b; margin: 0 2px 6px; }
+.sel-ev-cambiar {
+  background: none; border: 0; padding: 4px 2px; cursor: pointer;
+  font: 700 14px 'Archivo', sans-serif; color: #f5f1e4; text-decoration: underline; text-underline-offset: 3px;
+}

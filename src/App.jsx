@@ -9,6 +9,7 @@ import { reclamoAbierto, pagoLiberado, horasParaLiberar } from './lib/ordenes'
 import { TITULO_BASE, RUTAS, paginaDesdeUrl, urlDePagina } from './rutas'
 import EscudoSVG from './componentes/EscudoSVG'
 import SillaExtraRow from './componentes/SillaExtraRow'
+import SelectorEvento from './componentes/SelectorEvento'
 import Icono from './componentes/Icono'
 import Inicio from './inicio/Inicio'
 import './estilo/afiche.css'
@@ -507,7 +508,7 @@ function App() {
       updated.tribuna = ''
       const estNombre = ev ? (ev.estadio || '') : ''
       const estObj = estadios.find(e => e.nombre.toLowerCase() === estNombre.toLowerCase())
-      const tribs = (estObj && estObj.tribunas && estObj.tribunas.length > 0) ? estObj.tribunas : (ev ? (ev.tribunas || []) : [])
+      const tribs = (ev && ev.tribunas && ev.tribunas.length > 0) ? ev.tribunas : (estObj && estObj.tribunas ? estObj.tribunas : [])
       setTribunasEvento(tribs)
     }
     setForm(updated)
@@ -582,6 +583,7 @@ function App() {
   async function manejarPublicar(e) {
     e.preventDefault()
     if (!usuario) { setMensaje('Debes iniciar sesion para publicar una boleta.'); return }
+    if (!form.eventoId) { setMensaje('Elige el evento de tu boleta.'); return }
     setMensaje('Publicando...')
     const todas = [{ tribuna: form.tribuna, fila: form.fila, silla: form.silla }, ...silasExtra]
     const resultados = await Promise.all(todas.map(s =>
@@ -1966,19 +1968,7 @@ function App() {
             <div style={{maxWidth:'560px',margin:'0 auto',padding:'28px 20px 60px'}}>
               <form onSubmit={manejarPublicar} style={s.tarjetaForm}>
                 <label style={s.label}>Evento</label>
-                <select name="eventoId" value={form.eventoId} onChange={manejarCambio} required style={s.input}>
-                  <option value="">Selecciona un evento</option>
-                  {eventos.map(function(ev) { return <option key={ev.id} value={ev.id}>{ev.nombre} ({ev.moneda || 'COP'})</option> })}
-                </select>
-                {form.eventoId && (() => {
-                  const ev = eventos.find(e => e.id === form.eventoId)
-                  const info = ev ? [ev.ciudad, ev.estadio].filter(Boolean).join(' · ') : ''
-                  return info ? (
-                    <p style={{color:'#ffe23b',fontSize:'12px',margin:'-8px 0 14px',display:'flex',alignItems:'center',gap:'6px'}}>
-                      <span>{info}</span>
-                    </p>
-                  ) : null
-                })()}
+                <SelectorEvento eventos={eventos} value={form.eventoId} onChange={id => manejarCambio({ target: { name: 'eventoId', value: id } })} />
                 <label style={s.label}>Plataforma de la boleta</label>
                 <select name="plataforma" value={form.plataforma} onChange={manejarCambio} required style={s.input}>
                   <option value="">Selecciona la app donde tienes la boleta</option>
@@ -1989,10 +1979,10 @@ function App() {
                     {PLATAFORMAS[form.plataforma].uso}
                   </p>
                 )}
-                <label style={s.label}>Tribuna</label>
+                <label style={s.label}>Tribuna o localidad</label>
                 {tribunasEvento.length > 0
                   ? <select name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input}>
-                      <option value="">Selecciona tribuna</option>
+                      <option value="">Selecciona tribuna o localidad</option>
                       {tribunasEvento.map(t => <option key={t} value={t}>{t}</option>)}
                     </select>
                   : <input name="tribuna" value={form.tribuna} onChange={manejarCambio} required style={s.input} placeholder="Ej: Occidental" />
