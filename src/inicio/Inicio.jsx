@@ -78,7 +78,8 @@ export default function Inicio({
     }
     const mapa = {}
     boletas.forEach(b => {
-      if (b.estado !== 'publicada' || !coincide(b.eventos)) return
+      // Las boletas de eventos que ya pasaron no se muestran, aunque sigan publicadas
+      if (b.estado !== 'publicada' || (b.eventos?.fecha && b.eventos.fecha < hoy) || !coincide(b.eventos)) return
       const eid = String(b.evento_id || b.eventos?.id || b.id)
       if (!mapa[eid]) mapa[eid] = { info: b.eventos, boletas: [] }
       mapa[eid].boletas.push(b)
@@ -93,7 +94,7 @@ export default function Inicio({
   const deportivos = todos.filter(([, ev]) => !esArtisticoInfo(ev.info))
   const artisticos = todos.filter(([, ev]) => esArtisticoInfo(ev.info))
   const lista = pestana === 'deportivos' ? deportivos : artisticos
-  const ciudades = [...new Set(boletas.map(b => b.eventos?.ciudad).filter(Boolean))]
+  const ciudades = [...new Set(boletas.filter(b => !(b.eventos?.fecha < hoy)).map(b => b.eventos?.ciudad).filter(Boolean))]
 
   // Próximos eventos para la marquesina
   const proximos = eventos
