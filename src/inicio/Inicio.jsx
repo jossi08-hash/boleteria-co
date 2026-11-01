@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import EscudoSVG from '../componentes/EscudoSVG'
 import { extraerEquipos } from '../lib/equipos'
 import { esArtistico } from '../lib/categorias'
+import { enlaceWhatsApp, WHATSAPP_VISIBLE } from '../lib/contacto'
 import AnilloBoletas from './AnilloBoletas'
 import { FOTOS_ANILLO } from './fotos'
 import './inicio.css'
@@ -253,7 +254,8 @@ export default function Inicio({
                   <p>
                     Estamos habilitando la reventa de boletas para eventos artísticos con el mismo sistema:
                     tu plata en custodia hasta que la boleta llegue. Si tienes una boleta para un show,
-                    escríbenos a <a href="mailto:soporte@boleteriaco.com">soporte@boleteriaco.com</a>.
+                    escríbenos por <a href={enlaceWhatsApp('Hola, tengo una boleta para un show y quiero venderla.')} target="_blank" rel="noreferrer">WhatsApp</a> o
+                    a <a href="mailto:soporte@boleteriaco.com">soporte@boleteriaco.com</a>.
                   </p>
                 </div>
                 <div className="ini-pronto-fotos" aria-hidden="true">
@@ -379,12 +381,20 @@ export default function Inicio({
             <button type="button" onClick={() => irA('creditos')}>Créditos</button>
             <a href="mailto:soporte@boleteriaco.com">soporte@boleteriaco.com</a>
           </nav>
+          <div className="ini-pie-redes">
+          <a className="ini-pie-red" href={enlaceWhatsApp('Hola, tengo una pregunta sobre Boletería CO.')} target="_blank" rel="noreferrer">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" aria-hidden="true">
+              <path d="M4 20l1.3-3.9A8 8 0 1 1 8 18.8z" /><path d="M9.2 8.6c.2-.4.6-.4.8 0l.6 1.3c.1.2 0 .5-.1.6l-.4.5c.4.9 1.2 1.7 2.1 2.1l.5-.4c.2-.1.4-.2.6-.1l1.3.6c.4.2.4.6 0 .8-.5.5-1.2.8-1.9.6-2-.6-3.5-2.1-4.1-4.1-.1-.7.1-1.4.6-1.9z" fill="currentColor" stroke="none" />
+            </svg>
+            WhatsApp {WHATSAPP_VISIBLE}
+          </a>
           <a className="ini-pie-red" href="https://www.instagram.com/boleteriaco" target="_blank" rel="noreferrer">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" aria-hidden="true">
               <rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4.2" /><circle cx="17.4" cy="6.6" r="1" fill="currentColor" stroke="none" />
             </svg>
             Síguenos en Instagram
           </a>
+          </div>
           <p className="ini-pie-creditos">© 2026 Boletería CO · Bogotá</p>
         </div>
       </footer>

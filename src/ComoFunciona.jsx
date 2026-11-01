@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import './estilo/afiche.css'
+import { enlaceWhatsApp } from './lib/contacto'
 
 const PASOS = {
   comprador: [
@@ -62,7 +63,7 @@ export default function ComoFunciona({ onVolver, onEmpezar }) {
           </button>
         )}
 
-        <p className="cf-dudas">¿Dudas? Escríbenos a <a href="mailto:soporte@boleteriaco.com">soporte@boleteriaco.com</a></p>
+        <p className="cf-dudas">¿Dudas? Escríbenos por <a href={enlaceWhatsApp('Hola, tengo una duda sobre cómo funciona Boletería CO.')} target="_blank" rel="noreferrer">WhatsApp</a> o a <a href="mailto:soporte@boleteriaco.com">soporte@boleteriaco.com</a></p>
       </div>
     </div>
   )

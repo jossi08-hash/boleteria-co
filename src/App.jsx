@@ -11,6 +11,7 @@ import EscudoSVG from './componentes/EscudoSVG'
 import SillaExtraRow from './componentes/SillaExtraRow'
 import SelectorEvento from './componentes/SelectorEvento'
 import Icono from './componentes/Icono'
+import { enlaceWhatsApp } from './lib/contacto'
 import Inicio from './inicio/Inicio'
 import './estilo/afiche.css'
 import { EVENTOS_DEMO, BOLETAS_DEMO } from './inicio/demo'
@@ -945,6 +946,13 @@ function App() {
             >
               Contactar soporte
             </a>
+            <a
+              href={enlaceWhatsApp(`Hola, tengo una pregunta sobre mi compra. Referencia: ${ref}`)}
+              target="_blank" rel="noreferrer"
+              style={{display:'block',textAlign:'center',background:'#1e1c19',color:'#b9b4a6',border:'1px solid #34312b',borderRadius:'12px',padding:'13px',fontSize:'14px',fontWeight:'700',textDecoration:'none'}}
+            >
+              Escribir por WhatsApp
+            </a>
           </div>
         </div>
       </div>
@@ -1019,6 +1027,13 @@ function App() {
             >
               Contactar soporte
             </a>
+            <a
+              href={enlaceWhatsApp(`Hola, mi pago quedó pendiente${refP ? '. Ref: ' + refP : ''}${txP ? ' / Transacción: ' + txP : ''}. ¿Qué debo hacer?`)}
+              target="_blank" rel="noreferrer"
+              style={{display:'block',textAlign:'center',background:'#1e1c19',color:'#b9b4a6',border:'1px solid #34312b',borderRadius:'12px',padding:'13px',fontSize:'14px',fontWeight:'700',textDecoration:'none'}}
+            >
+              Escribir por WhatsApp
+            </a>
           </div>
         </div>
       </div>
@@ -1045,7 +1060,7 @@ function App() {
       ))}
       <footer style={{borderTop:'1px solid #34312b',marginTop:'40px',paddingTop:'28px',paddingBottom:'32px',textAlign:'center'}}>
         <p style={{color:'#8f8a7d',fontSize:'13px',margin:'0 0 8px',fontWeight:'700',letterSpacing:'-0.2px'}}>Boletería <span style={{color:'#ffe23b'}}>CO</span></p>
-        <p style={{color:'#8f8a7d',fontSize:'12px',margin:0}}>© 2026 · <button onClick={()=>setPaginaActual('como-funciona')} style={{background:'none',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'12px',padding:0}}>Cómo funciona</button> · <a href='/terminos.html' target='_blank' style={{color:'#b9b4a6',textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'12px',padding:0}}>Política de privacidad</button> · soporte@boleteriaco.com</p>
+        <p style={{color:'#8f8a7d',fontSize:'12px',margin:0}}>© 2026 · <button onClick={()=>setPaginaActual('como-funciona')} style={{background:'none',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'12px',padding:0}}>Cómo funciona</button> · <a href='/terminos.html' target='_blank' style={{color:'#b9b4a6',textDecoration:'none'}}>Términos y condiciones</a> · <button onClick={()=>setPaginaActual('privacidad')} style={{background:'none',border:'none',color:'#b9b4a6',cursor:'pointer',fontSize:'12px',padding:0}}>Política de privacidad</button> · soporte@boleteriaco.com · <a href={enlaceWhatsApp()} target='_blank' rel='noreferrer' style={{color:'#b9b4a6',textDecoration:'none'}}>WhatsApp</a></p>
       </footer>
     </div>
   )
@@ -1157,6 +1172,11 @@ function App() {
                 style={{width:'100%',background:'transparent',border:'none',borderBottom:'1px solid rgba(52,49,43,0.5)',color:'#f5f1e4',cursor:'pointer',fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',padding:'14px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px'}}>
                 <Icono nombre="ayuda" color="#ffe23b" /> Cómo funciona
               </button>
+              {/* WhatsApp */}
+              <a href={enlaceWhatsApp('Hola, tengo una pregunta sobre Boletería CO.')} target="_blank" rel="noreferrer" onClick={()=>setMostrarMenu(false)}
+                style={{width:'100%',boxSizing:'border-box',background:'transparent',borderBottom:'1px solid rgba(52,49,43,0.5)',color:'#f5f1e4',fontFamily:"'Big Shoulders Display',sans-serif",fontSize:'24px',fontWeight:'800',textTransform:'uppercase',padding:'14px 20px',textAlign:'left',display:'flex',alignItems:'center',gap:'12px',textDecoration:'none'}}>
+                <Icono nombre="whatsapp" color="#ffe23b" /> WhatsApp
+              </a>
               {/* Vender */}
               {usuario && (
                 <button onClick={()=>{cerrarOverlays();setMostrarFormulario(true);setPaginaActual('inicio')}}
