@@ -59,6 +59,7 @@ function App() {
   const [confirmarLiberar, setConfirmarLiberar] = useState(null)
   const [subiendoArchivo, setSubiendoArchivo] = useState(null)
   const [confirmarEliminarBoleta, setConfirmarEliminarBoleta] = useState(null)
+  const [confirmarVendidaFuera, setConfirmarVendidaFuera] = useState(null)
   const [boletaEditando, setBoletaEditando] = useState(null)
   const [busquedaBoleta, setBusquedaBoleta] = useState('')
   const [formEditarBoleta, setFormEditarBoleta] = useState({ tribuna: '', fila: '', silla: '', precio: '' })
@@ -412,6 +413,15 @@ function App() {
 
   async function mostrarBoleta(id) {
     await supabase.from('boletas').update({ estado: 'publicada' }).eq('id', id)
+    cargarBoletas(); cargarBoletasAdmin()
+  }
+
+  // Para boletas vendidas por WhatsApp o Instagram con link de pago: deja de mostrarse en la página.
+  // Si alguien la estaba pagando aquí, el webhook verá que ya está vendida y avisará para reembolsar.
+  async function marcarVendidaFuera(id) {
+    const { error } = await supabase.from('boletas').update({ estado: 'vendida', reservada_hasta: null, reservada_por: null }).eq('id', id)
+    if (error) { toast('No se pudo marcar como vendida.'); return }
+    toast('Boleta marcada como vendida por fuera.', 'success')
     cargarBoletas(); cargarBoletasAdmin()
   }
 
@@ -1703,8 +1713,13 @@ function App() {
                           {' '}<span style={{color: b.estado==='oculta' ? '#facc15' : b.estado==='reservada' ? '#fb923c' : '#4ade80', fontWeight:'700'}}>({b.estado})</span>
                         </p>
                       </div>
-                      <div style={{display:'flex',gap:'6px',flexShrink:0}}>
-                        {confirmarEliminarBoleta === b.id
+                      <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
+                        {confirmarVendidaFuera === b.id
+                          ? <>
+                              <button onClick={()=>{marcarVendidaFuera(b.id);setConfirmarVendidaFuera(null)}} style={{background:'#14532d',color:'#86efac',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, ya se vendió</button>
+                              <button onClick={()=>setConfirmarVendidaFuera(null)} style={{background:'transparent',border:'1px solid #34312b',borderRadius:'6px',color:'#8f8a7d',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
+                            </>
+                          : confirmarEliminarBoleta === b.id
                           ? <>
                               <button onClick={()=>{eliminarBoleta(b.id);setConfirmarEliminarBoleta(null)}} style={{background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Sí, eliminar</button>
                               <button onClick={()=>setConfirmarEliminarBoleta(null)} style={{background:'transparent',border:'1px solid #34312b',borderRadius:'6px',color:'#8f8a7d',fontSize:'12px',cursor:'pointer',padding:'6px 10px'}}>Cancelar</button>
@@ -1715,7 +1730,8 @@ function App() {
                                 : <button onClick={()=>ocultarBoleta(b.id)} style={{background:'#3d2a00',color:'#facc15',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Ocultar</button>
                               }
                               <button onClick={()=>{ setBoletaEditando(boletaEditando===b.id ? null : b.id); setFormEditarBoleta({tribuna:b.tribuna||'',fila:b.fila||'',silla:b.silla||'',precio:b.precio||''}) }} style={{background:'#1a2f4a',color:'#60a5fa',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Editar</button>
-                              <button onClick={()=>setConfirmarEliminarBoleta(b.id)} style={{background:'#3b0a0a',color:'#f87171',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Eliminar</button>
+                              <button onClick={()=>{setConfirmarEliminarBoleta(null);setConfirmarVendidaFuera(b.id)}} style={{background:'#14532d',color:'#4ade80',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Vendida por fuera</button>
+                              <button onClick={()=>{setConfirmarVendidaFuera(null);setConfirmarEliminarBoleta(b.id)}} style={{background:'#3b0a0a',color:'#f87171',border:'none',borderRadius:'6px',padding:'6px 12px',fontSize:'12px',fontWeight:'700',cursor:'pointer'}}>Eliminar</button>
                             </>
                         }
                       </div>
