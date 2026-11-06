@@ -4,7 +4,7 @@
  *
  * Pestañas:
  *   Por cantidad  → partidos y conciertos sin silla: se cambia el número de "Quedan".
- *   Numeradas     → Santa Fe, Millonarios, Nacional, Medellín, América y Selección: una fila por silla.
+ *   Numeradas     → Santa Fe, Millonarios, Nacional, Medellín, América y Selección de locales: una fila por silla.
  *   Eventos       → la llena el script; no se edita.
  *
  * Instalación: ver LEEME.md en esta misma carpeta.

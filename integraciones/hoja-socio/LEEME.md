@@ -8,7 +8,7 @@ Es un Google Sheets donde el socio que provee las boletas propias actualiza cuá
   - El socio solo cambia **Quedan**. Si vende 2 por fuera, baja el número en 2.
   - **Vendidas en la web** y **Pagando ahora** se llenan solas. Cuando alguien compra en boleteriaco.com, Quedan baja sola.
   - Si se vende algo en la web mientras él edita, no se pierde: se aplica solo lo que él cambió.
-- **Pestaña "Numeradas"** (Santa Fe, Millonarios, Nacional, Medellín, América y Selección Colombia)
+- **Pestaña "Numeradas"** (partidos de local de Santa Fe, Millonarios, Nacional, Medellín, América y Selección Colombia)
   - Una fila por silla: tribuna, fila, silla y precio.
   - En **Estado** se elige Disponible, Vendida por fuera o Retirada.
   - **En la web** muestra lo que pasa en la página. Las vendidas quedan en gris.

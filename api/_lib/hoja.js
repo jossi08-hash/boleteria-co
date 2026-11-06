@@ -1,7 +1,8 @@
 // Lógica de la hoja del socio (Google Sheets → boletas propias). Sin red: solo decide qué hacer.
 // El endpoint api/hoja-socio.js la usa y luego escribe en Supabase.
 
-// Partidos de estos equipos se venden con fila y silla. El resto, por cantidad.
+// Partidos de estos equipos como LOCALES se venden con fila y silla. El resto, por cantidad.
+// El nombre del evento es "Local vs Visitante".
 const EQUIPOS_NUMERADOS = ['santa fe', 'millonarios', 'atletico nacional', 'independiente medellin', 'america de cali', 'colombia']
 
 export const NO_NUMERADA = 'No Numerada'
@@ -14,8 +15,8 @@ export function normalizar(s) {
 
 export function esNumerado(evento) {
   if (normalizar(evento?.deporte) !== 'futbol') return false
-  const nombre = normalizar(evento?.nombre)
-  return EQUIPOS_NUMERADOS.some(eq => new RegExp(`(^|[^a-z])${eq}([^a-z]|$)`).test(nombre))
+  const local = normalizar(evento?.nombre).split(/\s+vs\.?\s+/)[0]
+  return EQUIPOS_NUMERADOS.some(eq => new RegExp(`(^|[^a-z])${eq}([^a-z]|$)`).test(local))
 }
 
 export function esNoNumerada(b) {
