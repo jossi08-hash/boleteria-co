@@ -4,7 +4,7 @@
  *
  * Pestañas:
  *   Por cantidad  → partidos y conciertos sin silla: se cambia el número de "Quedan".
- *   Numeradas     → Santa Fe, Millonarios, Nacional, Medellín, América y Selección: una fila por silla.
+ *   Numeradas     → Santa Fe, Millonarios, Nacional, Medellín, América y Selección de locales: una fila por silla.
  *   Eventos       → la llena el script; no se edita.
  *
  * Instalación: ver LEEME.md en esta misma carpeta.
@@ -15,6 +15,18 @@ const T_CANT = 'Por cantidad'
 const T_NUM = 'Numeradas'
 const T_EV = 'Eventos'
 const ESTADOS = ['Disponible', 'Vendida por fuera', 'Retirada']
+
+// Solo si el script se creó como proyecto aparte (no desde Extensiones → Apps Script de la hoja):
+// el id de la hoja, lo que va entre /d/ y /edit en su enlace.
+const HOJA_ID = ''
+
+function libro() {
+  return SpreadsheetApp.getActive() || SpreadsheetApp.openById(HOJA_ID)
+}
+
+function interfaz() {
+  try { return SpreadsheetApp.getUi() } catch (e) { return null }
+}
 
 // Columnas (1 = A)
 const C = { evento: 1, tribuna: 2, precio: 3, plataforma: 4, quedan: 5, vendidas: 6, pagando: 7, aviso: 8, base: 9 }
@@ -32,12 +44,19 @@ function onOpen() {
 // ---------- Configuración ----------
 
 function configurar() {
-  const ui = SpreadsheetApp.getUi()
-  const r = ui.prompt('Clave de Boletería CO', 'Pega la clave que te pasó Boletería CO (SHEET_SYNC_TOKEN):', ui.ButtonSet.OK_CANCEL)
-  if (r.getSelectedButton() !== ui.Button.OK || !r.getResponseText().trim()) return
-  PropertiesService.getScriptProperties().setProperty('TOKEN', r.getResponseText().trim())
+  // La clave se pide aquí si se corre desde el menú de la hoja. Si no, se guarda a mano en
+  // Configuración del proyecto → Propiedades de la secuencia de comandos → TOKEN.
+  const ui = interfaz()
+  if (ui) {
+    const r = ui.prompt('Clave de Boletería CO', 'Pega la clave que te pasó Boletería CO (SHEET_SYNC_TOKEN):', ui.ButtonSet.OK_CANCEL)
+    if (r.getSelectedButton() !== ui.Button.OK || !r.getResponseText().trim()) return
+    PropertiesService.getScriptProperties().setProperty('TOKEN', r.getResponseText().trim())
+  }
+  if (!PropertiesService.getScriptProperties().getProperty('TOKEN')) {
+    throw new Error('Falta la clave: Configuración del proyecto → Propiedades de la secuencia de comandos → agrega TOKEN')
+  }
 
-  const ss = SpreadsheetApp.getActive()
+  const ss = libro()
   prepararPestana(ss, T_CANT, ['Evento', 'Tribuna', 'Precio', 'Plataforma', 'Quedan', 'Vendidas en la web', 'Pagando ahora', 'Aviso', 'base'],
     [C.vendidas, C.pagando, C.aviso], C.base)
   prepararPestana(ss, T_NUM, ['Evento', 'Tribuna', 'Fila', 'Silla', 'Precio', 'Plataforma', 'Estado', 'En la web', 'Aviso'],
@@ -50,17 +69,21 @@ function configurar() {
     SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=LEFT($H2,7)="Vendida"')
       .setBackground('#eeeeee').setFontColor('#888888').setRanges([gris]).build(),
   ])
-  let ev = ss.getSheetByName(T_EV) || ss.insertSheet(T_EV)
+  const ev = ss.getSheetByName(T_EV) || ss.insertSheet(T_EV)
+  ss.getSheets().forEach(h => { if (/^(Hoja|Sheet) ?1$/.test(h.getName()) && h.getLastRow() === 0) ss.deleteSheet(h) })
   ev.protect().setWarningOnly(true)
 
   ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t))
   ScriptApp.newTrigger('alEditar').forSpreadsheet(ss).onEdit().create()
   ScriptApp.newTrigger('sincronizar').timeBased().everyMinutes(1).create()
   ScriptApp.newTrigger('actualizarEventos').timeBased().everyHours(6).create()
+  // proyecto aparte: el menú de la hoja se agrega con un activador de apertura
+  if (!SpreadsheetApp.getActive()) ScriptApp.newTrigger('onOpen').forSpreadsheet(ss).onOpen().create()
 
   actualizarEventos()
   sincronizar()
-  ui.alert('Listo. La hoja se sincroniza sola cada minuto y cada vez que editas una fila.')
+  const listo = 'Listo. La hoja se sincroniza sola cada minuto y cada vez que editas una fila.'
+  if (ui) ui.alert(listo); else Logger.log(listo)
 }
 
 function prepararPestana(ss, nombre, titulos, columnasSistema, columnaOculta) {
@@ -100,7 +123,7 @@ function etiqueta(e) {
 
 function actualizarEventos() {
   const { eventos } = api('get')
-  const ss = SpreadsheetApp.getActive()
+  const ss = libro()
   const h = ss.getSheetByName(T_EV) || ss.insertSheet(T_EV)
   h.clear()
   const cant = eventos.filter(e => !e.numerado).map(etiqueta)
@@ -121,7 +144,7 @@ function actualizarEventos() {
 }
 
 function mapaEventos() {
-  const h = SpreadsheetApp.getActive().getSheetByName(T_EV)
+  const h = libro().getSheetByName(T_EV)
   const m = {}
   if (!h || h.getLastRow() < 2) return m
   h.getRange(2, 3, h.getLastRow() - 1, 3).getValues().forEach(([et, id, trib]) => {
@@ -156,7 +179,7 @@ function sincronizar() {
   const lock = LockService.getScriptLock()
   if (!lock.tryLock(25000)) return
   try {
-    const ss = SpreadsheetApp.getActive()
+    const ss = libro()
     const hc = ss.getSheetByName(T_CANT), hn = ss.getSheetByName(T_NUM)
     if (!hc || !hn) return
     const ev = mapaEventos()
@@ -184,7 +207,7 @@ function sincronizar() {
     try {
       res = api('post', { cantidad: filasC.map(f => f.dato), numeradas: filasN.map(f => f.dato) })
     } catch (err) {
-      ss.toast(String(err.message || err), 'Boletería CO: no se pudo sincronizar', 10)
+      try { ss.toast(String(err.message || err), 'Boletería CO: no se pudo sincronizar', 10) } catch (e) { Logger.log(err) }
       return
     }
 

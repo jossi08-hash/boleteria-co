@@ -10,15 +10,18 @@ const handler = (await import('../api/hoja-socio.js')).default
 // ---- equipos numerados ----
 const f = nombre => ({ deporte: 'Futbol', nombre })
 assert.ok(esNumerado(f('Independiente Santa Fe vs Deportivo Pasto')))
-assert.ok(esNumerado(f('Deportes Tolima vs Millonarios')))
+assert.ok(esNumerado(f('Millonarios vs Deportes Tolima')))
+assert.ok(!esNumerado(f('Deportes Tolima vs Millonarios')))        // de visitante no
 assert.ok(esNumerado(f('Atlético Nacional vs Deportivo Pereira')))
-assert.ok(esNumerado(f('Fortaleza vs Independiente Medellín')))
+assert.ok(esNumerado(f('Independiente Medellín vs Fortaleza')))
+assert.ok(!esNumerado(f('Fortaleza vs Independiente Medellín')))
 assert.ok(esNumerado(f('América de Cali vs Deportivo Cali')))
 assert.ok(esNumerado(f('Colombia vs Chile')))
 assert.ok(!esNumerado(f('Boyacá Chicó vs Internacional de Bogotá')))
 assert.ok(!esNumerado(f('Junior vs Cúcuta Deportivo')))
+assert.ok(!esNumerado(f('Chile vs Colombia')))
 assert.ok(!esNumerado({ deporte: 'Concierto', nombre: 'Congreso Nacional del Chupe' }))
-console.log('✓ numerados: Santa Fe, Millonarios, Nacional, Medellín, América y Selección; el resto por cantidad')
+console.log('✓ numerados: Santa Fe, Millonarios, Nacional, Medellín, América y Selección solo de locales; el resto por cantidad')
 
 // ---- plan por cantidad: lo vendido en la web mientras el socio editaba no se pierde ----
 const ahora = new Date()
