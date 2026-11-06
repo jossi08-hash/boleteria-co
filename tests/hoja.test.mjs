@@ -132,6 +132,8 @@ assert.equal(r.numeradas[0].enLaWeb, 'Vendida por fuera')                    // 
 assert.ok(r.numeradas[0].avisos[0].includes('vendida'))
 r = await (await llamar({ numeradas: [silla('203', 'Retirada'), silla('203', 'Disponible')] })).json()
 assert.equal(r.numeradas[0].enLaWeb, 'Retirada'); assert.equal(r.numeradas[1].error, 'Fila repetida')
+r = await (await llamar({ numeradas: [silla('9', 'Disponible', { eventoId: EV_CANT, tribuna: 'Oriental' })] })).json()
+assert.ok(r.numeradas[0].error.includes('Por cantidad'))                 // un partido de visitante no va en Numeradas
 console.log('✓ numeradas: publica, marca vendida por fuera, retira y nunca toca una vendida o en pago')
 
 console.log('\nPRUEBAS DE LA HOJA PASARON')
