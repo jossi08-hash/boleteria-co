@@ -50,7 +50,8 @@ function configurar() {
     SpreadsheetApp.newConditionalFormatRule().whenFormulaSatisfied('=LEFT($H2,7)="Vendida"')
       .setBackground('#eeeeee').setFontColor('#888888').setRanges([gris]).build(),
   ])
-  let ev = ss.getSheetByName(T_EV) || ss.insertSheet(T_EV)
+  const ev = ss.getSheetByName(T_EV) || ss.insertSheet(T_EV)
+  ss.getSheets().forEach(h => { if (/^(Hoja|Sheet) ?1$/.test(h.getName()) && h.getLastRow() === 0) ss.deleteSheet(h) })
   ev.protect().setWarningOnly(true)
 
   ScriptApp.getProjectTriggers().forEach(t => ScriptApp.deleteTrigger(t))
