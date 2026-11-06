@@ -68,6 +68,7 @@ export default async function handler(req) {
       const evento = UUID.test(String(f?.eventoId)) ? porId.get(f.eventoId) : null
       if (!evento) return { error: 'Evento no encontrado o ya pasó' }
       if (!numerada && esNumerado(evento)) return { error: 'Este partido es numerado: va en la pestaña Numeradas' }
+      if (numerada && !esNumerado(evento)) return { error: 'Este evento va por cantidad: pásalo a la pestaña Por cantidad' }
       const tribuna = tribunaDelEvento(evento, f.tribuna)
       if (!tribuna) return { error: `Tribuna no válida. Opciones: ${(evento.tribunas || []).join(', ')}` }
       const precio = precioValido(f.precio)
