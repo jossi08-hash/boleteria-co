@@ -76,3 +76,14 @@ export async function actualizarPassword(nuevaPassword) {
   if (error) return { exito: false, mensaje: error.message }
   return { exito: true }
 }
+
+// Entrar o crear cuenta con Google. Google devuelve al usuario a la página y
+// onAuthStateChange (App.jsx) recibe la sesión. Si es nuevo, handle_new_user crea su perfil.
+export async function entrarConGoogle() {
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + '/' }
+  })
+  if (error) return { exito: false, mensaje: error.message }
+  return { exito: true }
+}

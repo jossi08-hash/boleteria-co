@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef, lazy, Suspense } from 'react'
 import { obtenerBoletas, publicarBoleta, crearOrden, generarCodigoOrden, obtenerMisCompras, obtenerMisVentas } from './lib/boletas'
-import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword } from './lib/auth'
+import { registrarUsuario, iniciarSesion, cerrarSesion, obtenerUsuarioActual, enviarRecuperacion, actualizarPassword, entrarConGoogle } from './lib/auth'
 import { supabase } from './lib/supabase'
 import { PLATAFORMAS, sugerirPlataforma } from './datos/plataformas'
 import { extraerEquipos } from './lib/equipos'
@@ -10,6 +10,7 @@ import { TITULO_BASE, RUTAS, paginaDesdeUrl, urlDePagina } from './rutas'
 import EscudoSVG from './componentes/EscudoSVG'
 import SillaExtraRow from './componentes/SillaExtraRow'
 import SelectorEvento from './componentes/SelectorEvento'
+import BotonGoogle from './componentes/BotonGoogle'
 import Icono from './componentes/Icono'
 import { enlaceWhatsApp } from './lib/contacto'
 import Inicio from './inicio/Inicio'
@@ -595,6 +596,16 @@ function App() {
     e.preventDefault()
     if (!usuario) { setMensaje('Debes iniciar sesion para publicar una boleta.'); return }
     if (!form.eventoId) { setMensaje('Elige el evento de tu boleta.'); return }
+    // Las cuentas creadas con Google no traen documento: se pide antes de la primera venta
+    if (!esAdmin) {
+      const { data: perfil } = await supabase.from('usuarios').select('documento').eq('id', usuario.id).single()
+      if (!perfil?.documento?.trim()) {
+        setMensaje('Antes de publicar, agrega tu número de documento en Mi perfil.')
+        toast('Antes de vender, agrega tu número de documento y tu dato de pago en Mi perfil.', 'info')
+        setPaginaActual('mi-perfil'); cargarPerfil()
+        return
+      }
+    }
     setMensaje('Publicando...')
     const todas = [{ tribuna: form.tribuna, fila: form.fila, silla: form.silla }, ...silasExtra]
     const resultados = await Promise.all(todas.map(s =>
@@ -666,6 +677,12 @@ function App() {
     const resultado = await iniciarSesion(formAuth)
     if (resultado.exito) { setUsuario(resultado.usuario); setVistaAuth(null); setPaginaActual('inicio'); setMensajeAuth('') }
     else { setMensajeAuth('Error: ' + resultado.mensaje) }
+  }
+
+  async function manejarGoogle() {
+    setMensajeAuth('Abriendo Google...')
+    const r = await entrarConGoogle()
+    if (!r.exito) setMensajeAuth('Error: ' + r.mensaje)
   }
 
   async function manejarCerrarSesion() { await cerrarSesion(); setUsuario(null); setPaginaActual('inicio') }
@@ -2063,6 +2080,7 @@ function App() {
             </nav>
             <div style={{maxWidth:'480px',margin:'0 auto',padding:'40px 20px 60px'}}>
               <form onSubmit={manejarLogin} style={s.tarjetaForm}>
+                <BotonGoogle onClick={manejarGoogle} />
                 <label style={s.label}>Correo</label>
                 <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
                 <label style={s.label}>Contraseña</label>
@@ -2141,6 +2159,7 @@ function App() {
             </nav>
             <div style={{maxWidth:'480px',margin:'0 auto',padding:'40px 20px 60px'}}>
               <form onSubmit={manejarRegistro} style={s.tarjetaForm}>
+                <BotonGoogle onClick={manejarGoogle} />
                 <label style={s.label}>Nombre</label>
                 <input name="nombre" value={formAuth.nombre} onChange={manejarCambioAuth} required style={s.input} />
                 <label style={s.label}>Número de documento</label>
@@ -2170,6 +2189,7 @@ function App() {
         {vistaAuth === 'login' && (
           <form onSubmit={manejarLogin} style={s.tarjetaForm}>
             <p style={s.tituloForm}>Iniciar sesion</p>
+            <BotonGoogle onClick={manejarGoogle} />
             <label style={s.label}>Correo</label>
             <input name="correo" type="email" value={formAuth.correo} onChange={manejarCambioAuth} required style={s.input} />
             <label style={s.label}>Contrasena</label>
@@ -2215,6 +2235,7 @@ function App() {
         {vistaAuth === 'registro' && (
           <form onSubmit={manejarRegistro} style={s.tarjetaForm}>
             <p style={s.tituloForm}>Crear cuenta</p>
+            <BotonGoogle onClick={manejarGoogle} />
             <label style={s.label}>Nombre</label>
             <input name="nombre" value={formAuth.nombre} onChange={manejarCambioAuth} required style={s.input} />
             <label style={s.label}>Número de documento</label>
