@@ -31,7 +31,7 @@ function fechaPartes(info) {
     dia: f.getDate(),
     mes: f.toLocaleDateString('es-CO', { month: 'short' }).replace('.', ''),
     semana: f.toLocaleDateString('es-CO', { weekday: 'short' }).replace('.', ''),
-    hora: info.hora ? info.hora.slice(0, 5) : '',
+    hora: info.hora ? info.hora.slice(0, 5) : 'Por confirmar',
   }
 }
 

@@ -2261,7 +2261,7 @@ function App() {
           const artistico = esArtistico(info?.deporte)
           const [equipo1, equipo2] = artistico ? [null, null] : extraerEquipos(info?.nombre || '')
           const fechaStr = info?.fecha ? new Date(info.fecha + 'T12:00:00').toLocaleDateString('es-CO',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}) : ''
-          const horaStr = info?.hora ? info.hora.slice(0,5) : ''
+          const horaStr = info?.hora ? info.hora.slice(0,5) : 'Hora por confirmar'
           const disponibles = ev.boletas.filter(b => b.estado === 'publicada')
           const porTribuna = {}
           disponibles.forEach(b => {
