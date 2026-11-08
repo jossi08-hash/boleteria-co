@@ -33,7 +33,7 @@ function Fila({ ev, onElegir, elegido }) {
       )}
       <span className="sel-ev-textos">
         <span className="sel-ev-nombre">{ev.nombre}</span>
-        <span className="sel-ev-lugar">{[ev.hora?.slice(0, 5), ev.estadio, ev.ciudad].filter(Boolean).join(' · ')}</span>
+        <span className="sel-ev-lugar">{[ev.hora?.slice(0, 5) || 'Hora por confirmar', ev.estadio, ev.ciudad].filter(Boolean).join(' · ')}</span>
       </span>
     </button>
   )
