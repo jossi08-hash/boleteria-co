@@ -398,10 +398,20 @@ function App() {
     }
   }
 
+  // Quién publicó una boleta y cuándo, para el panel de admin
+  function quienPublico(b) {
+    const u = b.usuarios
+    const quien = !u ? 'Vendedor desconocido'
+      : u.es_admin ? `Publicada por admin${u.nombre ? ' (' + u.nombre + ')' : ''}`
+      : [u.nombre || 'Sin nombre', u.correo, u.telefono].filter(Boolean).join(' · ')
+    const cuando = b.creado_en ? new Date(b.creado_en).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : ''
+    return cuando ? `${quien} · ${cuando}` : quien
+  }
+
   async function cargarBoletasAdmin() {
     const { data } = await supabase
       .from('boletas')
-      .select('id, tribuna, fila, silla, precio, estado, plataforma, publicada_por_admin, eventos(nombre, ciudad, estadio, fecha, hora, deporte, moneda), usuarios(nombre, es_admin)')
+      .select('id, tribuna, fila, silla, precio, estado, plataforma, publicada_por_admin, creado_en, eventos(nombre, ciudad, estadio, fecha, hora, deporte, moneda), usuarios(nombre, correo, telefono, es_admin)')
       .in('estado', ['publicada', 'reservada', 'oculta'])
       .order('creado_en', { ascending: false })
     setBoletasAdmin(data || [])
@@ -457,8 +467,9 @@ function App() {
   async function cargarBoletasPendientes() {
     const { data } = await supabase
       .from('boletas')
-      .select('id, tribuna, fila, silla, precio, estado, plataforma, publicada_por_admin, eventos(nombre, ciudad, estadio, fecha, hora, deporte, moneda)')
+      .select('id, tribuna, fila, silla, precio, estado, plataforma, publicada_por_admin, creado_en, eventos(nombre, ciudad, estadio, fecha, hora, deporte, moneda), usuarios(nombre, correo, telefono, es_admin)')
       .eq('estado', 'verificando')
+      .order('creado_en', { ascending: true })
     setBoletasPendientes(data || [])
   }
 
@@ -1635,6 +1646,7 @@ function App() {
                       <div>
                         <div style={{ color: c.texto, fontSize: '14px', fontWeight: '500' }}>{b.eventos ? b.eventos.nombre : ''}</div>
                         <div style={{ color: c.textoSec, fontSize: '12px' }}>Tribuna {b.tribuna} - Fila {b.fila} - Silla {b.silla} - ${Number(b.precio).toLocaleString('es-CO')}</div>
+                        <div style={{ color: c.textoSec, fontSize: '12px', marginTop: '2px' }}>{quienPublico(b)}</div>
                       </div>
                       <div>
                         <button style={s.botonAprobar} onClick={() => aprobarBoleta(b.id)}>Aprobar</button>
@@ -1726,9 +1738,10 @@ function App() {
                       <div>
                         <p style={{color:'#f5f1e4',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{b.eventos?.nombre || 'Evento'}</p>
                         <p style={{color:'#b9b4a6',fontSize:'12px',margin:0}}>
-                          {b.usuarios?.nombre} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}
+                          Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}
                           {' '}<span style={{color: b.estado==='oculta' ? '#facc15' : b.estado==='reservada' ? '#fb923c' : '#4ade80', fontWeight:'700'}}>({b.estado})</span>
                         </p>
+                        <p style={{color:'#8f8a7d',fontSize:'12px',margin:'2px 0 0'}}>{quienPublico(b)}</p>
                       </div>
                       <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                         {confirmarVendidaFuera === b.id
