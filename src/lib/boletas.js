@@ -43,7 +43,8 @@ export async function publicarBoleta({ eventoId, vendedorId, tribuna, fila, sill
 
   if (error) {
     console.error('Error al publicar boleta:', error.message)
-    return null
+    // 23505: esa silla ya está publicada en este evento
+    return error.code === '23505' ? { duplicada: true, fila, silla } : null
   }
   return data[0]
 }
