@@ -3,6 +3,7 @@ import EscudoSVG from './EscudoSVG'
 import { extraerEquipos } from '../lib/equipos'
 import { esArtistico } from '../lib/categorias'
 import '../estilo/selector-evento.css'
+import { terminado } from '../lib/eventos'
 
 // Selector de evento para publicar boletas: buscador, pestañas y eventos agrupados por día.
 // Reemplaza el <select> largo, que en el celular era imposible de recorrer.
@@ -47,7 +48,7 @@ export default function SelectorEvento({ eventos, value, onChange }) {
   const proximos = useMemo(() => {
     const hoy = hoyISO()
     return eventos
-      .filter(ev => ev.fecha && ev.fecha >= hoy)
+      .filter(ev => ev.fecha && ev.fecha >= hoy && !terminado(ev))
       .sort((a, b) => `${a.fecha} ${a.hora || ''}`.localeCompare(`${b.fecha} ${b.hora || ''}`))
   }, [eventos])
 

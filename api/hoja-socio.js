@@ -1,6 +1,7 @@
 export const config = { runtime: 'edge' }
 
 import { supa, json } from './_lib/pagos.js'
+import { terminado, diaBogota, eventosTerminados, ocultarTerminados } from './_lib/eventos.js'
 import {
   esNumerado, esNoNumerada, normalizar, tribunaDelEvento, precioValido, cantidadValida,
   planCantidad, resumenCantidad, planNumerada, estadoWeb, NO_NUMERADA, MAX_POR_TRIBUNA,
@@ -16,10 +17,6 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 const SELECT_BOLETA = 'id,evento_id,tribuna,fila,silla,precio,plataforma,estado,reservada_hasta,creado_en,ordenes(estado_pago)'
 const MAX_FILAS = 500
 
-function hoyBogota() {
-  return new Date(Date.now() - 5 * 3600 * 1000).toISOString().slice(0, 10)
-}
-
 async function leer(path) {
   const res = await supa(path)
   if (!res.ok) throw new Error(`Supabase ${res.status}`)
@@ -34,6 +31,7 @@ async function escribir(path, method, body) {
 
 const libre = ahora => `or=(estado.eq.publicada,and(estado.eq.reservada,reservada_hasta.lt.${ahora.toISOString()}))`
 const ids = lista => `id=in.(${lista.join(',')})`
+const soloEtiqueta = e => ({ id: e.id, nombre: e.nombre, ciudad: e.ciudad, fecha: e.fecha })
 
 export default async function handler(req) {
   const token = process.env.SHEET_SYNC_TOKEN
@@ -43,14 +41,18 @@ export default async function handler(req) {
   if (!process.env.SUPABASE_SERVICE_ROLE_KEY) return json({ error: 'Sin service role key' }, 500)
 
   try {
-    const eventos = await leer(`eventos?fecha=gte.${hoyBogota()}&select=id,nombre,deporte,ciudad,fecha,hora,tribunas&order=fecha,hora`)
+    // La hoja llama cada minuto: aprovechamos para ocultar las boletas de eventos que ya terminaron
+    const pasados = await eventosTerminados()
+    await ocultarTerminados(pasados)
+    const eventos = (await leer(`eventos?fecha=gte.${diaBogota(-1)}&select=id,nombre,deporte,ciudad,fecha,hora,tribunas&order=fecha,hora`))
+      .filter(e => !terminado(e))
     const porId = new Map(eventos.map(e => [e.id, e]))
 
     if (req.method === 'GET') {
       return json({ eventos: eventos.map(e => ({
         id: e.id, nombre: e.nombre, ciudad: e.ciudad, fecha: e.fecha, hora: e.hora,
         tribunas: e.tribunas || [], numerado: esNumerado(e),
-      })) })
+      })), pasados: pasados.map(soloEtiqueta) })
     }
     if (req.method !== 'POST') return json({ error: 'Method not allowed' }, 405)
 
@@ -148,6 +150,8 @@ export default async function handler(req) {
     const despues = new Date()
     return json({
       ok: true,
+      // la hoja oculta las filas de estos eventos (ya terminaron)
+      pasados: pasados.map(soloEtiqueta),
       cantidad: filasC.map(f => f.error ? { error: f.error } : {
         ...resumenCantidad(grupoC(f, boletas), despues), avisos: avisos.get(f) || [],
       }),
