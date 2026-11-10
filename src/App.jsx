@@ -63,6 +63,11 @@ function App() {
   const [confirmarVendidaFuera, setConfirmarVendidaFuera] = useState(null)
   const [boletaEditando, setBoletaEditando] = useState(null)
   const [busquedaBoleta, setBusquedaBoleta] = useState('')
+  const [historial, setHistorial] = useState([])
+  const [busquedaHistorial, setBusquedaHistorial] = useState('')
+  const [usuariosAdmin, setUsuariosAdmin] = useState([])
+  const [busquedaUsuario, setBusquedaUsuario] = useState('')
+  const [usuarioAbierto, setUsuarioAbierto] = useState(null)
   const [formEditarBoleta, setFormEditarBoleta] = useState({ tribuna: '', fila: '', silla: '', precio: '' })
   const [eventoEditando, setEventoEditando] = useState(null)
   const [formEditar, setFormEditar] = useState({})
@@ -398,10 +403,104 @@ function App() {
     }
   }
 
+  // Quién publicó una boleta y cuándo, para el panel de admin
+  function quienPublico(b) {
+    const u = b.usuarios
+    const quien = !u ? 'Vendedor desconocido'
+      : u.es_admin ? `Publicada por admin${u.nombre ? ' (' + u.nombre + ')' : ''}`
+      : [u.nombre || 'Sin nombre', u.correo, u.telefono].filter(Boolean).join(' · ')
+    const cuando = b.creado_en ? new Date(b.creado_en).toLocaleString('es-CO', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }) : ''
+    return cuando ? `${quien} · ${cuando}` : quien
+  }
+
+  // Correo al vendedor con el asunto y el saludo ya escritos
+  function correoVendedor(u, evento, b) {
+    if (!u?.correo || u.es_admin) return null
+    const asunto = `Tu boleta de ${evento || 'tu evento'} en Boletería CO`
+    const cuerpo = `Hola, ${(u.nombre || '').split(' ')[0]}.\n\nTe escribimos de Boletería CO por tu boleta de ${evento || 'tu evento'} (tribuna ${b?.tribuna || '-'}, fila ${b?.fila || '-'}, silla ${b?.silla || '-'}, $${Number(b?.precio || 0).toLocaleString('es-CO')}).\n\n`
+    return `mailto:${u.correo}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpo)}`
+  }
+
+  // Historial: cada alta, cambio y eliminación de boletas, con quién lo hizo
+  async function cargarHistorial() {
+    const { data } = await supabase.from('historial_boletas')
+      .select('id, boleta_id, accion, hecho_por, antes, despues, creado_en')
+      .order('creado_en', { ascending: false }).limit(200)
+    const filas = data || []
+    const copia = h => h.despues || h.antes || {}
+    const eventoIds = [...new Set(filas.map(h => copia(h).evento_id).filter(Boolean))]
+    const userIds = [...new Set(filas.flatMap(h => [copia(h).vendedor_id, h.hecho_por]).filter(Boolean))]
+    const [ev, us] = await Promise.all([
+      eventoIds.length ? supabase.from('eventos').select('id, nombre').in('id', eventoIds) : { data: [] },
+      userIds.length ? supabase.from('usuarios').select('id, nombre, correo, telefono, es_admin').in('id', userIds) : { data: [] },
+    ])
+    const eventos = Object.fromEntries((ev.data || []).map(e => [e.id, e.nombre]))
+    const usuarios = Object.fromEntries((us.data || []).map(u => [u.id, u]))
+    setHistorial(filas.map(h => ({ ...h, boleta: copia(h), evento: eventos[copia(h).evento_id] || 'Evento eliminado', vendedor: usuarios[copia(h).vendedor_id], autor: usuarios[h.hecho_por] })))
+  }
+
+  // Usuarios registrados con sus boletas, ventas, ganancias y compras
+  async function cargarUsuarios() {
+    const [us, bo, or] = await Promise.all([
+      supabase.from('usuarios').select('id, nombre, correo, telefono, documento, datos_pago, es_admin, creado_en').order('creado_en', { ascending: false }),
+      supabase.from('boletas').select('id, vendedor_id, estado, precio, publicada_por_admin, creado_en, tribuna, fila, silla, eventos(nombre, fecha), ordenes(codigo_orden, estado_pago, subtotal, comision, total, creado_en, liberado, liberado_en, reclamo_en, pago_vendedor_enviado)').order('creado_en', { ascending: false }),
+      supabase.from('ordenes').select('comprador_id, estado_pago'),
+    ])
+    const boletasDe = {}
+    for (const b of bo.data || []) {
+      const pagada = (b.ordenes || []).find(o => o.estado_pago === 'pagada') || null
+      ;(boletasDe[b.vendedor_id] ||= []).push({ ...b, venta: pagada })
+    }
+    const compras = {}
+    for (const o of or.data || []) if (o.estado_pago === 'pagada') compras[o.comprador_id] = (compras[o.comprador_id] || 0) + 1
+    setUsuariosAdmin((us.data || []).map(u => {
+      const boletas = boletasDe[u.id] || []
+      const ventas = boletas.filter(b => b.venta)
+      return {
+        ...u, boletas,
+        publicadas: boletas.length,
+        vendidasWeb: ventas.length,
+        vendidasFuera: boletas.filter(b => b.estado === 'vendida' && !b.venta).length,
+        ganancias: ventas.reduce((t, b) => t + netoVendedor({ ...b.venta, publicada_por_admin: b.publicada_por_admin }), 0),
+        porPagar: ventas.filter(b => !b.venta.pago_vendedor_enviado).reduce((t, b) => t + netoVendedor({ ...b.venta, publicada_por_admin: b.publicada_por_admin }), 0),
+        compras: compras[u.id] || 0,
+      }
+    }))
+  }
+
+  // "hace 3 h", "hace 2 días"
+  function hace(fecha) {
+    if (!fecha) return ''
+    const min = Math.max(0, Math.round((Date.now() - new Date(fecha).getTime()) / 60000))
+    if (min < 60) return `hace ${min} min`
+    const h = Math.round(min / 60)
+    if (h < 48) return `hace ${h} h`
+    return `hace ${Math.round(h / 24)} días`
+  }
+
+  function estadoVenta(b) {
+    const o = b.venta
+    if (!o) return b.estado === 'vendida' ? 'Vendida por fuera' : `Sin vender (${b.estado})`
+    const confirmacion = o.reclamo_en ? `con reclamo abierto ${hace(o.reclamo_en)}`
+      : o.liberado ? `compra confirmada${o.liberado_en ? ' ' + hace(o.liberado_en) : ''}`
+      : 'esperando que el comprador confirme (se libera sola después de 72 h)'
+    const pago = b.publicada_por_admin ? '' : o.liberado ? (o.pago_vendedor_enviado ? ' · pago al vendedor enviado' : ' · pago al vendedor pendiente') : ''
+    return `Vendida ${hace(o.creado_en)} · ${o.codigo_orden} · ${confirmacion}${pago}`
+  }
+
+  function describirCambio(h) {
+    if (h.accion === 'creada') return 'Publicó la boleta'
+    if (h.accion === 'eliminada') return 'Eliminó la boleta'
+    const nombres = { estado: 'Estado', precio: 'Precio', tribuna: 'Tribuna', fila: 'Fila', silla: 'Silla', plataforma: 'Plataforma' }
+    const cambios = Object.keys(nombres).filter(k => String(h.antes?.[k] ?? '') !== String(h.despues?.[k] ?? ''))
+      .map(k => `${nombres[k]}: ${h.antes?.[k] ?? '—'} → ${h.despues?.[k] ?? '—'}`)
+    return cambios.join(' · ') || 'Editó la boleta'
+  }
+
   async function cargarBoletasAdmin() {
     const { data } = await supabase
       .from('boletas')
-      .select('id, tribuna, fila, silla, precio, estado, plataforma, publicada_por_admin, eventos(nombre, ciudad, estadio, fecha, hora, deporte, moneda), usuarios(nombre, es_admin)')
+      .select('id, tribuna, fila, silla, precio, estado, plataforma, publicada_por_admin, creado_en, eventos(nombre, ciudad, estadio, fecha, hora, deporte, moneda), usuarios(nombre, correo, telefono, es_admin)')
       .in('estado', ['publicada', 'reservada', 'oculta'])
       .order('creado_en', { ascending: false })
     setBoletasAdmin(data || [])
@@ -457,8 +556,9 @@ function App() {
   async function cargarBoletasPendientes() {
     const { data } = await supabase
       .from('boletas')
-      .select('id, tribuna, fila, silla, precio, estado, plataforma, publicada_por_admin, eventos(nombre, ciudad, estadio, fecha, hora, deporte, moneda)')
+      .select('id, tribuna, fila, silla, precio, estado, plataforma, publicada_por_admin, creado_en, eventos(nombre, ciudad, estadio, fecha, hora, deporte, moneda), usuarios(nombre, correo, telefono, es_admin)')
       .eq('estado', 'verificando')
+      .order('creado_en', { ascending: true })
     setBoletasPendientes(data || [])
   }
 
@@ -611,6 +711,13 @@ function App() {
     const resultados = await Promise.all(todas.map(s =>
       publicarBoleta({ eventoId: form.eventoId, vendedorId: usuario.id, tribuna: s.tribuna, fila: s.fila, silla: s.silla, cantidad: 1, precio: Number(form.precio), plataforma: form.plataforma, publicadaPorAdmin: esAdmin })
     ))
+    const duplicadas = resultados.filter(r => r?.duplicada)
+    if (duplicadas.length) {
+      const sillas = duplicadas.map(d => `fila ${d.fila}, silla ${d.silla}`).join('; ')
+      setMensaje(`Esa silla ya está publicada en este evento (${sillas}). Revisa la fila y la silla.` + (duplicadas.length < resultados.length ? ' Las demás sí se enviaron.' : ''))
+      cargarBoletas()
+      return
+    }
     const exito = resultados.every(r => r !== null)
     if (exito) {
       const n = resultados.length
@@ -1615,10 +1722,12 @@ function App() {
                 {[
                   {key:'pendientes', label:'Pendientes', badge: boletasPendientes.length + ordenesLiberadas.filter(o=>!o.boletas?.usuarios?.es_admin).length + reclamosAbiertos.length},
                   {key:'mis-boletas', label:'Mis boletas', badge: boletasAdmin.length},
+                  {key:'usuarios', label:'Usuarios', badge: 0},
+                  {key:'historial', label:'Historial', badge: 0},
                   {key:'estadios', label:'Estadios', badge: 0},
                   {key:'eventos', label:'Eventos', badge: 0},
                 ].map(tab => (
-                  <button key={tab.key} onClick={()=>setPestanaAdmin(tab.key)} style={{flex:1,minWidth:'80px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaAdmin===tab.key?'#ffe23b':'transparent',color:pestanaAdmin===tab.key?'#141311':'#b9b4a6',whiteSpace:'nowrap',position:'relative'}}>
+                  <button key={tab.key} onClick={()=>{ setPestanaAdmin(tab.key); if (tab.key === 'historial') cargarHistorial(); if (tab.key === 'usuarios') cargarUsuarios() }} style={{flex:1,minWidth:'80px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaAdmin===tab.key?'#ffe23b':'transparent',color:pestanaAdmin===tab.key?'#141311':'#b9b4a6',whiteSpace:'nowrap',position:'relative'}}>
                     {tab.label}{tab.badge > 0 ? ` (${tab.badge})` : ''}
                   </button>
                 ))}
@@ -1635,6 +1744,8 @@ function App() {
                       <div>
                         <div style={{ color: c.texto, fontSize: '14px', fontWeight: '500' }}>{b.eventos ? b.eventos.nombre : ''}</div>
                         <div style={{ color: c.textoSec, fontSize: '12px' }}>Tribuna {b.tribuna} - Fila {b.fila} - Silla {b.silla} - ${Number(b.precio).toLocaleString('es-CO')}</div>
+                        <div style={{ color: c.textoSec, fontSize: '12px', marginTop: '2px' }}>{quienPublico(b)}</div>
+                        {correoVendedor(b.usuarios, b.eventos?.nombre, b) && <a href={correoVendedor(b.usuarios, b.eventos?.nombre, b)} style={{color:'#60a5fa',fontSize:'12px',fontWeight:'700',textDecoration:'none'}}>Escribir por correo →</a>}
                       </div>
                       <div>
                         <button style={s.botonAprobar} onClick={() => aprobarBoleta(b.id)}>Aprobar</button>
@@ -1726,9 +1837,11 @@ function App() {
                       <div>
                         <p style={{color:'#f5f1e4',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{b.eventos?.nombre || 'Evento'}</p>
                         <p style={{color:'#b9b4a6',fontSize:'12px',margin:0}}>
-                          {b.usuarios?.nombre} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}
+                          Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}
                           {' '}<span style={{color: b.estado==='oculta' ? '#facc15' : b.estado==='reservada' ? '#fb923c' : '#4ade80', fontWeight:'700'}}>({b.estado})</span>
                         </p>
+                        <p style={{color:'#8f8a7d',fontSize:'12px',margin:'2px 0 0'}}>{quienPublico(b)}</p>
+                        {correoVendedor(b.usuarios, b.eventos?.nombre, b) && <a href={correoVendedor(b.usuarios, b.eventos?.nombre, b)} style={{color:'#60a5fa',fontSize:'12px',fontWeight:'700',textDecoration:'none'}}>Escribir por correo →</a>}
                       </div>
                       <div style={{display:'flex',gap:'6px',flexWrap:'wrap'}}>
                         {confirmarVendidaFuera === b.id
@@ -1779,6 +1892,82 @@ function App() {
                 <hr style={s.separador}/>
               </div>
             )}
+              </>)}
+
+              {/* ── PESTAÑA: USUARIOS ── */}
+              {pestanaAdmin === 'usuarios' && (<>
+            <p style={{...s.tituloAdmin, marginBottom:'8px'}}>Usuarios registrados ({usuariosAdmin.length})</p>
+            <input type="text" placeholder="Buscar por nombre, correo, teléfono o documento..." value={busquedaUsuario} onChange={e => setBusquedaUsuario(e.target.value)}
+              style={{width:'100%',boxSizing:'border-box',background:'#141311',border:'1px solid #4a463d',borderRadius:'8px',padding:'8px 12px',color:'#f5f1e4',fontSize:'13px',marginBottom:'12px',outline:'none'}} />
+            {usuariosAdmin.filter(u => {
+              const q = busquedaUsuario.trim().toLowerCase()
+              if (!q) return true
+              return [u.nombre, u.correo, u.telefono, u.documento].some(v => (v || '').toLowerCase().includes(q))
+            }).map(u => {
+              const tel = (u.telefono || '').replace(/\D/g, '')
+              const wa = tel ? 'https://wa.me/' + (tel.length === 10 ? '57' + tel : tel) : null
+              return (
+                <div key={u.id} style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'10px',padding:'12px 14px',marginBottom:'8px'}}>
+                  <p style={{color:'#f5f1e4',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{u.nombre || 'Sin nombre'}{u.es_admin ? ' · admin' : ''}</p>
+                  <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>{u.correo || 'Sin correo'} · {u.telefono || 'Sin teléfono'} · Doc. {u.documento || 'pendiente'}</p>
+                  <p style={{color:'#8f8a7d',fontSize:'12px',margin:'0 0 6px'}}>
+                    Registrado: {u.creado_en ? new Date(u.creado_en).toLocaleString('es-CO', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' }) : '—'}
+                    {' · '}Dato de pago: {u.datos_pago ? 'sí' : 'no'}
+                  </p>
+                  <p style={{color:'#f5f1e4',fontSize:'12px',margin:'0 0 6px'}}>
+                    Subió {u.publicadas} · Vendió {u.vendidasWeb} en la web{u.vendidasFuera ? ` y ${u.vendidasFuera} por fuera` : ''} · Compró {u.compras}
+                    {u.vendidasWeb > 0 && <> · Ganancias ${u.ganancias.toLocaleString('es-CO')}{u.porPagar > 0 && !u.es_admin ? ` (por pagarle $${u.porPagar.toLocaleString('es-CO')})` : ''}</>}
+                  </p>
+                  <div style={{display:'flex',gap:'14px',flexWrap:'wrap'}}>
+                    {u.correo && <a href={`mailto:${u.correo}?subject=${encodeURIComponent('Boletería CO')}&body=${encodeURIComponent('Hola, ' + (u.nombre || '').split(' ')[0] + '.\n\n')}`} style={{color:'#60a5fa',fontSize:'12px',fontWeight:'700',textDecoration:'none'}}>Escribir por correo →</a>}
+                    {wa && <a href={wa} target="_blank" rel="noreferrer" style={{color:'#4ade80',fontSize:'12px',fontWeight:'700',textDecoration:'none'}}>WhatsApp →</a>}
+                    {u.publicadas > 0 && <button onClick={() => setUsuarioAbierto(usuarioAbierto === u.id ? null : u.id)} style={{background:'transparent',border:'none',color:'#f5f1e4',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:0}}>{usuarioAbierto === u.id ? 'Ocultar boletas' : 'Ver sus boletas →'}</button>}
+                    <button onClick={() => { setBusquedaHistorial(u.correo || u.nombre || ''); setPestanaAdmin('historial'); cargarHistorial() }} style={{background:'transparent',border:'none',color:'#facc15',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:0}}>Ver su historial →</button>
+                  </div>
+                  {usuarioAbierto === u.id && (
+                    <div style={{marginTop:'10px',borderTop:'1px dashed #34312b',paddingTop:'8px'}}>
+                      {u.boletas.map(b => (
+                        <div key={b.id} style={{padding:'6px 0',borderBottom:'1px solid #26231f'}}>
+                          <p style={{color:'#f5f1e4',fontSize:'12px',fontWeight:'700',margin:0}}>{b.eventos?.nombre || 'Evento'} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}</p>
+                          <p style={{color: b.venta ? (b.venta.liberado ? '#4ade80' : b.venta.reclamo_en ? '#f87171' : '#fb923c') : '#8f8a7d', fontSize:'12px', margin:'2px 0 0'}}>
+                            Subida {hace(b.creado_en)} · {estadoVenta(b)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+              </>)}
+
+              {/* ── PESTAÑA: HISTORIAL ── */}
+              {pestanaAdmin === 'historial' && (<>
+            <p style={{...s.tituloAdmin, marginBottom:'8px'}}>Historial de boletas</p>
+            <p style={{color:'#8f8a7d',fontSize:'12px',margin:'0 0 12px'}}>Quién publicó, cambió o eliminó cada boleta. Las eliminadas se guardan aquí con todos sus datos.</p>
+            <input type="text" placeholder="Buscar por evento, vendedor o correo..." value={busquedaHistorial} onChange={e => setBusquedaHistorial(e.target.value)}
+              style={{width:'100%',boxSizing:'border-box',background:'#141311',border:'1px solid #4a463d',borderRadius:'8px',padding:'8px 12px',color:'#f5f1e4',fontSize:'13px',marginBottom:'12px',outline:'none'}} />
+            {historial.length === 0 && <p style={{color:'#8f8a7d',fontSize:'13px'}}>Todavía no hay movimientos registrados.</p>}
+            {historial.filter(h => {
+              const q = busquedaHistorial.trim().toLowerCase()
+              if (!q) return true
+              return [h.evento, h.vendedor?.nombre, h.vendedor?.correo, h.autor?.nombre].some(v => (v || '').toLowerCase().includes(q))
+            }).map(h => {
+              const b = h.boleta
+              const color = h.accion === 'eliminada' ? '#f87171' : h.accion === 'creada' ? '#4ade80' : '#facc15'
+              return (
+                <div key={h.id} style={{background:'#1e1c19',border:'1px solid #34312b',borderLeft:`3px solid ${color}`,borderRadius:'10px',padding:'10px 14px',marginBottom:'8px'}}>
+                  <p style={{color:'#f5f1e4',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{h.evento} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio || 0).toLocaleString('es-CO')}</p>
+                  <p style={{color, fontSize:'12px',fontWeight:'700',margin:'0 0 2px'}}>{describirCambio(h)}</p>
+                  <p style={{color:'#8f8a7d',fontSize:'12px',margin:'0 0 2px'}}>
+                    {new Date(h.creado_en).toLocaleString('es-CO', { day:'numeric', month:'short', hour:'numeric', minute:'2-digit' })}
+                    {' · '}Hecho por: {h.autor ? (h.autor.es_admin ? `admin (${h.autor.nombre || ''})` : h.autor.nombre || h.autor.correo) : 'sistema'}
+                  </p>
+                  <p style={{color:'#8f8a7d',fontSize:'12px',margin:0}}>Vendedor: {quienPublico({ usuarios: h.vendedor })}</p>
+                  {correoVendedor(h.vendedor, h.evento, b) && <a href={correoVendedor(h.vendedor, h.evento, b)} style={{color:'#60a5fa',fontSize:'12px',fontWeight:'700',textDecoration:'none'}}>Escribir por correo →</a>}
+                </div>
+              )
+            })}
               </>)}
 
               {/* ── PESTAÑA: ESTADIOS ── */}
