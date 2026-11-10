@@ -122,6 +122,7 @@ function etiqueta(e) {
 }
 
 function actualizarEventos() {
+  PropertiesService.getScriptProperties().setProperty('EVENTOS_EN', String(Date.now()))
   const { eventos } = api('get')
   const ss = libro()
   const h = ss.getSheetByName(T_EV) || ss.insertSheet(T_EV)
@@ -182,20 +183,24 @@ function sincronizar() {
     const ss = libro()
     const hc = ss.getSheetByName(T_CANT), hn = ss.getSheetByName(T_NUM)
     if (!hc || !hn) return
+    // La lista de eventos se renueva cada hora (así los que terminaron salen del desplegable)
+    const ultima = Number(PropertiesService.getScriptProperties().getProperty('EVENTOS_EN') || 0)
+    if (Date.now() - ultima > 3600 * 1000) { try { actualizarEventos() } catch (e) { Logger.log(e) } }
     const ev = mapaEventos()
     const leer = (h, cols) => h.getLastRow() < 2 ? [] : h.getRange(2, 1, h.getLastRow() - 1, cols).getValues()
     const vc = leer(hc, C.base), vn = leer(hn, N.aviso)
 
     const filasC = [], filasN = []
+    // Las filas ocultas (eventos que ya terminaron) no se envían
     vc.forEach((v, i) => {
-      if (!v[C.evento - 1]) return
+      if (!v[C.evento - 1] || hc.isRowHiddenByUser(i + 2)) return
       filasC.push({ r: i + 2, quedan: v[C.quedan - 1], dato: {
         eventoId: (ev[v[C.evento - 1]] || {}).id || '', tribuna: v[C.tribuna - 1], precio: v[C.precio - 1],
         plataforma: v[C.plataforma - 1], quedan: v[C.quedan - 1], base: v[C.base - 1] === '' ? null : v[C.base - 1],
       } })
     })
     vn.forEach((v, i) => {
-      if (!v[N.evento - 1]) return
+      if (!v[N.evento - 1] || hn.isRowHiddenByUser(i + 2)) return
       filasN.push({ r: i + 2, dato: {
         eventoId: (ev[v[N.evento - 1]] || {}).id || '', tribuna: v[N.tribuna - 1], fila: v[N.fila - 1], silla: v[N.silla - 1],
         precio: v[N.precio - 1], plataforma: v[N.plataforma - 1], estado: v[N.estado - 1],
@@ -211,8 +216,18 @@ function sincronizar() {
       return
     }
 
+    // Eventos que terminaron hace 4 horas o más: se ocultan sus filas (no se borran)
+    const pasados = {}
+    ;(res.pasados || []).forEach(e => { pasados[etiqueta(e)] = true })
+    const ocultar = (h, filas, col) => filas.forEach(f => {
+      if (pasados[h.getRange(f.r, col).getValue()]) { h.hideRows(f.r); f.oculta = true }
+    })
+    ocultar(hc, filasC, C.evento)
+    ocultar(hn, filasN, N.evento)
+
     res.cantidad.forEach((x, i) => {
       const f = filasC[i]
+      if (f.oculta) return
       if (x.error) { hc.getRange(f.r, C.aviso).setValue('⚠️ ' + x.error); return }
       // si el socio cambió "Quedan" mientras se sincronizaba, no se pisa: se aplica en la próxima vuelta
       const ahora = hc.getRange(f.r, C.quedan).getValue()
@@ -224,6 +239,7 @@ function sincronizar() {
     })
     res.numeradas.forEach((x, i) => {
       const f = filasN[i]
+      if (f.oculta) return
       if (x.error) { hn.getRange(f.r, N.aviso).setValue('⚠️ ' + x.error); return }
       hn.getRange(f.r, N.web, 1, 2).setValues([[x.enLaWeb, x.avisos.join(' · ') || '✓ ' + hora()]])
     })

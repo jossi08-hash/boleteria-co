@@ -6,6 +6,7 @@ import { enlaceWhatsApp, WHATSAPP_VISIBLE } from '../lib/contacto'
 import AnilloBoletas from './AnilloBoletas'
 import { FOTOS_ANILLO } from './fotos'
 import { totalComprador } from '../lib/pagos'
+import { terminado } from '../lib/eventos'
 import './inicio.css'
 
 const esArtisticoInfo = (info) => esArtistico(info?.deporte)
@@ -80,14 +81,14 @@ export default function Inicio({
     }
     const mapa = {}
     boletas.forEach(b => {
-      // Las boletas de eventos que ya pasaron no se muestran, aunque sigan publicadas
-      if (b.estado !== 'publicada' || (b.eventos?.fecha && b.eventos.fecha < hoy) || !coincide(b.eventos)) return
+      // Las boletas de eventos que terminaron (4 h después de empezar) no se muestran, aunque sigan publicadas
+      if (b.estado !== 'publicada' || terminado(b.eventos) || !coincide(b.eventos)) return
       const eid = String(b.evento_id || b.eventos?.id || b.id)
       if (!mapa[eid]) mapa[eid] = { info: b.eventos, boletas: [] }
       mapa[eid].boletas.push(b)
     })
     const sinBoletas = eventos
-      .filter(ev => ev.fecha && ev.fecha >= hoy && !mapa[String(ev.id)] && coincide(ev))
+      .filter(ev => ev.fecha && ev.fecha >= hoy && !terminado(ev) && !mapa[String(ev.id)] && coincide(ev))
       .map(ev => [String(ev.id), { info: ev, boletas: [], sinBoletas: true }])
     return [...Object.entries(mapa), ...sinBoletas]
       .sort((a, b) => `${a[1].info?.fecha || ''} ${a[1].info?.hora || ''}`.localeCompare(`${b[1].info?.fecha || ''} ${b[1].info?.hora || ''}`))
@@ -96,11 +97,11 @@ export default function Inicio({
   const deportivos = todos.filter(([, ev]) => !esArtisticoInfo(ev.info))
   const artisticos = todos.filter(([, ev]) => esArtisticoInfo(ev.info))
   const lista = pestana === 'deportivos' ? deportivos : artisticos
-  const ciudades = [...new Set(boletas.filter(b => !(b.eventos?.fecha < hoy)).map(b => b.eventos?.ciudad).filter(Boolean))]
+  const ciudades = [...new Set(boletas.filter(b => !terminado(b.eventos)).map(b => b.eventos?.ciudad).filter(Boolean))]
 
   // Próximos eventos para la marquesina
   const proximos = eventos
-    .filter(ev => ev.fecha && ev.fecha >= hoy)
+    .filter(ev => ev.fecha && ev.fecha >= hoy && !terminado(ev))
     .sort((a, b) => `${a.fecha} ${a.hora || ''}`.localeCompare(`${b.fecha} ${b.hora || ''}`))
     .slice(0, 5)
   const marquesina = [

@@ -2,6 +2,7 @@ export const config = { runtime: 'edge' }
 
 import { supa, json, correoAdmin, enviarCorreo } from './_lib/pagos.js'
 import { correo, parrafo, escapar } from './_lib/plantilla.js'
+import { ocultarTerminados } from './_lib/eventos.js'
 
 // Corre una vez al día (cron en vercel.json). Libera las órdenes pagadas hace más de 72 h
 // que el comprador no confirmó ni reclamó, avisa al admin qué vendedores hay que pagar
@@ -63,5 +64,9 @@ export default async function handler(req) {
   })
   const reservas = await resReservas.json().catch(() => [])
 
-  return json({ ok: true, liberadas: liberadas.length, porPagar: porPagar.length, reservasVencidas: Array.isArray(reservas) ? reservas.length : 0 })
+  // Respaldo: la hoja del socio ya lo hace cada minuto, pero si deja de llamar, esto oculta
+  // una vez al día las boletas de eventos que terminaron.
+  const ocultadas = await ocultarTerminados().catch(() => 0)
+
+  return json({ ok: true, liberadas: liberadas.length, porPagar: porPagar.length, reservasVencidas: Array.isArray(reservas) ? reservas.length : 0, ocultadas })
 }
