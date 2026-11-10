@@ -12,6 +12,7 @@ import SillaExtraRow from './componentes/SillaExtraRow'
 import SelectorEvento from './componentes/SelectorEvento'
 import BotonGoogle from './componentes/BotonGoogle'
 import Icono from './componentes/Icono'
+import UsuariosAdmin from './componentes/UsuariosAdmin'
 import { enlaceWhatsApp } from './lib/contacto'
 import Inicio from './inicio/Inicio'
 import './estilo/afiche.css'
@@ -66,8 +67,6 @@ function App() {
   const [historial, setHistorial] = useState([])
   const [busquedaHistorial, setBusquedaHistorial] = useState('')
   const [usuariosAdmin, setUsuariosAdmin] = useState([])
-  const [busquedaUsuario, setBusquedaUsuario] = useState('')
-  const [usuarioAbierto, setUsuarioAbierto] = useState(null)
   const [formEditarBoleta, setFormEditarBoleta] = useState({ tribuna: '', fila: '', silla: '', precio: '' })
   const [eventoEditando, setEventoEditando] = useState(null)
   const [formEditar, setFormEditar] = useState({})
@@ -443,16 +442,17 @@ function App() {
   async function cargarUsuarios() {
     const [us, bo, or] = await Promise.all([
       supabase.from('usuarios').select('id, nombre, correo, telefono, documento, datos_pago, es_admin, creado_en').order('creado_en', { ascending: false }),
-      supabase.from('boletas').select('id, vendedor_id, estado, precio, publicada_por_admin, creado_en, tribuna, fila, silla, eventos(nombre, fecha), ordenes(codigo_orden, estado_pago, subtotal, comision, total, creado_en, liberado, liberado_en, reclamo_en, pago_vendedor_enviado)').order('creado_en', { ascending: false }),
-      supabase.from('ordenes').select('comprador_id, estado_pago'),
+      supabase.from('boletas').select('id, vendedor_id, estado, precio, publicada_por_admin, creado_en, tribuna, fila, silla, eventos(nombre, fecha), ordenes(codigo_orden, estado_pago, subtotal, comision, total, creado_en, liberado, liberado_en, reclamo_en, reclamo_resuelto_en, pago_vendedor_enviado)').order('creado_en', { ascending: false }),
+      supabase.from('ordenes').select('comprador_id, estado_pago, codigo_orden, total, creado_en, liberado, reclamo_en, reclamo_resuelto_en, boletas(tribuna, fila, silla, eventos(nombre))').eq('estado_pago', 'pagada').order('creado_en', { ascending: false }),
     ])
     const boletasDe = {}
     for (const b of bo.data || []) {
       const pagada = (b.ordenes || []).find(o => o.estado_pago === 'pagada') || null
-      ;(boletasDe[b.vendedor_id] ||= []).push({ ...b, venta: pagada })
+      const ganancia = pagada ? netoVendedor({ ...pagada, publicada_por_admin: b.publicada_por_admin }) : 0
+      ;(boletasDe[b.vendedor_id] ||= []).push({ ...b, venta: pagada, ganancia })
     }
-    const compras = {}
-    for (const o of or.data || []) if (o.estado_pago === 'pagada') compras[o.comprador_id] = (compras[o.comprador_id] || 0) + 1
+    const comprasDe = {}
+    for (const o of or.data || []) (comprasDe[o.comprador_id] ||= []).push(o)
     setUsuariosAdmin((us.data || []).map(u => {
       const boletas = boletasDe[u.id] || []
       const ventas = boletas.filter(b => b.venta)
@@ -461,9 +461,10 @@ function App() {
         publicadas: boletas.length,
         vendidasWeb: ventas.length,
         vendidasFuera: boletas.filter(b => b.estado === 'vendida' && !b.venta).length,
-        ganancias: ventas.reduce((t, b) => t + netoVendedor({ ...b.venta, publicada_por_admin: b.publicada_por_admin }), 0),
-        porPagar: ventas.filter(b => !b.venta.pago_vendedor_enviado).reduce((t, b) => t + netoVendedor({ ...b.venta, publicada_por_admin: b.publicada_por_admin }), 0),
-        compras: compras[u.id] || 0,
+        ganancias: ventas.reduce((t, b) => t + b.ganancia, 0),
+        porPagar: ventas.filter(b => !b.venta.pago_vendedor_enviado).reduce((t, b) => t + b.ganancia, 0),
+        compras: (comprasDe[u.id] || []).length,
+        comprasLista: comprasDe[u.id] || [],
       }
     }))
   }
@@ -476,16 +477,6 @@ function App() {
     const h = Math.round(min / 60)
     if (h < 48) return `hace ${h} h`
     return `hace ${Math.round(h / 24)} días`
-  }
-
-  function estadoVenta(b) {
-    const o = b.venta
-    if (!o) return b.estado === 'vendida' ? 'Vendida por fuera' : `Sin vender (${b.estado})`
-    const confirmacion = o.reclamo_en ? `con reclamo abierto ${hace(o.reclamo_en)}`
-      : o.liberado ? `compra confirmada${o.liberado_en ? ' ' + hace(o.liberado_en) : ''}`
-      : 'esperando que el comprador confirme (se libera sola después de 72 h)'
-    const pago = b.publicada_por_admin ? '' : o.liberado ? (o.pago_vendedor_enviado ? ' · pago al vendedor enviado' : ' · pago al vendedor pendiente') : ''
-    return `Vendida ${hace(o.creado_en)} · ${o.codigo_orden} · ${confirmacion}${pago}`
   }
 
   function describirCambio(h) {
@@ -1727,7 +1718,7 @@ function App() {
                   {key:'estadios', label:'Estadios', badge: 0},
                   {key:'eventos', label:'Eventos', badge: 0},
                 ].map(tab => (
-                  <button key={tab.key} onClick={()=>{ setPestanaAdmin(tab.key); if (tab.key === 'historial') cargarHistorial(); if (tab.key === 'usuarios') cargarUsuarios() }} style={{flex:1,minWidth:'80px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaAdmin===tab.key?'#ffe23b':'transparent',color:pestanaAdmin===tab.key?'#141311':'#b9b4a6',whiteSpace:'nowrap',position:'relative'}}>
+                  <button key={tab.key} onClick={()=>{ setPestanaAdmin(tab.key); if (tab.key === 'historial') cargarHistorial(); if (tab.key === 'usuarios') { cargarUsuarios(); cargarHistorial() } }} style={{flex:1,minWidth:'80px',padding:'8px 4px',borderRadius:'7px',border:'none',cursor:'pointer',fontWeight:'600',fontSize:'12px',background:pestanaAdmin===tab.key?'#ffe23b':'transparent',color:pestanaAdmin===tab.key?'#141311':'#b9b4a6',whiteSpace:'nowrap',position:'relative'}}>
                     {tab.label}{tab.badge > 0 ? ` (${tab.badge})` : ''}
                   </button>
                 ))}
@@ -1895,51 +1886,9 @@ function App() {
               </>)}
 
               {/* ── PESTAÑA: USUARIOS ── */}
-              {pestanaAdmin === 'usuarios' && (<>
-            <p style={{...s.tituloAdmin, marginBottom:'8px'}}>Usuarios registrados ({usuariosAdmin.length})</p>
-            <input type="text" placeholder="Buscar por nombre, correo, teléfono o documento..." value={busquedaUsuario} onChange={e => setBusquedaUsuario(e.target.value)}
-              style={{width:'100%',boxSizing:'border-box',background:'#141311',border:'1px solid #4a463d',borderRadius:'8px',padding:'8px 12px',color:'#f5f1e4',fontSize:'13px',marginBottom:'12px',outline:'none'}} />
-            {usuariosAdmin.filter(u => {
-              const q = busquedaUsuario.trim().toLowerCase()
-              if (!q) return true
-              return [u.nombre, u.correo, u.telefono, u.documento].some(v => (v || '').toLowerCase().includes(q))
-            }).map(u => {
-              const tel = (u.telefono || '').replace(/\D/g, '')
-              const wa = tel ? 'https://wa.me/' + (tel.length === 10 ? '57' + tel : tel) : null
-              return (
-                <div key={u.id} style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'10px',padding:'12px 14px',marginBottom:'8px'}}>
-                  <p style={{color:'#f5f1e4',fontSize:'13px',fontWeight:'700',margin:'0 0 2px'}}>{u.nombre || 'Sin nombre'}{u.es_admin ? ' · admin' : ''}</p>
-                  <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>{u.correo || 'Sin correo'} · {u.telefono || 'Sin teléfono'} · Doc. {u.documento || 'pendiente'}</p>
-                  <p style={{color:'#8f8a7d',fontSize:'12px',margin:'0 0 6px'}}>
-                    Registrado: {u.creado_en ? new Date(u.creado_en).toLocaleString('es-CO', { day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit' }) : '—'}
-                    {' · '}Dato de pago: {u.datos_pago ? 'sí' : 'no'}
-                  </p>
-                  <p style={{color:'#f5f1e4',fontSize:'12px',margin:'0 0 6px'}}>
-                    Subió {u.publicadas} · Vendió {u.vendidasWeb} en la web{u.vendidasFuera ? ` y ${u.vendidasFuera} por fuera` : ''} · Compró {u.compras}
-                    {u.vendidasWeb > 0 && <> · Ganancias ${u.ganancias.toLocaleString('es-CO')}{u.porPagar > 0 && !u.es_admin ? ` (por pagarle $${u.porPagar.toLocaleString('es-CO')})` : ''}</>}
-                  </p>
-                  <div style={{display:'flex',gap:'14px',flexWrap:'wrap'}}>
-                    {u.correo && <a href={`mailto:${u.correo}?subject=${encodeURIComponent('Boletería CO')}&body=${encodeURIComponent('Hola, ' + (u.nombre || '').split(' ')[0] + '.\n\n')}`} style={{color:'#60a5fa',fontSize:'12px',fontWeight:'700',textDecoration:'none'}}>Escribir por correo →</a>}
-                    {wa && <a href={wa} target="_blank" rel="noreferrer" style={{color:'#4ade80',fontSize:'12px',fontWeight:'700',textDecoration:'none'}}>WhatsApp →</a>}
-                    {u.publicadas > 0 && <button onClick={() => setUsuarioAbierto(usuarioAbierto === u.id ? null : u.id)} style={{background:'transparent',border:'none',color:'#f5f1e4',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:0}}>{usuarioAbierto === u.id ? 'Ocultar boletas' : 'Ver sus boletas →'}</button>}
-                    <button onClick={() => { setBusquedaHistorial(u.correo || u.nombre || ''); setPestanaAdmin('historial'); cargarHistorial() }} style={{background:'transparent',border:'none',color:'#facc15',fontSize:'12px',fontWeight:'700',cursor:'pointer',padding:0}}>Ver su historial →</button>
-                  </div>
-                  {usuarioAbierto === u.id && (
-                    <div style={{marginTop:'10px',borderTop:'1px dashed #34312b',paddingTop:'8px'}}>
-                      {u.boletas.map(b => (
-                        <div key={b.id} style={{padding:'6px 0',borderBottom:'1px solid #26231f'}}>
-                          <p style={{color:'#f5f1e4',fontSize:'12px',fontWeight:'700',margin:0}}>{b.eventos?.nombre || 'Evento'} · Trib. {b.tribuna} F.{b.fila} S.{b.silla} · ${Number(b.precio).toLocaleString('es-CO')}</p>
-                          <p style={{color: b.venta ? (b.venta.liberado ? '#4ade80' : b.venta.reclamo_en ? '#f87171' : '#fb923c') : '#8f8a7d', fontSize:'12px', margin:'2px 0 0'}}>
-                            Subida {hace(b.creado_en)} · {estadoVenta(b)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-              </>)}
+              {pestanaAdmin === 'usuarios' && (
+                <UsuariosAdmin usuarios={usuariosAdmin} historial={historial} esMobile={esMobile} hace={hace} describirCambio={describirCambio} />
+              )}
 
               {/* ── PESTAÑA: HISTORIAL ── */}
               {pestanaAdmin === 'historial' && (<>
