@@ -18,3 +18,14 @@ export function desglosePago(orden, boleta) {
   const vendedor = precio - comision
   return { precio, total, wompi, llego: total - wompi, comision, vendedor, queda: total - wompi - vendedor }
 }
+
+// Lo que paga el comprador. Boletas de terceros: precio + ~15 %. Boletas propias: precio + lo justo para
+// cubrir la tarifa de Wompi, así llega completo el precio publicado. Siempre redondeado a $1.000.
+// OJO: api/_lib/pagos.js (totalEsperado) repite esta fórmula para validar el cobro; cambiar ambas juntas.
+export function totalComprador(precio, esPropia) {
+  const p = Number(precio || 0)
+  if (!p) return 0
+  if (!esPropia) return Math.round(p * 1.15 / 1000) * 1000
+  const { porcentaje, fijo, iva } = TARIFA_WOMPI
+  return Math.ceil((p + fijo * (1 + iva)) / (1 - porcentaje * (1 + iva)) / 1000) * 1000
+}
