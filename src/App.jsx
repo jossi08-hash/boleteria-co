@@ -2572,7 +2572,7 @@ function App() {
                   const moneda = info?.moneda || 'COP'
                   const esAdminB = b.publicada_por_admin === true || b.usuarios?.es_admin === true
                   const enCarrito = carrito.some(ci => ci.id === b.id)
-                  const precioFinal = calcularTotal(b.precio, moneda, esAdminB)
+                  const precioFinal = calcularTotal(b.precio, moneda, b.publicada_por_admin === true)  // igual que el cobro
                   return (
                     <div key={b.id} className={`af-boleta${enCarrito ? ' es-elegida' : ''}`}>
                       <div className="af-boleta-cuerpo">
