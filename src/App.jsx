@@ -14,7 +14,7 @@ import BotonGoogle from './componentes/BotonGoogle'
 import Icono from './componentes/Icono'
 import UsuariosAdmin from './componentes/UsuariosAdmin'
 import PagoPendiente from './componentes/PagoPendiente'
-import { desglosePago } from './lib/pagos'
+import { desglosePago, totalComprador } from './lib/pagos'
 import { enlaceWhatsApp } from './lib/contacto'
 import Inicio from './inicio/Inicio'
 import './estilo/afiche.css'
@@ -864,9 +864,7 @@ function App() {
   }
 
   function calcularTotal(precio, moneda, esAdmin = false) {
-    if (esAdmin) return formatearPrecio(Number(precio), moneda)
-    const redondeado = Math.round(Number(precio) * 1.15 / 1000) * 1000
-    return formatearPrecio(redondeado, moneda)
+    return formatearPrecio(totalComprador(precio, esAdmin), moneda)
   }
 
   function startTimer(segundos) {
@@ -914,7 +912,7 @@ function App() {
     const ordenes = await Promise.all(carrito.map((b, i) => {
       const subtotal = Number(b.precio)
       const esBoletaAdmin = b.publicada_por_admin === true
-      const comision = esBoletaAdmin ? 0 : Math.round(subtotal * 1.15 / 1000) * 1000 - subtotal
+      const comision = totalComprador(subtotal, esBoletaAdmin) - subtotal
       const total = subtotal + comision
       const codigoOrden = i === 0 ? codigoBase : `${codigoBase}-${i + 1}`
       return crearOrden({ boletaId: b.id, compradorId: usuario.id, subtotal, comision, total, metodoPago: 'wompi', codigoOrden })
@@ -2657,7 +2655,7 @@ function App() {
                     const monB = b.eventos?.moneda || 'COP'
                     const subB = Number(b.precio)
                     const esAdminB = b.publicada_por_admin === true
-                    const totB = esAdminB ? subB : Math.round(subB * 1.15 / 1000) * 1000
+                    const totB = totalComprador(subB, esAdminB)
                     return (
                       <div key={b.id} style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'14px',padding:'16px 18px',marginBottom:'12px'}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',gap:'12px'}}>
@@ -2678,7 +2676,7 @@ function App() {
                   {/* Resumen total */}
                   {(() => {
                     const monC = carrito[0]?.eventos?.moneda || 'COP'
-                    const totalC = carrito.reduce((s, b) => s + (b.publicada_por_admin === true ? Number(b.precio) : Math.round(Number(b.precio) * 1.15 / 1000) * 1000), 0)
+                    const totalC = carrito.reduce((s, b) => s + totalComprador(b.precio, b.publicada_por_admin === true), 0)
                     return (
                       <div style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'14px',padding:'20px',marginTop:'8px',marginBottom:'24px'}}>
                         <p style={{color:'#b9b4a6',fontSize:'11px',fontWeight:'700',letterSpacing:'0.5px',textTransform:'uppercase',margin:'0 0 14px'}}>Resumen</p>
