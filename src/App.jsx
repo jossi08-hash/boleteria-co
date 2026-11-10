@@ -13,6 +13,8 @@ import SelectorEvento from './componentes/SelectorEvento'
 import BotonGoogle from './componentes/BotonGoogle'
 import Icono from './componentes/Icono'
 import UsuariosAdmin from './componentes/UsuariosAdmin'
+import PagoPendiente from './componentes/PagoPendiente'
+import { desglosePago } from './lib/pagos'
 import { enlaceWhatsApp } from './lib/contacto'
 import Inicio from './inicio/Inicio'
 import './estilo/afiche.css'
@@ -375,7 +377,7 @@ function App() {
   async function cargarOrdenesLiberadas() {
     const { data, error } = await supabase
       .from('ordenes')
-      .select(`id, codigo_orden, total, creado_en, liberado_en, pago_vendedor_enviado,
+      .select(`id, codigo_orden, subtotal, comision, total, creado_en, liberado_en, pago_vendedor_enviado,
         boletas(tribuna, fila, silla, precio, vendedor_id,
           eventos(nombre, ciudad),
           usuarios(nombre, correo, es_admin, datos_pago))`)
@@ -1772,38 +1774,31 @@ function App() {
                 })}
               </div>
             )}
-            {ordenesLiberadas.length > 0 && (
-              <div style={{ marginBottom: '20px' }}>
-                <p style={{color:'#fbbf24',fontSize:'14px',fontWeight:'600',margin:'0 0 12px'}}>
-                  Pagos pendientes de envío al vendedor ({ordenesLiberadas.length})
-                </p>
-                {ordenesLiberadas.map(function(o) {
-                  const b = o.boletas
-                  const ev = b?.eventos
-                  const esBoletaAdmin = b?.usuarios?.es_admin === true
-                  if (esBoletaAdmin) return null
-                  const neto = Math.round(Number(b?.precio || 0) * 0.92)
-                  return (
-                    <div key={o.id} style={{background:'#1c2a1c',border:'1px solid #166534',borderRadius:'10px',padding:'14px',marginBottom:'10px',display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:'10px'}}>
-                      <div>
-                        <p style={{color:'#f5f1e4',fontWeight:'600',margin:'0 0 2px',fontSize:'13px'}}>{ev?.nombre || 'Evento'} · {ev?.ciudad || ''}</p>
-                        <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0 0 2px'}}>Vendedor: {b?.usuarios?.nombre || 'N/A'} — {b?.usuarios?.correo || ''}</p>
-                        <p style={{color:'#ffe23b',fontSize:'12px',margin:'0 0 2px'}}>{b?.usuarios?.datos_pago || <span style={{color:'#8f8a7d',fontStyle:'italic'}}>Sin dato de pago registrado</span>}</p>
-                        <p style={{color:'#b9b4a6',fontSize:'12px',margin:'0'}}>Ref: {o.codigo_orden} · Pagar: <strong style={{color:'#34d399'}}>${neto.toLocaleString('es-CO')}</strong> (92% del precio)</p>
-                      </div>
-                      <button onClick={() => marcarPagadoVendedor(o.id)}
-                        style={{background:'#16a34a',color:'#fff',border:'none',borderRadius:'6px',padding:'8px 16px',fontSize:'13px',fontWeight:'600',cursor:'pointer',whiteSpace:'nowrap'}}>
-                        Marcar pagado
-                      </button>
-                    </div>
-                  )
-                })}
-                <hr style={s.separador} />
-              </div>
-            )}
-            {ordenesLiberadas.filter(o => !o.boletas?.usuarios?.es_admin).length === 0 && (
-              <p style={{color:'#8f8a7d',fontSize:'13px',marginBottom:'16px'}}>No hay pagos pendientes de envío.</p>
-            )}
+            {(() => {
+              const porPagar = ordenesLiberadas.filter(o => !o.boletas?.usuarios?.es_admin)
+              if (porPagar.length === 0) return <p style={{color:'#8f8a7d',fontSize:'13px',marginBottom:'16px'}}>No hay pagos pendientes de envío.</p>
+              const sumas = porPagar.map(o => desglosePago(o, o.boletas))
+              const debes = sumas.reduce((t, d) => t + d.vendedor, 0)
+              const ganas = sumas.reduce((t, d) => t + d.queda, 0)
+              const cifra = (label, valor, color) => (
+                <div style={{background:'#1e1c19',border:'1px solid #34312b',borderRadius:'8px',padding:'9px 11px'}}>
+                  <div style={{color:'#8f8a7d',fontSize:'11px'}}>{label}</div>
+                  <div style={{color,fontSize:'17px',fontWeight:'800',marginTop:'2px'}}>{valor}</div>
+                </div>
+              )
+              return (
+                <div style={{ marginBottom: '20px' }}>
+                  <p style={{color:'#fbbf24',fontSize:'14px',fontWeight:'600',margin:'0 0 10px'}}>Pagos pendientes de envío al vendedor ({porPagar.length})</p>
+                  <div style={{display:'grid',gridTemplateColumns:'repeat(3, minmax(0,1fr))',gap:'8px',marginBottom:'12px'}}>
+                    {cifra('Debes a vendedores', '$' + debes.toLocaleString('es-CO'), '#4ade80')}
+                    {cifra('Pagos pendientes', porPagar.length, '#f5f1e4')}
+                    {cifra('Tu ganancia (estimada)', '$' + ganas.toLocaleString('es-CO'), '#ffe23b')}
+                  </div>
+                  {porPagar.map(o => <PagoPendiente key={o.id} orden={o} hace={hace} onMarcarPagado={marcarPagadoVendedor} />)}
+                  <hr style={s.separador} />
+                </div>
+              )
+            })()}
               </>)}
 
               {/* ── PESTAÑA: MIS BOLETAS ADMIN ── */}
