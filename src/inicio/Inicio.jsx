@@ -5,6 +5,7 @@ import { esArtistico } from '../lib/categorias'
 import { enlaceWhatsApp, WHATSAPP_VISIBLE } from '../lib/contacto'
 import AnilloBoletas from './AnilloBoletas'
 import { FOTOS_ANILLO } from './fotos'
+import { totalComprador } from '../lib/pagos'
 import './inicio.css'
 
 const esArtisticoInfo = (info) => esArtistico(info?.deporte)
@@ -277,8 +278,9 @@ export default function Inicio({
                 {lista.map(([eid, ev]) => {
                   const info = ev.info
                   const p = fechaPartes(info)
-                  const precios = ev.boletas.map(b => Number(b.precio)).filter(x => x > 0)
-                  const esAdminEv = ev.boletas.some(b => b.publicada_por_admin === true || b.usuarios?.es_admin === true)
+                  // "desde": el precio final más bajo, calculando cada boleta con su regla (propia o de tercero)
+                  const masBarata = ev.boletas.filter(b => Number(b.precio) > 0)
+                    .reduce((m, b) => (!m || totalComprador(b.precio, b.publicada_por_admin === true) < totalComprador(m.precio, m.publicada_por_admin === true) ? b : m), null)
                   const [e1, e2] = esArtisticoInfo(info) ? [] : extraerEquipos(info?.nombre || '')
                   const abrir = () => (ev.sinBoletas ? venderParaEvento(eid) : abrirEvento(eid, ev))
                   return (
@@ -312,7 +314,7 @@ export default function Inicio({
                           ) : (
                             <>
                               <span className="ini-fila-desde">desde</span>
-                              <span className="ini-fila-valor ini-cifra">{calcularTotal(Math.min(...precios), info?.moneda || 'COP', esAdminEv)}</span>
+                              <span className="ini-fila-valor ini-cifra">{masBarata ? calcularTotal(masBarata.precio, info?.moneda || 'COP', masBarata.publicada_por_admin === true) : '—'}</span>
                               <span className="ini-fila-n">{ev.boletas.length} disponible{ev.boletas.length !== 1 ? 's' : ''}</span>
                             </>
                           )}
