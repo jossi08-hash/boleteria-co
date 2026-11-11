@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import EscudoSVG from '../componentes/EscudoSVG'
 import { extraerEquipos } from '../lib/equipos'
 import { esArtistico } from '../lib/categorias'
@@ -113,18 +113,45 @@ export default function Inicio({
     'Solo cesión oficial: TuBoletaPass · Quentro · W Arena · DIM Plus · Ticketmaster',
   ]
 
-  // Boleta de ejemplo: el próximo evento con boletas, si existe
-  const muestra = deportivos.find(([, ev]) => !ev.sinBoletas)
-  const muestraInfo = muestra?.[1].info
-  const muestraBoleta = muestra?.[1].boletas.reduce((m, b) => (Number(b.precio) < Number(m.precio) ? b : m))
-  const muestraFecha = fechaPartes(muestraInfo)
-  // Sin boletas publicadas, la boleta de ejemplo usa datos ilustrativos (marcados como ejemplo)
-  const ejemplo = {
-    nombre: muestraInfo?.nombre || 'Millonarios vs Nacional',
-    lugar: [muestraInfo?.estadio, muestraInfo?.ciudad].filter(Boolean).join(' · ') || 'El Campín · Bogotá',
-    tribuna: muestraBoleta?.tribuna || 'Oriental',
-    fecha: muestraFecha ? `${muestraFecha.dia} ${muestraFecha.mes}` : fechaEjemplo(),
-    total: calcularTotal(muestraBoleta ? muestraBoleta.precio : 160000, muestraInfo?.moneda || 'COP'),
+  // Boleta del inicio: rota por las boletas disponibles (una por evento y tribuna, la más barata).
+  // Sin boletas publicadas, muestra un ejemplo ilustrativo marcado como tal.
+  const ofertas = useMemo(() => todos
+    .filter(([, ev]) => !ev.sinBoletas)
+    .flatMap(([eid, ev]) => {
+      const porTribuna = {}
+      ev.boletas.forEach(b => {
+        const propia = b.publicada_por_admin === true
+        const total = totalComprador(b.precio, propia)
+        const t = (porTribuna[b.tribuna || ''] ||= { total, precio: b.precio, propia, cantidad: 0 })
+        t.cantidad += Number(b.cantidad || 1)
+        if (total < t.total) Object.assign(t, { total, precio: b.precio, propia })
+      })
+      const f = fechaPartes(ev.info)
+      return Object.entries(porTribuna).sort((x, y) => x[1].total - y[1].total).map(([tribuna, t]) => ({
+        eid, ev, tribuna, cantidad: t.cantidad,
+        nombre: ev.info?.nombre || 'Evento',
+        lugar: [ev.info?.estadio, ev.info?.ciudad].filter(Boolean).join(' · '),
+        fecha: f ? `${f.semana} ${f.dia} ${f.mes}` : '',
+        total: calcularTotal(t.precio, ev.info?.moneda || 'COP', t.propia),
+      }))
+    })
+    .slice(0, 12), [todos, calcularTotal])
+
+  const [vista, setVista] = useState(0)
+  const [pausa, setPausa] = useState(false)
+  useEffect(() => {
+    if (ofertas.length < 2 || pausa || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const t = setInterval(() => setVista(v => (v + 1) % ofertas.length), 3800)
+    return () => clearInterval(t)
+  }, [ofertas.length, pausa])
+
+  const oferta = ofertas.length ? ofertas[vista % ofertas.length] : null
+  const ejemplo = oferta || {
+    nombre: 'Millonarios vs Nacional',
+    lugar: 'El Campín · Bogotá',
+    tribuna: 'Oriental',
+    fecha: fechaEjemplo(),
+    total: calcularTotal(160000, 'COP'),
   }
 
   function buscar(e) {
@@ -180,8 +207,14 @@ export default function Inicio({
 
         <div className="ini-escena">
           <AnilloBoletas />
-          <article className="ini-boleta-muestra" aria-label="Ejemplo de una compra en custodia">
-            <div className="ini-muestra-cuerpo">
+          <article
+            className={`ini-boleta-muestra${oferta ? ' ini-boleta-viva' : ''}`}
+            aria-label={oferta ? `Boletas disponibles: ${oferta.nombre}, tribuna ${oferta.tribuna}, ${oferta.total}` : 'Ejemplo de una compra en custodia'}
+            onMouseEnter={() => setPausa(true)} onMouseLeave={() => setPausa(false)}
+            onClick={oferta ? () => abrirEvento(oferta.eid, oferta.ev) : undefined}
+          >
+            {oferta && <p className="ini-muestra-aviso"><span className="ini-punto" />Disponibles ahora</p>}
+            <div className="ini-muestra-cuerpo" key={oferta ? `${oferta.eid}-${oferta.tribuna}` : 'ejemplo'}>
               <p className="ini-muestra-evento">{ejemplo.nombre}</p>
               <p className="ini-muestra-lugar">{ejemplo.lugar}</p>
               <dl className="ini-muestra-datos">
@@ -189,7 +222,11 @@ export default function Inicio({
                 <div><dt>Fecha</dt><dd>{ejemplo.fecha}</dd></div>
                 <div><dt>Total</dt><dd className="ini-cifra">{ejemplo.total}</dd></div>
               </dl>
-              <p className="ini-muestra-pie">Boleta de muestra · datos ilustrativos</p>
+              <p className="ini-muestra-pie">
+                {oferta
+                  ? `${oferta.cantidad} ${oferta.cantidad === 1 ? 'boleta' : 'boletas'} · precio final por boleta${ofertas.length > 1 ? ` · ${(vista % ofertas.length) + 1}/${ofertas.length}` : ''}`
+                  : 'Boleta de muestra · datos ilustrativos'}
+              </p>
             </div>
             <div className="ini-muestra-talon">
               <span className="ini-sello">En<br />custodia</span>
@@ -201,7 +238,9 @@ export default function Inicio({
                   <feDisplacementMap in="tinta" in2="ruido" scale="1.6" />
                 </filter>
               </svg>
-              <p>Se libera cuando confirmas o a las 72 h</p>
+              {oferta
+                ? <button type="button" className="ini-muestra-ver" onClick={e => { e.stopPropagation(); abrirEvento(oferta.eid, oferta.ev) }}>Ver boletas <IconoFlecha /></button>
+                : <p>Se libera cuando confirmas o a las 72 h</p>}
             </div>
           </article>
         </div>
