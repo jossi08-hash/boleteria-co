@@ -25,11 +25,11 @@ export function referenciaValida(ref) {
 
 // Total que debe pagar el comprador por una boleta (misma fórmula que el frontend)
 // Misma fórmula que totalComprador en src/lib/pagos.js: las propias suman la tarifa de Wompi
-// (2,65 % + $700, más IVA) para que llegue completo el precio; las de terceros, ~15 %.
+// (2,65 % + $700, más IVA) y la retención del 1,5 % para que llegue completo el precio; las de terceros, ~15 %.
 export function totalEsperado(boleta) {
   const precio = Number(boleta?.precio || 0)
   if (!precio) return 0
-  if (boleta?.publicada_por_admin === true) return Math.ceil((precio + 700 * 1.19) / (1 - 0.0265 * 1.19) / 1000) * 1000
+  if (boleta?.publicada_por_admin === true) return Math.ceil((precio + 700 * 1.19) / (1 - 0.0265 * 1.19 - 0.015) / 1000) * 1000
   return Math.round(precio * 1.15 / 1000) * 1000
 }
 

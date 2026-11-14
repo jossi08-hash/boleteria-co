@@ -11,7 +11,7 @@ function reset() {
   calls = []
   db = { ordenes: [
     { id:'o1', codigo_orden:'BCO-ABC1234', total:115000, estado_pago:'pendiente', comprador_id:'c1', boleta_id:'b1', boletas:{ id:'b1', precio:100000, publicada_por_admin:false, eventos:{nombre:'Santa Fe vs Millos'}, usuarios:{correo:'vend@x.com', nombre:'Vend'} } },
-    { id:'o2', codigo_orden:'BCO-ABC1234-2', total:50000, estado_pago:'pendiente', comprador_id:'c1', boleta_id:'b2', boletas:{ id:'b2', precio:50000, publicada_por_admin:true, eventos:{nombre:'Santa Fe vs Millos'}, usuarios:{correo:'admin@x.com'} } },
+    { id:'o2', codigo_orden:'BCO-ABC1234-2', total:54000, estado_pago:'pendiente', comprador_id:'c1', boleta_id:'b2', boletas:{ id:'b2', precio:50000, publicada_por_admin:true, eventos:{nombre:'Santa Fe vs Millos'}, usuarios:{correo:'admin@x.com'} } },
     { id:'o3', codigo_orden:'BCO-ZZZ9999', total:1000, estado_pago:'pendiente', comprador_id:'c2', boleta_id:'b3', boletas:{ id:'b3', precio:80000, publicada_por_admin:false } },
   ]}
 }
@@ -30,9 +30,9 @@ globalThis.fetch = async (url, opts={}) => {
   }
   if (url.includes('wompi.co/v1/transactions/')) {
     const id = url.split('/').pop()
-    return ok({ data: id==='tx-ok' ? {status:'APPROVED', reference:'BCO-ABC1234', amount_in_cents:16500000}
+    return ok({ data: id==='tx-ok' ? {status:'APPROVED', reference:'BCO-ABC1234', amount_in_cents:16900000}
                     : id==='tx-barato' ? {status:'APPROVED', reference:'BCO-ZZZ9999', amount_in_cents:100000}
-                    : {status:'DECLINED', reference:'BCO-ABC1234', amount_in_cents:16500000} })
+                    : {status:'DECLINED', reference:'BCO-ABC1234', amount_in_cents:16900000} })
   }
   const u = new URL(url)
   if (u.pathname.endsWith('/usuarios')) {
@@ -71,12 +71,13 @@ const lib = await import(R+'_lib/pagos.js')
 for (const precio of [100000, 87300, 50000, 12345]) {
   const front = precio + (Math.round(precio*1.15/1000)*1000 - precio)
   assert.equal(lib.totalEsperado({precio}), front)
-  assert.equal(lib.totalEsperado({precio, publicada_por_admin:true}), precio)
+  const propia = Math.ceil((precio + 700 * 1.19) / (1 - 0.0265 * 1.19 - 0.015) / 1000) * 1000
+  assert.equal(lib.totalEsperado({precio, publicada_por_admin:true}), propia)
 }
 assert.equal(lib.referenciaValida('BCO-ABC1234'), true); assert.equal(lib.referenciaValida('BCO-X),id.neq.(0'), false)
 console.log('✓ fórmula y validación de referencia')
 
-// 2. confirmar-pago: carrito de 2 (115.000 + 50.000 admin) aprobado
+// 2. confirmar-pago: carrito de 2 (115.000 + 54.000 admin) aprobado
 reset()
 const confirmar = (await import(R+'confirmar-pago.js')).default
 let r = await (await confirmar(post({transaccionId:'tx-ok'}))).json()
@@ -117,7 +118,7 @@ const evento = (tx, secret='evsecret') => {
   return e
 }
 reset()
-const tx = {id:'1-2', status:'APPROVED', reference:'BCO-ABC1234', amount_in_cents:16500000}
+const tx = {id:'1-2', status:'APPROVED', reference:'BCO-ABC1234', amount_in_cents:16900000}
 assert.equal((await webhook(post(evento(tx, 'otro')))).status, 401)
 const falso = evento(tx); falso.data.transaction = {...tx, amount_in_cents: 100}
 assert.equal((await webhook(post(falso))).status, 401)
@@ -131,7 +132,7 @@ console.log('✓ webhook: firma falsa → 401, firma válida → confirma')
 // 4. integrity
 const integrity = (await import(R+'integrity.js')).default
 reset()
-assert.equal((await integrity(post({reference:'BCO-ABC1234', amount:16500000, currency:'COP'}))).status, 200)
+assert.equal((await integrity(post({reference:'BCO-ABC1234', amount:16900000, currency:'COP'}))).status, 200)
 assert.equal((await integrity(post({reference:'BCO-ABC1234', amount:11500000, currency:'COP'}))).status, 400)
 assert.equal((await integrity(post({reference:'BCO-ZZZ9999', amount:100000, currency:'COP'}))).status, 400)
 console.log('✓ integrity: carrito correcto firma; monto parcial o manipulado se rechaza')
@@ -142,7 +143,7 @@ reset()
 assert.equal((await liberar(new Request('https://x', {headers:{}}))).status, 401)
 assert.equal((await liberar(new Request('https://x', {headers:{authorization:'Bearer mal'}}))).status, 401)
 r = await (await liberar(new Request('https://x', {headers:{authorization:'Bearer cron'}}))).json()
-assert.deepEqual(r, {ok:true, liberadas:2, porPagar:1, reservasVencidas:0})
+assert.deepEqual(r, {ok:true, liberadas:2, porPagar:1, reservasVencidas:0, ocultadas:0})
 assert.ok(calls.some(c => c.m==='PATCH' && c.url.includes('/boletas?estado=eq.reservada&reservada_hasta=lt.')))
 const c = correos()[0]; assert.ok(c.subject.includes('1 pago')); assert.ok(c.html.includes('$92.000'))
 reset(); r = await (await liberar(new Request('https://x', {headers:{'x-cron-secret':'cron'}}))).json(); assert.equal(r.ok, true)
@@ -199,7 +200,7 @@ reset()
 let h = await (await eventoHtml(new Request('https://www.boleteriaco.com/api/evento-html?id='+EVENTO))).text()
 assert.ok(h.includes('<title>Santa Fe vs Millonarios · domingo, 18 de octubre · Boletería CO</title>') || h.includes('<title>Santa Fe vs Millonarios · domingo 18 de octubre · Boletería CO</title>'), h.match(/<title>[^<]*/)[0])
 assert.ok(h.includes('property="og:title" content="Santa Fe vs Millonarios'))
-assert.ok(h.includes('Boletas desde $80.000'))          // la del admin no paga comisión: 80.000 < 115.000
+assert.ok(h.includes('Boletas desde $85.000'))          // la del admin suma solo Wompi y retención: 85.000 < 115.000
 assert.ok(h.includes('href="https://boleteriaco.com/evento/'+EVENTO+'"'))
 assert.ok(h.includes('<div id="root">'))                // sigue siendo la app
 PRECIOS_EVENTO = [{precio:100000, publicada_por_admin:false}]      // $115.000: "$1" no debe tomarse como grupo

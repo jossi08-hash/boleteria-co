@@ -37,17 +37,18 @@ export default function PagoPendiente({ orden, hace, onMarcarPagado }) {
 
       <div style={{ display: 'flex', height: '24px', borderRadius: '6px', overflow: 'hidden', fontSize: '11px', fontWeight: 700 }}>
         <div style={{ width: pct(d.vendedor) + '%', background: 'rgba(74,222,128,0.18)', color: C.verde, display: 'flex', alignItems: 'center', paddingLeft: '8px', whiteSpace: 'nowrap', overflow: 'hidden' }}>{nombre.split(' ')[0]}</div>
-        <div style={{ width: pct(d.wompi) + '%', background: 'rgba(248,113,113,0.3)' }} title={`Wompi ${pesos(d.wompi)}`} />
+        <div style={{ width: pct(d.wompi + d.retencion) + '%', background: 'rgba(248,113,113,0.3)' }} title={`Wompi ${pesos(d.wompi + d.retencion)}`} />
         <div style={{ width: pct(d.queda) + '%', background: 'rgba(255,226,59,0.2)', color: C.amarillo, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Tú</div>
       </div>
       <div style={{ display: 'flex', gap: '12px', fontSize: '11px', color: C.mudo, margin: '6px 0 12px', flexWrap: 'wrap' }}>
         <span><span style={{ color: C.verde }}>■</span> Vendedor {pesos(d.vendedor)}</span>
-        <span><span style={{ color: C.rojo }}>■</span> Wompi ≈ {pesos(d.wompi)}</span>
+        <span><span style={{ color: C.rojo }}>■</span> Wompi y retención ≈ {pesos(d.wompi + d.retencion)}</span>
         <span><span style={{ color: C.amarillo }}>■</span> Tú ≈ {pesos(d.queda)}</span>
       </div>
 
       <Fila label="El comprador pagó" valor={pesos(d.total)} color={C.texto} />
       <Fila label={`− Tarifa Wompi${estimada}`} valor={'− ' + pesos(d.wompi)} />
+      <Fila label="− Retención en la fuente 1,5 %" valor={'− ' + pesos(d.retencion)} />
       <Fila label="Te llegó" valor={pesos(d.llego)} color={C.texto} borde />
       <Fila label={`− Comisión 8 % de ${pesos(d.precio)}`} valor={'− ' + pesos(d.comision)} />
       <Fila label={`Transferir a ${nombre.split(' ')[0]}`} valor={pesos(d.vendedor)} color={C.verde} borde fuerte />
